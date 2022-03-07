@@ -22,6 +22,14 @@
       {
         "command": "hardwario-tower.upload",
         "title": "HARDWARIO Tower Upload"
+      },
+      {
+        "command": "hardwario-tower.clear",
+        "title": "HARDWARIO Tower Clear"
+      },
+      {
+        "command": "hardwario-tower.log",
+        "title": "HARDWARIO Tower Log"
       }
     ]
   },

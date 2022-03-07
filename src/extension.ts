@@ -12,48 +12,13 @@ import AdmZip = require("adm-zip");
 let bctDone : boolean = false;
 let terminal = new Term.Terminal();
 
+let contextGlobal: vscode.ExtensionContext;
+
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
 	
-	//console.log('Congratulations, your extension "hardwario-tower" is now active!');
-
-	createToolbar(context);
-
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with registerCommand
-	// The commandId parameter must match the command field in package.json
-	let disposable = vscode.commands.registerCommand('hardwario-tower.compile', () => {
-		// The code you place here will be executed every time your command is executed
-		// Display a message box to the user
-		vscode.window.showInformationMessage('Compiling');
-		if(!bctDone)
-		{
-			//terminal.get().sendText("bct");
-			bctDone = true;
-		}
-		terminal.get().sendText("python -m pip install bcf");
-		terminal.get().sendText("python -m pip install bch");
-		terminal.get().sendText("python -m pip install bcg");
-		terminal.get().show();
-	});
-
-	context.subscriptions.push(disposable);
-
-	let uploadcommand = vscode.commands.registerCommand('hardwario-tower.upload', () => {
-		// The code you place here will be executed every time your command is executed
-		// Display a message box to the user
-		vscode.window.showInformationMessage('Compiling');
-		if(!bctDone)
-		{
-			terminal.get().sendText("bct");
-			bctDone = true;
-		}
-		terminal.get().sendText("bcf flash");
-		terminal.get().show();
-	});
-
-	context.subscriptions.push(uploadcommand);
+	contextGlobal = context;
 
 	let homePath = process.env.USERPROFILE || 'Home';
 
@@ -83,6 +48,10 @@ export function activate(context: vscode.ExtensionContext) {
 	{
 		installer.installPortablePython(pythonTemp);
 	}
+	else
+	{
+		postInstall();
+	}
 }
 
 export function postInstall()
@@ -103,6 +72,60 @@ export function postInstall()
 	terminal.get().sendText(install_pip_text);
 	terminal.get().show();
 	vscode.window.showInformationMessage("Instalation done");
+	createToolbar(contextGlobal);
+
+	let compileCommand = vscode.commands.registerCommand('hardwario-tower.compile', () => {
+		vscode.window.showInformationMessage('Compiling');
+		if(!bctDone)
+		{
+			terminal.get().sendText("bct");
+			bctDone = true;
+		}
+		terminal.get().sendText("make -j8");
+		terminal.get().show();
+	});
+
+	contextGlobal.subscriptions.push(compileCommand);
+
+	let uploadcommand = vscode.commands.registerCommand('hardwario-tower.upload', () => {
+		vscode.window.showInformationMessage('Uploading');
+		if(!bctDone)
+		{
+			terminal.get().sendText("bct");
+			bctDone = true;
+		}
+		terminal.get().sendText("make -j8");
+		terminal.get().sendText("bcf flash");
+		terminal.get().show();
+	});
+
+	contextGlobal.subscriptions.push(uploadcommand);
+
+	let clearCommand = vscode.commands.registerCommand('hardwario-tower.clear', () => {
+		vscode.window.showInformationMessage('Clearing');
+		if(!bctDone)
+		{
+			terminal.get().sendText("bct");
+			bctDone = true;
+		}
+		terminal.get().sendText("make clean");
+		terminal.get().show();
+	});
+
+	contextGlobal.subscriptions.push(clearCommand);
+
+	let logCommand = vscode.commands.registerCommand('hardwario-tower.log', () => {
+		vscode.window.showInformationMessage('Clearing');
+		if(!bctDone)
+		{
+			terminal.get().sendText("bct");
+			bctDone = true;
+		}
+		terminal.get().sendText("bcf log");
+		terminal.get().show();
+	});
+
+	contextGlobal.subscriptions.push(logCommand);
 }
 
 function createToolbar(context: vscode.ExtensionContext)
@@ -130,6 +153,30 @@ function createToolbar(context: vscode.ExtensionContext)
 	upload.command = 'hardwario-tower.upload';
 	upload.show();
 	context.subscriptions.push(upload);
+
+	const clear = vscode.window.createStatusBarItem(
+		'toolbar',
+		vscode.StatusBarAlignment.Left,
+		1);
+
+	clear.name = 'HARDWARIO: Toolbar';
+	clear.text = 'Clear';
+	clear.tooltip = 'Clear build';
+	clear.command = 'hardwario-tower.clear';
+	clear.show();
+	context.subscriptions.push(clear);
+
+	const log = vscode.window.createStatusBarItem(
+		'toolbar',
+		vscode.StatusBarAlignment.Left,
+		1);
+
+	log.name = 'HARDWARIO: Toolbar';
+	log.text = 'Log';
+	log.tooltip = 'Log output';
+	log.command = 'hardwario-tower.log';
+	log.show();
+	context.subscriptions.push(log);
 }
 
 // this method is called when your extension is deactivated
