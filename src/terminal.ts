@@ -1,21 +1,29 @@
 import * as vscode from 'vscode';
 
-export default class Terminal
+export class Terminal
 {
-    _instance : Terminal;
+    _instance: any;
     constructor() {
-        this._instance = new Terminal();
+        this._instance = null;
     }
 
-    newTerminal()
+    get()
     {
-        const envClone = Object.create(process.env);
-		envClone.PATH = "C:\\Users\\Kubaa\\BigClown_Toolchain\\script";
-		envClone.Path = "C:\\Users\\Kubaa\\BigClown_Toolchain\\script";
-		return vscode.window.createTerminal({
-			name: 'HARDWARIO TOWER',
-			env: envClone,
-			shellPath: "C:\\Windows\\System32\\cmd.exe"
-		  });
+        if(this._instance === null)
+        {
+            const envClone = Object.create(process.env);
+            envClone.PATH = "C:\\Users\\Kubaa\\BigClown_Toolchain\\script;C:\\Users\\Kubaa\\.hardwario;C:\\Users\\Kubaa\\.hardwario\\python";
+            envClone.Path = "C:\\Users\\Kubaa\\BigClown_Toolchain\\script;C:\\Users\\Kubaa\\.hardwario;C:\\Users\\Kubaa\\.hardwario\\python";
+            this._instance = vscode.window.createTerminal({
+                name: 'HARDWARIO TOWER',
+                env: envClone,
+                shellPath: "C:\\Windows\\System32\\cmd.exe"
+              });
+            return this._instance;
+        }
+        else
+        {
+            return this._instance;
+        }
     }
 }
