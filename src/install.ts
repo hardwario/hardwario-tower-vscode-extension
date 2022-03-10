@@ -73,7 +73,7 @@ async function pipFinishCallback()
 {
     let homePath = process.env.USERPROFILE || 'Home';
 
-    let hardwarioDir = path.join(homePath, '.hardwario');
+    let hardwarioDir = path.join(homePath, '.hardwario/tower');
 	let pythonDir = path.join(hardwarioDir, 'python');
     
     const result = await FindFiles(pythonDir, /\_pth$/);
@@ -107,7 +107,8 @@ async function callbackFinish()
 {
     let homePath = process.env.USERPROFILE || 'Home';
 
-    let hardwarioDir = path.join(homePath, '.hardwario');
+    let hardwarioHomeDir = path.join(homePath, '.hardwario');
+    let hardwarioDir = path.join(hardwarioHomeDir, 'tower');
 	let tempDir = path.join(hardwarioDir, 'temp');
 	let pythonTemp = path.join(tempDir, 'python.zip');
 	let pythonDir = path.join(hardwarioDir, 'python');

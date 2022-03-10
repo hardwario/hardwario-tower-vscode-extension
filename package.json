@@ -31,7 +31,26 @@
         "command": "hardwario-tower.log",
         "title": "HARDWARIO Tower Log"
       }
-    ]
+    ],
+    "viewsContainers": {
+			"activitybar": [
+				{
+					"id": "hardwario-tower",
+					"title": "HARDWARIO Tower",
+					"icon": "media/logo.svg"
+				}
+			]
+		},
+    "views": {
+			"hardwario-tower": [
+				{
+					"id": "pallete",
+					"name": "Pallete",
+					"icon": "media/logo.svg",
+					"contextualTitle": "HARDWARIO Tower"
+				}
+			]
+		}
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",

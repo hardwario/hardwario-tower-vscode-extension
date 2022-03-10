@@ -12,12 +12,11 @@ export class Terminal
         if(this._instance === null)
         {
             const envClone = Object.create(process.env);
-            envClone.PATH = "C:\\Users\\Kubaa\\BigClown_Toolchain\\script;C:\\Users\\Kubaa\\.hardwario;C:\\Users\\Kubaa\\.hardwario\\python";
-            envClone.Path = "C:\\Users\\Kubaa\\BigClown_Toolchain\\script;C:\\Users\\Kubaa\\.hardwario;C:\\Users\\Kubaa\\.hardwario\\python";
+            envClone.PATH = "C:\\Users\\Kubaa\\.hardwario\\tower\\python;C:\\Users\\Kubaa\\.hardwario\\tower\\toolchain\\make\\bin;C:\\Users\\Kubaa\\.hardwario\\tower\\toolchain\\gcc\\bin;C:\\Users\\Kubaa\\.hardwario\\tower\\toolchain\\gcc\\arm-none-eabi\\bin;C:\\Users\\Kubaa\\.hardwario\\tower\\toolchain\\git\\usr\\bin;C:\\Users\\Kubaa\\.hardwario\\tower\\toolchain\\git\\mingw64\\bin;C:\\Users\\Kubaa\\.hardwario\\tower\\toolchain\\git\\cmd";
+            envClone.Path = "C:\\Users\\Kubaa\\.hardwario\\tower\\python;C:\\Users\\Kubaa\\.hardwario\\tower\\toolchain\\make\\bin;C:\\Users\\Kubaa\\.hardwario\\tower\\toolchain\\gcc\\bin;C:\\Users\\Kubaa\\.hardwario\\tower\\toolchain\\gcc\\arm-none-eabi\\bin;C:\\Users\\Kubaa\\.hardwario\\tower\\toolchain\\git\\usr\\bin;C:\\Users\\Kubaa\\.hardwario\\tower\\toolchain\\git\\mingw64\\bin;C:\\Users\\Kubaa\\.hardwario\\tower\\toolchain\\git\\cmd";
             this._instance = vscode.window.createTerminal({
                 name: 'HARDWARIO TOWER',
                 env: envClone,
-                shellPath: "C:\\Windows\\System32\\cmd.exe"
               });
             return this._instance;
         }

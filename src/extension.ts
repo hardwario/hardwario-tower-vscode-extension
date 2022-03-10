@@ -4,6 +4,8 @@ import * as vscode from 'vscode';
 import * as Term from './terminal';
 import * as installer from './install';
 
+import { PalleteProvider, PalleteCommand } from './pallete';
+
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -22,13 +24,18 @@ export function activate(context: vscode.ExtensionContext) {
 
 	let homePath = process.env.USERPROFILE || 'Home';
 
-	let hardwarioDir = path.join(homePath, '.hardwario');
+	let hardwarioHomeDir = path.join(homePath, '.hardwario');
+    let hardwarioDir = path.join(hardwarioHomeDir, 'tower');
 	let tempDir = path.join(hardwarioDir, 'temp');
 	let pythonTemp = path.join(tempDir, 'python.zip');
 	let pythonDir = path.join(hardwarioDir, 'python');
 	let pythonExecutable = path.join(pythonDir, 'python.exe');
 
 	vscode.window.showInformationMessage("Installation started");
+
+	if (!fs.existsSync(hardwarioHomeDir)){
+		fs.mkdirSync(hardwarioHomeDir);
+	}
 
 	if (!fs.existsSync(hardwarioDir)){
 		fs.mkdirSync(hardwarioDir);
@@ -58,7 +65,8 @@ export function postInstall()
 {
 	let homePath = process.env.USERPROFILE || 'Home';
 
-	let hardwarioDir = path.join(homePath, '.hardwario');
+	let hardwarioHomeDir = path.join(homePath, '.hardwario');
+    let hardwarioDir = path.join(hardwarioHomeDir, 'tower');
 	let tempDir = path.join(hardwarioDir, 'temp');
 	let pythonTemp = path.join(tempDir, 'python.zip');
 	let pythonDir = path.join(hardwarioDir, 'python');
@@ -69,19 +77,21 @@ export function postInstall()
 	let install_pip_text = new String("python ");
 	install_pip_text = install_pip_text.concat(path_to_pip);
 
+	terminal.get().sendText('python -m pip install bcf');
 	terminal.get().sendText(install_pip_text);
+	
+	if (!fs.existsSync(path.join(hardwarioDir, "toolchain"))){
+		terminal.get().sendText('python -m pip install requests');
+		terminal.get().sendText('python install_toolchain.py');
+	}
+	
 	terminal.get().show();
 	vscode.window.showInformationMessage("Instalation done");
 	createToolbar(contextGlobal);
 
 	let compileCommand = vscode.commands.registerCommand('hardwario-tower.compile', () => {
 		vscode.window.showInformationMessage('Compiling');
-		if(!bctDone)
-		{
-			terminal.get().sendText("bct");
-			bctDone = true;
-		}
-		terminal.get().sendText("make -j8");
+		terminal.get().sendText("make -j");
 		terminal.get().show();
 	});
 
@@ -89,12 +99,7 @@ export function postInstall()
 
 	let uploadcommand = vscode.commands.registerCommand('hardwario-tower.upload', () => {
 		vscode.window.showInformationMessage('Uploading');
-		if(!bctDone)
-		{
-			terminal.get().sendText("bct");
-			bctDone = true;
-		}
-		terminal.get().sendText("make -j8");
+		terminal.get().sendText("make -j");
 		terminal.get().sendText("bcf flash");
 		terminal.get().show();
 	});
@@ -103,11 +108,6 @@ export function postInstall()
 
 	let clearCommand = vscode.commands.registerCommand('hardwario-tower.clear', () => {
 		vscode.window.showInformationMessage('Clearing');
-		if(!bctDone)
-		{
-			terminal.get().sendText("bct");
-			bctDone = true;
-		}
 		terminal.get().sendText("make clean");
 		terminal.get().show();
 	});
@@ -115,17 +115,14 @@ export function postInstall()
 	contextGlobal.subscriptions.push(clearCommand);
 
 	let logCommand = vscode.commands.registerCommand('hardwario-tower.log', () => {
-		vscode.window.showInformationMessage('Clearing');
-		if(!bctDone)
-		{
-			terminal.get().sendText("bct");
-			bctDone = true;
-		}
+		vscode.window.showInformationMessage('Logging');
 		terminal.get().sendText("bcf log");
 		terminal.get().show();
 	});
 
 	contextGlobal.subscriptions.push(logCommand);
+
+	vscode.window.registerTreeDataProvider('pallete', new PalleteProvider());
 }
 
 function createToolbar(context: vscode.ExtensionContext)
@@ -136,7 +133,7 @@ function createToolbar(context: vscode.ExtensionContext)
 		1);
 
 	compile.name = 'HARDWARIO: Toolbar';
-	compile.text = 'Compile';
+	compile.text = '$(check)';
 	compile.tooltip = 'Compile firmware';
 	compile.command = 'hardwario-tower.compile';
 	compile.show();
@@ -148,7 +145,7 @@ function createToolbar(context: vscode.ExtensionContext)
 		1);
 
 	upload.name = 'HARDWARIO: Toolbar';
-	upload.text = 'Upload';
+	upload.text = '$(arrow-up)';
 	upload.tooltip = 'Upload firmware';
 	upload.command = 'hardwario-tower.upload';
 	upload.show();
@@ -160,7 +157,7 @@ function createToolbar(context: vscode.ExtensionContext)
 		1);
 
 	clear.name = 'HARDWARIO: Toolbar';
-	clear.text = 'Clear';
+	clear.text = '$(diff-review-close)';
 	clear.tooltip = 'Clear build';
 	clear.command = 'hardwario-tower.clear';
 	clear.show();
@@ -172,7 +169,7 @@ function createToolbar(context: vscode.ExtensionContext)
 		1);
 
 	log.name = 'HARDWARIO: Toolbar';
-	log.text = 'Log';
+	log.text = '$(debug-alt)';
 	log.tooltip = 'Log output';
 	log.command = 'hardwario-tower.log';
 	log.show();
