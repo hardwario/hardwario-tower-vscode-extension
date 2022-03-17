@@ -33,24 +33,24 @@
       }
     ],
     "viewsContainers": {
-			"activitybar": [
-				{
-					"id": "hardwario-tower",
-					"title": "HARDWARIO Tower",
-					"icon": "media/logo.svg"
-				}
-			]
-		},
+      "activitybar": [
+        {
+          "id": "hardwario-tower",
+          "title": "HARDWARIO Tower",
+          "icon": "media/logo.svg"
+        }
+      ]
+    },
     "views": {
-			"hardwario-tower": [
-				{
-					"id": "pallete",
-					"name": "Pallete",
-					"icon": "media/logo.svg",
-					"contextualTitle": "HARDWARIO Tower"
-				}
-			]
-		}
+      "hardwario-tower": [
+        {
+          "id": "pallete",
+          "name": "Pallete",
+          "icon": "media/logo.svg",
+          "contextualTitle": "HARDWARIO Tower"
+        }
+      ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
@@ -75,6 +75,7 @@
   },
   "dependencies": {
     "adm-zip": "^0.5.9",
+    "command-exists": "^1.2.9",
     "file-regex": "^3.1.0",
     "request": "^2.88.2",
     "unzip": "^0.1.11"

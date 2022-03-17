@@ -4,6 +4,7 @@ import * as vscode from 'vscode';
 import * as Term from './terminal';
 import * as installer from './install';
 
+
 import { PalleteProvider, PalleteCommand } from './pallete';
 
 import * as fs from 'fs';
@@ -33,7 +34,8 @@ export function activate(context: vscode.ExtensionContext) {
 
 	vscode.window.showInformationMessage("Installation started");
 
-	if (!fs.existsSync(hardwarioHomeDir)){
+	var commandExistsSync = require('command-exists').sync;
+	/*if (!fs.existsSync(hardwarioHomeDir)){
 		fs.mkdirSync(hardwarioHomeDir);
 	}
 
@@ -56,9 +58,9 @@ export function activate(context: vscode.ExtensionContext) {
 		installer.installPortablePython(pythonTemp);
 	}
 	else
-	{
+	{*/
 		postInstall();
-	}
+	//}
 }
 
 export function postInstall()
@@ -77,13 +79,13 @@ export function postInstall()
 	let install_pip_text = new String("python ");
 	install_pip_text = install_pip_text.concat(path_to_pip);
 
-	terminal.get().sendText('python -m pip install bcf');
+	/*terminal.get().sendText('python -m pip install bcf');
 	terminal.get().sendText(install_pip_text);
 	
 	if (!fs.existsSync(path.join(hardwarioDir, "toolchain"))){
 		terminal.get().sendText('python -m pip install requests');
 		terminal.get().sendText('python install_toolchain.py');
-	}
+	}*/
 	
 	terminal.get().show();
 	vscode.window.showInformationMessage("Instalation done");
