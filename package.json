@@ -16,20 +16,28 @@
   "contributes": {
     "commands": [
       {
-        "command": "hardwario-tower.compile",
-        "title": "HARDWARIO Tower Compile"
+        "command": "hardwario-tower.build",
+        "title": "HARDWARIO Tower Flash"
       },
       {
-        "command": "hardwario-tower.upload",
-        "title": "HARDWARIO Tower Upload"
+        "command": "hardwario-tower.flash",
+        "title": "HARDWARIO Tower Build"
       },
       {
-        "command": "hardwario-tower.clear",
-        "title": "HARDWARIO Tower Clear"
+        "command": "hardwario-tower.clean",
+        "title": "HARDWARIO Tower Clean"
       },
       {
-        "command": "hardwario-tower.log",
-        "title": "HARDWARIO Tower Log"
+        "command": "hardwario-tower.console",
+        "title": "HARDWARIO Tower Console"
+      },
+      {
+        "command": "hardwario-tower.flashAndLog",
+        "title": "HARDWARIO Tower Flash and Log"
+      },
+      {
+        "command": "hardwario-tower.change_device",
+        "title": "HARDWARIO Tower Change device"
       }
     ],
     "viewsContainers": {
@@ -78,6 +86,7 @@
     "command-exists": "^1.2.9",
     "file-regex": "^3.1.0",
     "request": "^2.88.2",
-    "unzip": "^0.1.11"
+    "unzip": "^0.1.11",
+    "serialport": "^10.4.0"
   }
 }

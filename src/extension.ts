@@ -2,20 +2,32 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import * as Term from './terminal';
-import * as installer from './install';
 
-
-import { PalleteProvider, PalleteCommand } from './pallete';
+import { PaletteProvider, PaletteCommand } from './palette';
 
 import * as fs from 'fs';
 import * as path from 'path';
 
 import AdmZip = require("adm-zip");
+import { SerialPort } from 'serialport';
 
-let bctDone : boolean = false;
-let terminal = new Term.Terminal();
+import * as cp from "child_process";
+
+let buildTerminal = new Term.Terminal("HARDWARIO TOWER Build");
+let flashTerminal = new Term.Terminal("HARDWARIO TOWER Flash");
+let flashAndLogTerminal = new Term.Terminal("HARDWARIO TOWER Flash And Log");
+let consoleTerminal = new Term.Terminal("HARDWARIO TOWER Console");
+let cleanTerminal = new Term.Terminal("HARDWARIO TOWER Clean");
 
 let contextGlobal: vscode.ExtensionContext;
+
+let serialPorts;
+
+let portSelection = null;
+
+let selectedPort = "";
+
+let deviceIndex = 0;
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -23,159 +35,253 @@ export function activate(context: vscode.ExtensionContext) {
 	
 	contextGlobal = context;
 
-	let homePath = process.env.USERPROFILE || 'Home';
+	vscode.window.onDidCloseTerminal((terminal) => {
+		if(buildTerminal._instance !== null && terminal === buildTerminal.get())
+		{
+			buildTerminal._instance = null;
+		}
+		else if(flashTerminal._instance !== null &&terminal === flashTerminal.get())
+		{
+			flashTerminal._instance = null;
+		}
+		else if(consoleTerminal._instance !== null &&terminal === consoleTerminal.get())
+		{
+			consoleTerminal._instance = null;
+		}
+		else if(cleanTerminal._instance !== null &&terminal === cleanTerminal.get())
+		{
+			cleanTerminal._instance = null;
+		}
+		else if(flashAndLogTerminal._instance !== null &&terminal === flashAndLogTerminal.get())
+		{
+			flashAndLogTerminal._instance = null;
+		}
+	});
 
-	let hardwarioHomeDir = path.join(homePath, '.hardwario');
-    let hardwarioDir = path.join(hardwarioHomeDir, 'tower');
-	let tempDir = path.join(hardwarioDir, 'temp');
-	let pythonTemp = path.join(tempDir, 'python.zip');
-	let pythonDir = path.join(hardwarioDir, 'python');
-	let pythonExecutable = path.join(pythonDir, 'python.exe');
+	setInterval(()=> { 
+		SerialPort.list().then(function(ports){
+			ports.forEach(function(port){
+				console.log("Port: ", port);
+			  })
+			if(JSON.stringify(ports) === JSON.stringify(serialPorts))
+			{
+				return;
+			}
+			else
+			{
+				serialPorts = ports; 
+				if(portSelection !== null)
+				{
+					portSelection.dispose();
+					portSelection = null;
+				}
+			}
+			
+			if(portSelection === null)
+			{
+				if(deviceIndex >= serialPorts.length)
+				{
+					deviceIndex = serialPorts.length - 1;
+				}
 
-	vscode.window.showInformationMessage("Installation started");
+				if(ports.length !== 0)
+				{
+					selectedPort = ports[deviceIndex]['path'];
+				}
+				else
+				{
+					selectedPort = "";
+					deviceIndex = 0;
+				}
+				portSelection = vscode.window.createStatusBarItem(
+					'toolbar',
+					vscode.StatusBarAlignment.Left,
+					1);
+			
+				portSelection.name = 'HARDWARIO: Toolbar';
 
-	var commandExistsSync = require('command-exists').sync;
-	/*if (!fs.existsSync(hardwarioHomeDir)){
-		fs.mkdirSync(hardwarioHomeDir);
-	}
+				if(ports.length === 0)
+				{
+					portSelection.text = 'No device found!';
+				}
+				else
+				{
+					portSelection.text = 'Device: ' + ports[deviceIndex]['path'] + ' - ' + ports[deviceIndex]['serialNumber'].split('-').slice(0, 3).join('-') ;
+				}
+				portSelection.tooltip = 'Change device';
+				portSelection.command = 'hardwario-tower.change_device';
+				portSelection.show();
+				context.subscriptions.push(portSelection);
+			}
+		  });
+	}, 2000);
 
-	if (!fs.existsSync(hardwarioDir)){
-		fs.mkdirSync(hardwarioDir);
-	}
-
-	if(!fs.existsSync(pythonDir))
-	{
-		fs.mkdirSync(pythonDir);
-	}
-
-	if(!fs.existsSync(tempDir))
-	{
-		fs.mkdirSync(tempDir);
-	}
-
-	if(!fs.existsSync(pythonTemp))
-	{
-		installer.installPortablePython(pythonTemp);
-	}
-	else
-	{*/
-		postInstall();
-	//}
+	setup();
 }
 
-export function postInstall()
+export function setup()
 {
-	let homePath = process.env.USERPROFILE || 'Home';
+	let vscodepath = process.env.VSCODE_CWD;
+	let towerPath = path.join(vscodepath, 'data', 'tower');
 
-	let hardwarioHomeDir = path.join(homePath, '.hardwario');
-    let hardwarioDir = path.join(hardwarioHomeDir, 'tower');
-	let tempDir = path.join(hardwarioDir, 'temp');
-	let pythonTemp = path.join(tempDir, 'python.zip');
-	let pythonDir = path.join(hardwarioDir, 'python');
-	let pythonExecutable = path.join(pythonDir, 'python.exe');
+	let pythonPath = path.join(towerPath, 'python');
+	let pythonScriptsPath = path.join(pythonPath, 'Scripts');
 
-	let path_to_pip = path.join(pythonDir, 'get-pip.py');
+	if (!fs.existsSync(path.join(pythonScriptsPath, "bcf.exe"))) {
+		buildTerminal.get().sendText("python -m pip install bcf");
+	}
 
-	let install_pip_text = new String("python ");
-	install_pip_text = install_pip_text.concat(path_to_pip);
-
-	/*terminal.get().sendText('python -m pip install bcf');
-	terminal.get().sendText(install_pip_text);
-	
-	if (!fs.existsSync(path.join(hardwarioDir, "toolchain"))){
-		terminal.get().sendText('python -m pip install requests');
-		terminal.get().sendText('python install_toolchain.py');
-	}*/
-	
-	terminal.get().show();
-	vscode.window.showInformationMessage("Instalation done");
+	vscode.window.showInformationMessage("Setup done, you can use HARDWARIO Extension");
 	createToolbar(contextGlobal);
 
-	let compileCommand = vscode.commands.registerCommand('hardwario-tower.compile', () => {
+	let compileCommand = vscode.commands.registerCommand('hardwario-tower.build', () => {
 		vscode.window.showInformationMessage('Compiling');
-		terminal.get().sendText("make -j");
-		terminal.get().show();
+		buildTerminal.get().sendText("make -j");
+		buildTerminal.get().show();
 	});
 
 	contextGlobal.subscriptions.push(compileCommand);
 
-	let uploadcommand = vscode.commands.registerCommand('hardwario-tower.upload', () => {
+	let uploadcommand = vscode.commands.registerCommand('hardwario-tower.flash', async () => {
 		vscode.window.showInformationMessage('Uploading');
-		terminal.get().sendText("make -j");
-		terminal.get().sendText("bcf flash");
-		terminal.get().show();
+		
+		flashTerminal.get().sendText("make -j");
+		if(selectedPort !== "")
+		{
+			flashTerminal.get().sendText("bcf flash --device " + selectedPort);
+		}
+		else 
+		{
+			flashTerminal.get().sendText("bcf flash");
+		}
+		
+		flashTerminal.get().show();
 	});
 
 	contextGlobal.subscriptions.push(uploadcommand);
 
-	let clearCommand = vscode.commands.registerCommand('hardwario-tower.clear', () => {
-		vscode.window.showInformationMessage('Clearing');
-		terminal.get().sendText("make clean");
-		terminal.get().show();
+	let changeDevice = vscode.commands.registerCommand('hardwario-tower.change_device', async () => {		
+		deviceIndex++;
+		if(deviceIndex >= serialPorts.length)
+		{
+			deviceIndex = 0;
+		}
+
+		if(portSelection !== null)
+		{
+			portSelection.dispose();
+			portSelection = null;
+		}
+		if(portSelection === null)
+		{
+			selectedPort = serialPorts[deviceIndex]['path'];
+			portSelection = vscode.window.createStatusBarItem(
+				'toolbar',
+				vscode.StatusBarAlignment.Left,
+				1);
+		
+			portSelection.name = 'HARDWARIO: Toolbar';
+
+			portSelection.text = 'Device: ' + serialPorts[deviceIndex]['path'] + ' - ' + serialPorts[deviceIndex]['serialNumber'].split('-').slice(0, 3).join('-') ;
+		
+			portSelection.tooltip = 'Change device';
+			portSelection.command = 'hardwario-tower.change_device';
+			portSelection.show();
+			contextGlobal.subscriptions.push(portSelection);
+		}
+	});
+
+	contextGlobal.subscriptions.push(changeDevice);
+
+	let clearCommand = vscode.commands.registerCommand('hardwario-tower.clean', () => {
+		vscode.window.showInformationMessage('Cleaning');
+		cleanTerminal.get().sendText("make clean");
+		cleanTerminal.get().show();
 	});
 
 	contextGlobal.subscriptions.push(clearCommand);
 
-	let logCommand = vscode.commands.registerCommand('hardwario-tower.log', () => {
+	let logCommand = vscode.commands.registerCommand('hardwario-tower.console', () => {
 		vscode.window.showInformationMessage('Logging');
-		terminal.get().sendText("bcf log");
-		terminal.get().show();
+		consoleTerminal.get().sendText("bcf log");
+		consoleTerminal.get().show();
+	});
+
+	let flashAndLog = vscode.commands.registerCommand('hardwario-tower.flashAndLog', () => {
+		vscode.window.showInformationMessage('Uploading and logging');
+
+		if(flashAndLogTerminal._instance !== null)
+		{
+			flashAndLogTerminal.get().dispose();
+			flashAndLogTerminal._instance = null;
+		}
+
+		flashAndLogTerminal.get().sendText("make -j");
+		if(selectedPort !== "")
+		{
+			flashAndLogTerminal.get().sendText("bcf flash --log --device " + selectedPort);
+		}
+		else 
+		{
+			flashAndLogTerminal.get().sendText("bcf flash --log");
+		}
+		flashAndLogTerminal.get().show();
 	});
 
 	contextGlobal.subscriptions.push(logCommand);
 
-	vscode.window.registerTreeDataProvider('pallete', new PalleteProvider());
+	vscode.window.registerTreeDataProvider('pallete', new PaletteProvider());
 }
 
 function createToolbar(context: vscode.ExtensionContext)
 {
-	const compile = vscode.window.createStatusBarItem(
+	const build = vscode.window.createStatusBarItem(
 		'toolbar',
 		vscode.StatusBarAlignment.Left,
 		1);
 
-	compile.name = 'HARDWARIO: Toolbar';
-	compile.text = '$(check)';
-	compile.tooltip = 'Compile firmware';
-	compile.command = 'hardwario-tower.compile';
-	compile.show();
-	context.subscriptions.push(compile);
+	build.name = 'HARDWARIO: Toolbar';
+	build.text = '$(check)';
+	build.tooltip = 'Build firmware';
+	build.command = 'hardwario-tower.build';
+	build.show();
+	context.subscriptions.push(build);
 
-	const upload = vscode.window.createStatusBarItem(
+	const flash = vscode.window.createStatusBarItem(
 		'toolbar',
 		vscode.StatusBarAlignment.Left,
 		1);
 
-	upload.name = 'HARDWARIO: Toolbar';
-	upload.text = '$(arrow-up)';
-	upload.tooltip = 'Upload firmware';
-	upload.command = 'hardwario-tower.upload';
-	upload.show();
-	context.subscriptions.push(upload);
+	flash.name = 'HARDWARIO: Toolbar';
+	flash.text = '$(arrow-up)';
+	flash.tooltip = 'Flash firmware';
+	flash.command = 'hardwario-tower.flash';
+	flash.show();
+	context.subscriptions.push(flash);
 
-	const clear = vscode.window.createStatusBarItem(
+	const clean = vscode.window.createStatusBarItem(
 		'toolbar',
 		vscode.StatusBarAlignment.Left,
 		1);
 
-	clear.name = 'HARDWARIO: Toolbar';
-	clear.text = '$(diff-review-close)';
-	clear.tooltip = 'Clear build';
-	clear.command = 'hardwario-tower.clear';
-	clear.show();
-	context.subscriptions.push(clear);
+	clean.name = 'HARDWARIO: Toolbar';
+	clean.text = '$(diff-review-close)';
+	clean.tooltip = 'Clean output';
+	clean.command = 'hardwario-tower.clean';
+	clean.show();
+	context.subscriptions.push(clean);
 
-	const log = vscode.window.createStatusBarItem(
+	const console = vscode.window.createStatusBarItem(
 		'toolbar',
 		vscode.StatusBarAlignment.Left,
 		1);
 
-	log.name = 'HARDWARIO: Toolbar';
-	log.text = '$(debug-alt)';
-	log.tooltip = 'Log output';
-	log.command = 'hardwario-tower.log';
-	log.show();
-	context.subscriptions.push(log);
+	console.name = 'HARDWARIO: Toolbar';
+	console.text = '$(debug-alt)';
+	console.tooltip = 'Open console';
+	console.command = 'hardwario-tower.console';
+	console.show();
+	context.subscriptions.push(console);
 }
 
 // this method is called when your extension is deactivated
