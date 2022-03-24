@@ -15,9 +15,12 @@ import * as cp from "child_process";
 
 let buildTerminal = new Term.Terminal("HARDWARIO TOWER Build");
 let flashTerminal = new Term.Terminal("HARDWARIO TOWER Flash");
-let flashAndLogTerminal = new Term.Terminal("HARDWARIO TOWER Flash And Log");
+let flash_and_log_terminal = new Term.Terminal("HARDWARIO TOWER Flash And Log");
 let consoleTerminal = new Term.Terminal("HARDWARIO TOWER Console");
 let cleanTerminal = new Term.Terminal("HARDWARIO TOWER Clean");
+let cloneTerminal = new Term.Terminal("HARDWARIO TOWER Clone");
+
+let lastSelectedFolder = "";
 
 let contextGlobal: vscode.ExtensionContext;
 
@@ -52,17 +55,29 @@ export function activate(context: vscode.ExtensionContext) {
 		{
 			cleanTerminal._instance = null;
 		}
-		else if(flashAndLogTerminal._instance !== null &&terminal === flashAndLogTerminal.get())
+		else if(flash_and_log_terminal._instance !== null &&terminal === flash_and_log_terminal.get())
 		{
-			flashAndLogTerminal._instance = null;
+			flash_and_log_terminal._instance = null;
+		}
+		else if(cloneTerminal._instance !== null &&terminal === cloneTerminal.get())
+		{
+			if(lastSelectedFolder !== "")
+			{
+				vscode.commands.executeCommand('vscode.openFolder', vscode.Uri.file(lastSelectedFolder));
+				lastSelectedFolder = "";
+			}
 		}
 	});
 
 	setInterval(()=> { 
 		SerialPort.list().then(function(ports){
-			ports.forEach(function(port){
+			ports.forEach(function(port, index){
+				if(port.serialNumber === undefined || (!port.serialNumber.includes('usb-dongle') && !port.serialNumber.includes('core-module')))
+				{
+					ports.splice(index, 1);
+				}
 				console.log("Port: ", port);
-			  })
+			  });
 			if(JSON.stringify(ports) === JSON.stringify(serialPorts))
 			{
 				return;
@@ -135,6 +150,7 @@ export function setup()
 	createToolbar(contextGlobal);
 
 	let compileCommand = vscode.commands.registerCommand('hardwario-tower.build', () => {
+		vscode.workspace.saveAll();
 		vscode.window.showInformationMessage('Compiling');
 		buildTerminal.get().sendText("make -j");
 		buildTerminal.get().show();
@@ -144,6 +160,8 @@ export function setup()
 
 	let uploadcommand = vscode.commands.registerCommand('hardwario-tower.flash', async () => {
 		vscode.window.showInformationMessage('Uploading');
+
+		vscode.workspace.saveAll();
 		
 		flashTerminal.get().sendText("make -j");
 		if(selectedPort !== "")
@@ -203,32 +221,95 @@ export function setup()
 
 	let logCommand = vscode.commands.registerCommand('hardwario-tower.console', () => {
 		vscode.window.showInformationMessage('Logging');
-		consoleTerminal.get().sendText("bcf log");
-		consoleTerminal.get().show();
-	});
-
-	let flashAndLog = vscode.commands.registerCommand('hardwario-tower.flashAndLog', () => {
-		vscode.window.showInformationMessage('Uploading and logging');
-
-		if(flashAndLogTerminal._instance !== null)
-		{
-			flashAndLogTerminal.get().dispose();
-			flashAndLogTerminal._instance = null;
-		}
-
-		flashAndLogTerminal.get().sendText("make -j");
 		if(selectedPort !== "")
 		{
-			flashAndLogTerminal.get().sendText("bcf flash --log --device " + selectedPort);
+			consoleTerminal.get().sendText("bcf log --device " + selectedPort);
+		}
+		else
+		{
+			consoleTerminal.get().sendText("bcf log");
+		}
+		consoleTerminal.get().show();
+	});
+	contextGlobal.subscriptions.push(logCommand);
+
+	let flash_and_log = vscode.commands.registerCommand('hardwario-tower.flash_and_log', () => {
+		vscode.window.showInformationMessage('Uploading and logging');
+
+		vscode.workspace.saveAll();
+
+		if(flash_and_log_terminal._instance !== null)
+		{
+			flash_and_log_terminal.get().dispose();
+			flash_and_log_terminal._instance = null;
+		}
+
+		flash_and_log_terminal.get().sendText("make -j");
+		if(selectedPort !== "")
+		{
+			flash_and_log_terminal.get().sendText("bcf flash --log --device " + selectedPort);
 		}
 		else 
 		{
-			flashAndLogTerminal.get().sendText("bcf flash --log");
+			flash_and_log_terminal.get().sendText("bcf flash --log");
 		}
-		flashAndLogTerminal.get().show();
+		flash_and_log_terminal.get().show();
 	});
 
-	contextGlobal.subscriptions.push(logCommand);
+	contextGlobal.subscriptions.push(flash_and_log);
+
+	let cloneCommand = vscode.commands.registerCommand('hardwario-tower.clone_skeleton', async () => {
+		vscode.window.showInformationMessage('Cloning');
+		const options: vscode.OpenDialogOptions = {
+			canSelectMany: false,
+			canSelectFiles: false,
+			canSelectFolders: true,
+			title: "Select Empty Folder For New Firmware",
+			openLabel: "Select folder"
+	   };
+	   vscode.window.showOpenDialog(options).then(folderUri => {
+			if (folderUri) {
+				let folderUriString = folderUri[0].path.substring(1) + "/";
+				cloneTerminal.get().sendText("git clone --recursive https://github.com/hardwario/twr-tester-chester-x0.git " + folderUriString);
+				cloneTerminal.get().sendText("exit");
+				cloneTerminal.get().show();
+				console.log('Selected folder: ' + folderUri[0].path);
+				vscode.workspace.saveAll();
+
+				lastSelectedFolder = folderUriString;
+			}
+		});
+
+		vscode.window.showInformationMessage('Done');
+
+	});
+
+	contextGlobal.subscriptions.push(cloneCommand);
+
+	let documentationCommand = vscode.commands.registerCommand('hardwario-tower.open_documentation', () => {
+		vscode.env.openExternal(vscode.Uri.parse('https://tower.hardwario.com/en/latest/'));
+	});
+	contextGlobal.subscriptions.push(documentationCommand);
+
+	let shopCommand = vscode.commands.registerCommand('hardwario-tower.open_shop', () => {
+		vscode.env.openExternal(vscode.Uri.parse('https://shop.hardwario.com'));
+	});
+	contextGlobal.subscriptions.push(shopCommand);
+
+	let projectsCommand = vscode.commands.registerCommand('hardwario-tower.open_projects', () => {
+		vscode.env.openExternal(vscode.Uri.parse('https://www.hackster.io/hardwario/projects'));
+	});
+	contextGlobal.subscriptions.push(projectsCommand);
+
+	let githubCommand = vscode.commands.registerCommand('hardwario-tower.open_github', () => {
+		vscode.env.openExternal(vscode.Uri.parse('https://github.com/hardwario'));
+	});
+	contextGlobal.subscriptions.push(githubCommand);
+
+	let forumCommand = vscode.commands.registerCommand('hardwario-tower.open_forum', () => {
+		vscode.env.openExternal(vscode.Uri.parse('https://forum.hardwario.com'));
+	});
+	contextGlobal.subscriptions.push(forumCommand);
 
 	vscode.window.registerTreeDataProvider('pallete', new PaletteProvider());
 }
@@ -258,6 +339,18 @@ function createToolbar(context: vscode.ExtensionContext)
 	flash.command = 'hardwario-tower.flash';
 	flash.show();
 	context.subscriptions.push(flash);
+	
+	const console = vscode.window.createStatusBarItem(
+		'toolbar',
+		vscode.StatusBarAlignment.Left,
+		1);
+
+	console.name = 'HARDWARIO: Toolbar';
+	console.text = '$(debug-alt)';
+	console.tooltip = 'Flash and log';
+	console.command = 'hardwario-tower.flash_and_log';
+	console.show();
+	context.subscriptions.push(console);
 
 	const clean = vscode.window.createStatusBarItem(
 		'toolbar',
@@ -271,17 +364,6 @@ function createToolbar(context: vscode.ExtensionContext)
 	clean.show();
 	context.subscriptions.push(clean);
 
-	const console = vscode.window.createStatusBarItem(
-		'toolbar',
-		vscode.StatusBarAlignment.Left,
-		1);
-
-	console.name = 'HARDWARIO: Toolbar';
-	console.text = '$(debug-alt)';
-	console.tooltip = 'Open console';
-	console.command = 'hardwario-tower.console';
-	console.show();
-	context.subscriptions.push(console);
 }
 
 // this method is called when your extension is deactivated

@@ -32,12 +32,36 @@
         "title": "HARDWARIO Tower Console"
       },
       {
-        "command": "hardwario-tower.flashAndLog",
+        "command": "hardwario-tower.flash_and_log",
         "title": "HARDWARIO Tower Flash and Log"
       },
       {
         "command": "hardwario-tower.change_device",
         "title": "HARDWARIO Tower Change device"
+      },
+      {
+        "command": "hardwario-tower.clone_skeleton",
+        "title": "HARDWARIO Tower Clone firmware"
+      },
+      {
+        "command": "hardwario-tower.open_documentation",
+        "title": "HARDWARIO Tower Shop"
+      },
+      {
+        "command": "hardwario-tower.open_shop",
+        "title": "HARDWARIO Tower Documentation"
+      },
+      {
+        "command": "hardwario-tower.open_projects",
+        "title": "HARDWARIO Tower Projects"
+      },
+      {
+        "command": "hardwario-tower.open_github",
+        "title": "HARDWARIO Tower GitHub"
+      },
+      {
+        "command": "hardwario-tower.open_forum",
+        "title": "HARDWARIO Tower Forum"
       }
     ],
     "viewsContainers": {
