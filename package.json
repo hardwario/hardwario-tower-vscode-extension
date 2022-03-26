@@ -37,11 +37,15 @@
       },
       {
         "command": "hardwario-tower.change_device",
-        "title": "HARDWARIO Tower Change device"
+        "title": "HARDWARIO Tower Change Device"
       },
       {
         "command": "hardwario-tower.clone_skeleton",
-        "title": "HARDWARIO Tower Clone firmware"
+        "title": "HARDWARIO Tower Clone Firmware"
+      },
+      {
+        "command": "hardwario-tower.clone_firmware",
+        "title": "HARDWARIO Tower Clone Firmware From Template"
       },
       {
         "command": "hardwario-tower.open_documentation",
@@ -110,7 +114,7 @@
     "command-exists": "^1.2.9",
     "file-regex": "^3.1.0",
     "request": "^2.88.2",
-    "unzip": "^0.1.11",
-    "serialport": "^10.4.0"
+    "serialport": "^10.4.0",
+    "unzip": "^0.1.11"
   }
 }

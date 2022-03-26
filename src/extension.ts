@@ -2,6 +2,7 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import * as Term from './terminal';
+import * as helpers from './helpers';
 
 import { PaletteProvider, PaletteCommand } from './palette';
 
@@ -11,11 +12,14 @@ import * as path from 'path';
 import AdmZip = require("adm-zip");
 import { SerialPort } from 'serialport';
 
-import * as cp from "child_process";
+var commandExistsSync = require('command-exists').sync;
+const request = require('request');
+
+const FIRMWARE_JSON_URL = "https://firmware.hardwario.com/tower/api/v1/list";
 
 let buildTerminal = new Term.Terminal("HARDWARIO TOWER Build");
 let flashTerminal = new Term.Terminal("HARDWARIO TOWER Flash");
-let flash_and_log_terminal = new Term.Terminal("HARDWARIO TOWER Flash And Log");
+let flashAndLogTerminal = new Term.Terminal("HARDWARIO TOWER Flash And Log");
 let consoleTerminal = new Term.Terminal("HARDWARIO TOWER Console");
 let cleanTerminal = new Term.Terminal("HARDWARIO TOWER Clean");
 let cloneTerminal = new Term.Terminal("HARDWARIO TOWER Clone");
@@ -55,9 +59,9 @@ export function activate(context: vscode.ExtensionContext) {
 		{
 			cleanTerminal._instance = null;
 		}
-		else if(flash_and_log_terminal._instance !== null &&terminal === flash_and_log_terminal.get())
+		else if(flashAndLogTerminal._instance !== null &&terminal === flashAndLogTerminal.get())
 		{
-			flash_and_log_terminal._instance = null;
+			flashAndLogTerminal._instance = null;
 		}
 		else if(cloneTerminal._instance !== null &&terminal === cloneTerminal.get())
 		{
@@ -71,13 +75,18 @@ export function activate(context: vscode.ExtensionContext) {
 
 	setInterval(()=> { 
 		SerialPort.list().then(function(ports){
-			ports.forEach(function(port, index){
-				if(port.serialNumber === undefined || (!port.serialNumber.includes('usb-dongle') && !port.serialNumber.includes('core-module')))
+			let index = 0;
+			let portsLen = ports.length
+			for(let i = 0; i < portsLen; i++)
+			{
+				if(ports[index].serialNumber === undefined || (!ports[index].serialNumber.includes('usb-dongle') && !ports[index].serialNumber.includes('core-module')))
 				{
 					ports.splice(index, 1);
 				}
-				console.log("Port: ", port);
-			  });
+				else
+					index++;
+				console.log("Port: ", ports[i]);
+			}
 			if(JSON.stringify(ports) === JSON.stringify(serialPorts))
 			{
 				return;
@@ -142,9 +151,78 @@ export function setup()
 	let pythonPath = path.join(towerPath, 'python');
 	let pythonScriptsPath = path.join(pythonPath, 'Scripts');
 
-	if (!fs.existsSync(path.join(pythonScriptsPath, "bcf.exe"))) {
-		buildTerminal.get().sendText("python -m pip install bcf");
+	if(helpers.WINDOWS)
+	{
+		if (!fs.existsSync(path.join(pythonScriptsPath, "bcf.exe"))) {
+			buildTerminal.get().sendText("python -m pip install bcf");
+		}
 	}
+	else if(helpers.LINUX)
+	{
+		if (!commandExistsSync('python') || !commandExistsSync('python3') || !commandExistsSync('pip') || !commandExistsSync('pip3')) {
+			vscode.window
+			.showWarningMessage("Please install python and pip with 'sudo apt install python3', 'sudo apt install python3-pip' and restart VSCode", 
+			"How to install Python", "Cancel")
+			.then(answer => {
+				if (answer === "How to install Python") {
+					vscode.env.openExternal(vscode.Uri.parse('https://tower.hardwario.com/en/latest/firmware/platformio-installation/'));
+					return;
+				}
+			})
+			return;
+		}
+		else
+		{
+			if(!commandExistsSync('make')) {
+				vscode.window
+				.showWarningMessage("Please install make with 'sudo apt install make' and restart VSCode", 
+				"How to install make", "Cancel")
+				.then(answer => {
+					if (answer === "How to install make") {
+						vscode.env.openExternal(vscode.Uri.parse('https://tower.hardwario.com/en/latest/firmware/platformio-installation/'));
+						return;
+					}
+				})
+				return;
+			}
+			if(!commandExistsSync('git')) {
+				vscode.window
+				.showWarningMessage("Please install git with 'sudo apt install git' and restart VSCode", 
+				"How to install git", "Cancel")
+				.then(answer => {
+					if (answer === "How to install git") {
+						vscode.env.openExternal(vscode.Uri.parse('https://tower.hardwario.com/en/latest/firmware/platformio-installation/'));
+						return;
+					}
+				})
+				return;
+			}
+			if(!commandExistsSync('arm-none-eabi-gcc')) {
+				vscode.window
+				.showWarningMessage("Please install arm-none-eabi-gcc with 'sudo apt install gcc-arm-none-eabi' and restart VSCode", 
+				"How to install gcc-arm-none-eabi", "Cancel")
+				.then(answer => {
+					if (answer === "How to install gcc-arm-none-eabi") {
+						vscode.env.openExternal(vscode.Uri.parse('https://tower.hardwario.com/en/latest/firmware/platformio-installation/'));
+						return;
+					}
+				})
+				return;
+			}
+			if (!commandExistsSync(process.env.HOME + '/.local/bin/bcf')) {
+				vscode.window
+				.showWarningMessage("Please install bcf with 'pip install bcf' and restart VSCode", 
+				"How to install bcf", "Cancel")
+				.then(answer => {
+					if (answer === "How to install bcf") {
+						vscode.env.openExternal(vscode.Uri.parse('https://tower.hardwario.com/en/latest/firmware/platformio-installation/'));
+						return;
+					}
+				})
+				return;
+			}
+		}
+	}	
 
 	vscode.window.showInformationMessage("Setup done, you can use HARDWARIO Extension");
 	createToolbar(contextGlobal);
@@ -233,30 +311,30 @@ export function setup()
 	});
 	contextGlobal.subscriptions.push(logCommand);
 
-	let flash_and_log = vscode.commands.registerCommand('hardwario-tower.flash_and_log', () => {
+	let flashAndLog = vscode.commands.registerCommand('hardwario-tower.flash_and_log', () => {
 		vscode.window.showInformationMessage('Uploading and logging');
 
 		vscode.workspace.saveAll();
 
-		if(flash_and_log_terminal._instance !== null)
+		if(flashAndLogTerminal._instance !== null)
 		{
-			flash_and_log_terminal.get().dispose();
-			flash_and_log_terminal._instance = null;
+			flashAndLogTerminal.get().dispose();
+			flashAndLogTerminal._instance = null;
 		}
 
-		flash_and_log_terminal.get().sendText("make -j");
+		flashAndLogTerminal.get().sendText("make -j");
 		if(selectedPort !== "")
 		{
-			flash_and_log_terminal.get().sendText("bcf flash --log --device " + selectedPort);
+			flashAndLogTerminal.get().sendText("bcf flash --log --device " + selectedPort);
 		}
 		else 
 		{
-			flash_and_log_terminal.get().sendText("bcf flash --log");
+			flashAndLogTerminal.get().sendText("bcf flash --log");
 		}
-		flash_and_log_terminal.get().show();
+		flashAndLogTerminal.get().show();
 	});
 
-	contextGlobal.subscriptions.push(flash_and_log);
+	contextGlobal.subscriptions.push(flashAndLog);
 
 	let cloneCommand = vscode.commands.registerCommand('hardwario-tower.clone_skeleton', async () => {
 		vscode.window.showInformationMessage('Cloning');
@@ -285,6 +363,64 @@ export function setup()
 	});
 
 	contextGlobal.subscriptions.push(cloneCommand);
+
+	let cloneFromTemplateCommand = vscode.commands.registerCommand('hardwario-tower.clone_firmware', async () => {
+		vscode.window.showInformationMessage('Cloning');
+
+		
+		updateFirmwareJson()
+		.then((data : string)=>{
+			let firmwareList = [];
+			const json = JSON.parse(data);
+			
+			json.forEach(function(firmware){
+				firmwareList.push({label: firmware.name.split('/')[1], description: firmware.description, link: firmware.repository + '.git'});
+			});
+
+			const quickPickOptions: vscode.QuickPickOptions = {
+				placeHolder: "Pick firmware template",
+				canPickMany: false,
+				title: "Firmware template"
+			   };
+
+			vscode.window.showQuickPick(
+				firmwareList,
+				quickPickOptions).then(pickedItem => {
+				if(pickedItem)
+				{
+					const options: vscode.OpenDialogOptions = {
+						canSelectMany: false,
+						canSelectFiles: false,
+						canSelectFolders: true,
+						title: "Select Empty Folder For New Firmware",
+						openLabel: "Select folder"
+					   };
+	
+					vscode.window.showOpenDialog(options).then(folderUri => {
+						if (folderUri) {
+							let folderUriString = folderUri[0].path.substring(1) + "/";
+							cloneTerminal.get().sendText("git clone --recursive " + pickedItem.link + ' ' + folderUriString);
+							cloneTerminal.get().sendText("exit");
+							cloneTerminal.get().show();
+							console.log('Selected folder: ' + folderUri[0].path);
+							vscode.workspace.saveAll();
+			
+							lastSelectedFolder = folderUriString;
+						}
+					});
+				}
+			});
+		})
+		.catch((err)=>{
+			console.log("error");
+		});
+
+		
+		vscode.window.showInformationMessage('Done');
+
+	});
+
+	contextGlobal.subscriptions.push(cloneFromTemplateCommand);
 
 	let documentationCommand = vscode.commands.registerCommand('hardwario-tower.open_documentation', () => {
 		vscode.env.openExternal(vscode.Uri.parse('https://tower.hardwario.com/en/latest/'));
@@ -364,6 +500,18 @@ function createToolbar(context: vscode.ExtensionContext)
 	clean.show();
 	context.subscriptions.push(clean);
 
+}
+
+function updateFirmwareJson() {
+	process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+    return new Promise((resolve, reject) => {
+        request.get(FIRMWARE_JSON_URL, function(err, response, body) {
+
+			process.env.NODE_TLS_REJECT_UNAUTHORIZED = '1';
+        	resolve(body);
+
+    	});
+    });
 }
 
 // this method is called when your extension is deactivated

@@ -17,7 +17,7 @@ export class PaletteProvider implements vscode.TreeDataProvider<PaletteCommand> 
 			]),
 			new PaletteCommand('Firmware', [
 				new PaletteCommand('New empty firmware', undefined, 'hardwario-tower.clone_skeleton'),
-				new PaletteCommand('New firmware from template', undefined, 'hardwario-tower.clone_skeleton')
+				new PaletteCommand('New firmware from template', undefined, 'hardwario-tower.clone_firmware')
 			]),
 			new PaletteCommand('Other', [
 				new PaletteCommand('Documentation', undefined, 'hardwario-tower.open_documentation'),
