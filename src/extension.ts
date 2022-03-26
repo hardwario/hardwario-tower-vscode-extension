@@ -11,11 +11,14 @@ import * as path from 'path';
 import AdmZip = require("adm-zip");
 import { SerialPort } from 'serialport';
 
-import * as cp from "child_process";
+const request = require('request');
+
+const FIRMWARE_JSON_URL = "https://firmware.hardwario.com/tower/api/v1/list";
+let firmwareList = [];
 
 let buildTerminal = new Term.Terminal("HARDWARIO TOWER Build");
 let flashTerminal = new Term.Terminal("HARDWARIO TOWER Flash");
-let flash_and_log_terminal = new Term.Terminal("HARDWARIO TOWER Flash And Log");
+let flashAndLogTerminal = new Term.Terminal("HARDWARIO TOWER Flash And Log");
 let consoleTerminal = new Term.Terminal("HARDWARIO TOWER Console");
 let cleanTerminal = new Term.Terminal("HARDWARIO TOWER Clean");
 let cloneTerminal = new Term.Terminal("HARDWARIO TOWER Clone");
@@ -55,9 +58,9 @@ export function activate(context: vscode.ExtensionContext) {
 		{
 			cleanTerminal._instance = null;
 		}
-		else if(flash_and_log_terminal._instance !== null &&terminal === flash_and_log_terminal.get())
+		else if(flashAndLogTerminal._instance !== null &&terminal === flashAndLogTerminal.get())
 		{
-			flash_and_log_terminal._instance = null;
+			flashAndLogTerminal._instance = null;
 		}
 		else if(cloneTerminal._instance !== null &&terminal === cloneTerminal.get())
 		{
@@ -233,30 +236,30 @@ export function setup()
 	});
 	contextGlobal.subscriptions.push(logCommand);
 
-	let flash_and_log = vscode.commands.registerCommand('hardwario-tower.flash_and_log', () => {
+	let flashAndLog = vscode.commands.registerCommand('hardwario-tower.flash_and_log', () => {
 		vscode.window.showInformationMessage('Uploading and logging');
 
 		vscode.workspace.saveAll();
 
-		if(flash_and_log_terminal._instance !== null)
+		if(flashAndLogTerminal._instance !== null)
 		{
-			flash_and_log_terminal.get().dispose();
-			flash_and_log_terminal._instance = null;
+			flashAndLogTerminal.get().dispose();
+			flashAndLogTerminal._instance = null;
 		}
 
-		flash_and_log_terminal.get().sendText("make -j");
+		flashAndLogTerminal.get().sendText("make -j");
 		if(selectedPort !== "")
 		{
-			flash_and_log_terminal.get().sendText("bcf flash --log --device " + selectedPort);
+			flashAndLogTerminal.get().sendText("bcf flash --log --device " + selectedPort);
 		}
 		else 
 		{
-			flash_and_log_terminal.get().sendText("bcf flash --log");
+			flashAndLogTerminal.get().sendText("bcf flash --log");
 		}
-		flash_and_log_terminal.get().show();
+		flashAndLogTerminal.get().show();
 	});
 
-	contextGlobal.subscriptions.push(flash_and_log);
+	contextGlobal.subscriptions.push(flashAndLog);
 
 	let cloneCommand = vscode.commands.registerCommand('hardwario-tower.clone_skeleton', async () => {
 		vscode.window.showInformationMessage('Cloning');
@@ -285,6 +288,64 @@ export function setup()
 	});
 
 	contextGlobal.subscriptions.push(cloneCommand);
+
+	let cloneFromTemplateCommand = vscode.commands.registerCommand('hardwario-tower.clone_firmware', async () => {
+		vscode.window.showInformationMessage('Cloning');
+
+		
+		updateFirmwareJson()
+		.then((data : string)=>{
+			let firmwareList = [];
+			const json = JSON.parse(data);
+			
+			json.forEach(function(firmware){
+				firmwareList.push({label: firmware.name.split('/')[1], description: firmware.description, link: firmware.repository + '.git'});
+			});
+
+			const quickPickOptions: vscode.QuickPickOptions = {
+				placeHolder: "Pick firmware template",
+				canPickMany: false,
+				title: "Firmware template"
+			   };
+
+			vscode.window.showQuickPick(
+				firmwareList,
+				quickPickOptions).then(pickedItem => {
+				if(pickedItem)
+				{
+					const options: vscode.OpenDialogOptions = {
+						canSelectMany: false,
+						canSelectFiles: false,
+						canSelectFolders: true,
+						title: "Select Empty Folder For New Firmware",
+						openLabel: "Select folder"
+					   };
+	
+					vscode.window.showOpenDialog(options).then(folderUri => {
+						if (folderUri) {
+							let folderUriString = folderUri[0].path.substring(1) + "/";
+							cloneTerminal.get().sendText("git clone --recursive " + pickedItem.link + ' ' + folderUriString);
+							cloneTerminal.get().sendText("exit");
+							cloneTerminal.get().show();
+							console.log('Selected folder: ' + folderUri[0].path);
+							vscode.workspace.saveAll();
+			
+							lastSelectedFolder = folderUriString;
+						}
+					});
+				}
+			});
+		})
+		.catch((err)=>{
+			console.log("error");
+		});
+
+		
+		vscode.window.showInformationMessage('Done');
+
+	});
+
+	contextGlobal.subscriptions.push(cloneFromTemplateCommand);
 
 	let documentationCommand = vscode.commands.registerCommand('hardwario-tower.open_documentation', () => {
 		vscode.env.openExternal(vscode.Uri.parse('https://tower.hardwario.com/en/latest/'));
@@ -365,6 +426,19 @@ function createToolbar(context: vscode.ExtensionContext)
 	context.subscriptions.push(clean);
 
 }
+
+function updateFirmwareJson() {
+	process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
+    return new Promise((resolve, reject) => {
+        request.get(FIRMWARE_JSON_URL, function(err, response, body) {
+
+			process.env.NODE_TLS_REJECT_UNAUTHORIZED = '1';
+        	resolve(body);
+
+    	});
+    });
+}
+
 
 // this method is called when your extension is deactivated
 export function deactivate() {}
