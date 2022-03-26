@@ -2,6 +2,7 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import * as Term from './terminal';
+import * as helpers from './helpers';
 
 import { PaletteProvider, PaletteCommand } from './palette';
 
@@ -11,10 +12,10 @@ import * as path from 'path';
 import AdmZip = require("adm-zip");
 import { SerialPort } from 'serialport';
 
+var commandExistsSync = require('command-exists').sync;
 const request = require('request');
 
 const FIRMWARE_JSON_URL = "https://firmware.hardwario.com/tower/api/v1/list";
-let firmwareList = [];
 
 let buildTerminal = new Term.Terminal("HARDWARIO TOWER Build");
 let flashTerminal = new Term.Terminal("HARDWARIO TOWER Flash");
@@ -74,13 +75,18 @@ export function activate(context: vscode.ExtensionContext) {
 
 	setInterval(()=> { 
 		SerialPort.list().then(function(ports){
-			ports.forEach(function(port, index){
-				if(port.serialNumber === undefined || (!port.serialNumber.includes('usb-dongle') && !port.serialNumber.includes('core-module')))
+			let index = 0;
+			let portsLen = ports.length
+			for(let i = 0; i < portsLen; i++)
+			{
+				if(ports[index].serialNumber === undefined || (!ports[index].serialNumber.includes('usb-dongle') && !ports[index].serialNumber.includes('core-module')))
 				{
 					ports.splice(index, 1);
 				}
-				console.log("Port: ", port);
-			  });
+				else
+					index++;
+				console.log("Port: ", ports[i]);
+			}
 			if(JSON.stringify(ports) === JSON.stringify(serialPorts))
 			{
 				return;
@@ -145,9 +151,78 @@ export function setup()
 	let pythonPath = path.join(towerPath, 'python');
 	let pythonScriptsPath = path.join(pythonPath, 'Scripts');
 
-	if (!fs.existsSync(path.join(pythonScriptsPath, "bcf.exe"))) {
-		buildTerminal.get().sendText("python -m pip install bcf");
+	if(helpers.WINDOWS)
+	{
+		if (!fs.existsSync(path.join(pythonScriptsPath, "bcf.exe"))) {
+			buildTerminal.get().sendText("python -m pip install bcf");
+		}
 	}
+	else if(helpers.LINUX)
+	{
+		if (!commandExistsSync('python') || !commandExistsSync('python3') || !commandExistsSync('pip') || !commandExistsSync('pip3')) {
+			vscode.window
+			.showWarningMessage("Please install python and pip with 'sudo apt install python3', 'sudo apt install python3-pip' and restart VSCode", 
+			"How to install Python", "Cancel")
+			.then(answer => {
+				if (answer === "How to install Python") {
+					vscode.env.openExternal(vscode.Uri.parse('https://tower.hardwario.com/en/latest/firmware/platformio-installation/'));
+					return;
+				}
+			})
+			return;
+		}
+		else
+		{
+			if(!commandExistsSync('make')) {
+				vscode.window
+				.showWarningMessage("Please install make with 'sudo apt install make' and restart VSCode", 
+				"How to install make", "Cancel")
+				.then(answer => {
+					if (answer === "How to install make") {
+						vscode.env.openExternal(vscode.Uri.parse('https://tower.hardwario.com/en/latest/firmware/platformio-installation/'));
+						return;
+					}
+				})
+				return;
+			}
+			if(!commandExistsSync('git')) {
+				vscode.window
+				.showWarningMessage("Please install git with 'sudo apt install git' and restart VSCode", 
+				"How to install git", "Cancel")
+				.then(answer => {
+					if (answer === "How to install git") {
+						vscode.env.openExternal(vscode.Uri.parse('https://tower.hardwario.com/en/latest/firmware/platformio-installation/'));
+						return;
+					}
+				})
+				return;
+			}
+			if(!commandExistsSync('arm-none-eabi-gcc')) {
+				vscode.window
+				.showWarningMessage("Please install arm-none-eabi-gcc with 'sudo apt install gcc-arm-none-eabi' and restart VSCode", 
+				"How to install gcc-arm-none-eabi", "Cancel")
+				.then(answer => {
+					if (answer === "How to install gcc-arm-none-eabi") {
+						vscode.env.openExternal(vscode.Uri.parse('https://tower.hardwario.com/en/latest/firmware/platformio-installation/'));
+						return;
+					}
+				})
+				return;
+			}
+			if (!commandExistsSync(process.env.HOME + '/.local/bin/bcf')) {
+				vscode.window
+				.showWarningMessage("Please install bcf with 'pip install bcf' and restart VSCode", 
+				"How to install bcf", "Cancel")
+				.then(answer => {
+					if (answer === "How to install bcf") {
+						vscode.env.openExternal(vscode.Uri.parse('https://tower.hardwario.com/en/latest/firmware/platformio-installation/'));
+						return;
+					}
+				})
+				return;
+			}
+		}
+	}	
 
 	vscode.window.showInformationMessage("Setup done, you can use HARDWARIO Extension");
 	createToolbar(contextGlobal);
@@ -272,7 +347,15 @@ export function setup()
 	   };
 	   vscode.window.showOpenDialog(options).then(folderUri => {
 			if (folderUri) {
-				let folderUriString = folderUri[0].path.substring(1) + "/";
+				let folderUriString = "";
+				if(helpers.WINDOWS)
+				{
+					folderUriString = folderUri[0].path.substring(1) + "/";
+				}
+				else if(helpers.LINUX)
+				{
+					folderUriString = folderUri[0].path + '/';
+				}
 				cloneTerminal.get().sendText("git clone --recursive https://github.com/hardwario/twr-tester-chester-x0.git " + folderUriString);
 				cloneTerminal.get().sendText("exit");
 				cloneTerminal.get().show();
@@ -292,7 +375,6 @@ export function setup()
 	let cloneFromTemplateCommand = vscode.commands.registerCommand('hardwario-tower.clone_firmware', async () => {
 		vscode.window.showInformationMessage('Cloning');
 
-		
 		updateFirmwareJson()
 		.then((data : string)=>{
 			let firmwareList = [];
@@ -323,7 +405,15 @@ export function setup()
 	
 					vscode.window.showOpenDialog(options).then(folderUri => {
 						if (folderUri) {
-							let folderUriString = folderUri[0].path.substring(1) + "/";
+							let folderUriString = "";
+							if(helpers.WINDOWS)
+							{
+								folderUriString = folderUri[0].path.substring(1) + "/";
+							}
+							else if(helpers.LINUX)
+							{
+								folderUriString = folderUri[0].path + '/';
+							}
 							cloneTerminal.get().sendText("git clone --recursive " + pickedItem.link + ' ' + folderUriString);
 							cloneTerminal.get().sendText("exit");
 							cloneTerminal.get().show();
@@ -438,7 +528,6 @@ function updateFirmwareJson() {
     	});
     });
 }
-
 
 // this method is called when your extension is deactivated
 export function deactivate() {}

@@ -1,5 +1,7 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
+import { env } from 'process';
+import * as helpers from './helpers';
 
 export class Terminal
 {
@@ -35,8 +37,18 @@ export class Terminal
 
             const envClone = Object.create(process.env);
             
-            envClone.PATH = pythonPath + ';' + pythonScriptsPath + ';' + makeBinPath + ';' + gccBinPath + ';' + gccArmBinPath + ';' + gitCmdPath + ';' + gitUsrBinPath + ';' + gitMingw64BinPath;
-            envClone.Path = pythonPath + ';' + pythonScriptsPath + ';' + makeBinPath + ';' + gccBinPath + ';' + gccArmBinPath + ';' + gitCmdPath + ';' + gitUsrBinPath + ';' + gitMingw64BinPath;
+            if(helpers.WINDOWS)
+            {
+                envClone.PATH += pythonPath + ';' + pythonScriptsPath + ';' + makeBinPath + ';' + gccBinPath + ';' + gccArmBinPath + ';' + gitCmdPath + ';' + gitUsrBinPath + ';' + gitMingw64BinPath;
+                envClone.Path += pythonPath + ';' + pythonScriptsPath + ';' + makeBinPath + ';' + gccBinPath + ';' + gccArmBinPath + ';' + gitCmdPath + ';' + gitUsrBinPath + ';' + gitMingw64BinPath;
+            }
+            else if(helpers.LINUX)
+            {
+                let homePath = env.HOME;
+                envClone.PATH = homePath + '/.local/bin:' + process.env.PATH;
+                envClone.Path = homePath + '/.local/bin:' + process.env.Path;
+            }
+            
             this._instance = vscode.window.createTerminal({
                 name: this.name,
                 env: envClone,
