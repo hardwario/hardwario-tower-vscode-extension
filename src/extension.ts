@@ -347,7 +347,15 @@ export function setup()
 	   };
 	   vscode.window.showOpenDialog(options).then(folderUri => {
 			if (folderUri) {
-				let folderUriString = folderUri[0].path.substring(1) + "/";
+				let folderUriString = "";
+				if(helpers.WINDOWS)
+				{
+					folderUriString = folderUri[0].path.substring(1) + "/";
+				}
+				else if(helpers.LINUX)
+				{
+					folderUriString = folderUri[0].path + '/';
+				}
 				cloneTerminal.get().sendText("git clone --recursive https://github.com/hardwario/twr-tester-chester-x0.git " + folderUriString);
 				cloneTerminal.get().sendText("exit");
 				cloneTerminal.get().show();
@@ -367,7 +375,6 @@ export function setup()
 	let cloneFromTemplateCommand = vscode.commands.registerCommand('hardwario-tower.clone_firmware', async () => {
 		vscode.window.showInformationMessage('Cloning');
 
-		
 		updateFirmwareJson()
 		.then((data : string)=>{
 			let firmwareList = [];
@@ -398,7 +405,15 @@ export function setup()
 	
 					vscode.window.showOpenDialog(options).then(folderUri => {
 						if (folderUri) {
-							let folderUriString = folderUri[0].path.substring(1) + "/";
+							let folderUriString = "";
+							if(helpers.WINDOWS)
+							{
+								folderUriString = folderUri[0].path.substring(1) + "/";
+							}
+							else if(helpers.LINUX)
+							{
+								folderUriString = folderUri[0].path + '/';
+							}
 							cloneTerminal.get().sendText("git clone --recursive " + pickedItem.link + ' ' + folderUriString);
 							cloneTerminal.get().sendText("exit");
 							cloneTerminal.get().show();
