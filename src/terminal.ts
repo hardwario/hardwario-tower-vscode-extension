@@ -19,34 +19,40 @@ export class Terminal
         {
             let vscodepath = process.env.VSCODE_CWD;
             let towerPath = path.join(vscodepath, 'data', 'tower');
-
             let pythonPath = path.join(towerPath, 'python');
-            let pythonScriptsPath = path.join(pythonPath, 'Scripts');
             let toolchainPath = path.join(towerPath, 'toolchain');
-            
-            let makeBinPath = path.join(toolchainPath, 'make', 'bin');
-            
-            let gccPath = path.join(toolchainPath, 'gcc');
-            let gccBinPath = path.join(gccPath, 'bin');
-            let gccArmBinPath = path.join(gccPath, 'arm-none-eabi', 'bin');
-
             let gitPath = path.join(toolchainPath, 'git');
-            let gitCmdPath = path.join(gitPath, 'cmd');
-            let gitUsrBinPath = path.join(gitPath, 'usr', 'bin');
-            let gitMingw64BinPath = path.join(gitPath, 'mingw64', 'bin');
 
             const envClone = Object.create(process.env);
-            
+
             if(helpers.WINDOWS)
             {
+                let pythonScriptsPath = path.join(pythonPath, 'Scripts');
+                
+                let makeBinPath = path.join(toolchainPath, 'make', 'bin');
+                
+                let gccPath = path.join(toolchainPath, 'gcc');
+                let gccBinPath = path.join(gccPath, 'bin');
+                let gccArmBinPath = path.join(gccPath, 'arm-none-eabi', 'bin');
+
+                let gitCmdPath = path.join(gitPath, 'cmd');
+                let gitUsrBinPath = path.join(gitPath, 'usr', 'bin');
+                let gitMingw64BinPath = path.join(gitPath, 'mingw64', 'bin');
+
+            
                 envClone.PATH += pythonPath + ';' + pythonScriptsPath + ';' + makeBinPath + ';' + gccBinPath + ';' + gccArmBinPath + ';' + gitCmdPath + ';' + gitUsrBinPath + ';' + gitMingw64BinPath;
                 envClone.Path += pythonPath + ';' + pythonScriptsPath + ';' + makeBinPath + ';' + gccBinPath + ';' + gccArmBinPath + ';' + gitCmdPath + ';' + gitUsrBinPath + ';' + gitMingw64BinPath;
             }
             else if(helpers.LINUX)
             {
                 let homePath = env.HOME;
-                envClone.PATH = homePath + '/.local/bin:' + process.env.PATH;
-                envClone.Path = homePath + '/.local/bin:' + process.env.Path;
+
+                let pythonBinPath = path.join(pythonPath, 'install', 'bin');
+                let makePath = path.join(toolchainPath, 'make');
+                let gccArmBinPath = path.join(toolchainPath, 'gcc', 'bin');
+
+                envClone.PATH = homePath + '/.local/bin:' + pythonBinPath + ':' + makePath + ':' + gccArmBinPath + ':' + process.env.PATH;
+                envClone.Path = homePath + '/.local/bin:' + pythonBinPath + ':' + makePath + ':' + gccArmBinPath + ':' + process.env.PATH;
             }
             
             this._instance = vscode.window.createTerminal({
