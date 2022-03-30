@@ -11,6 +11,7 @@ import * as path from 'path';
 
 import AdmZip = require("adm-zip");
 import { SerialPort } from 'serialport';
+import { env } from 'process';
 
 var commandExistsSync = require('command-exists').sync;
 const request = require('request');
@@ -310,13 +311,29 @@ export function setup()
 				{
 					folderUriString = folderUri[0].path + '/';
 				}
-				cloneTerminal.get().sendText("git clone --recursive https://github.com/hardwario/twr-tester-chester-x0.git " + folderUriString);
-				cloneTerminal.get().sendText("exit");
-				cloneTerminal.get().show();
-				console.log('Selected folder: ' + folderUri[0].path);
-				vscode.workspace.saveAll();
 
-				lastSelectedFolder = folderUriString;
+				const inputOptions = {
+					value : "twr-skeleton",
+					title : "Skeleton folder name",
+				};
+
+				vscode.window.showInputBox(inputOptions).then((text) => {
+					if(text === undefined || text === "")
+					{
+						folderUriString += "twr-skeleton";
+					}
+					else
+					{
+						folderUriString += text;
+					}
+					cloneTerminal.get().sendText("git clone --recursive https://github.com/hardwario/twr-tester-chester-x0.git " + folderUriString);
+					cloneTerminal.get().sendText("exit");
+					cloneTerminal.get().show();
+					console.log('Selected folder: ' + folderUri[0].path);
+					vscode.workspace.saveAll();
+	
+					lastSelectedFolder = folderUriString;
+				});
 			}
 		});
 
@@ -368,13 +385,29 @@ export function setup()
 							{
 								folderUriString = folderUri[0].path + '/';
 							}
-							cloneTerminal.get().sendText("git clone --recursive " + pickedItem.link + ' ' + folderUriString);
-							cloneTerminal.get().sendText("exit");
-							cloneTerminal.get().show();
-							console.log('Selected folder: ' + folderUri[0].path);
-							vscode.workspace.saveAll();
+
+							const inputOptions = {
+								value : pickedItem.label,
+								title : "Skeleton folder name",
+							};
 			
-							lastSelectedFolder = folderUriString;
+							vscode.window.showInputBox(inputOptions).then((text) => {
+								if(text === undefined || text === "")
+								{
+									folderUriString += pickedItem.label;
+								}
+								else
+								{
+									folderUriString += text;
+								}
+								cloneTerminal.get().sendText("git clone --recursive " + pickedItem.link + ' ' + folderUriString);
+								cloneTerminal.get().sendText("exit");
+								cloneTerminal.get().show();
+								console.log('Selected folder: ' + folderUri[0].path);
+								vscode.workspace.saveAll();
+				
+								lastSelectedFolder = folderUriString;
+							});
 						}
 					});
 				}

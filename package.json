@@ -45,7 +45,7 @@
       },
       {
         "command": "hardwario-tower.clone_firmware",
-        "title": "HARDWARIO Tower Clone Firmware From Template"
+        "title": "HARDWARIO Tower Clone Firmware From Existing"
       },
       {
         "command": "hardwario-tower.open_documentation",
