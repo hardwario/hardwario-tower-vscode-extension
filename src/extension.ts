@@ -27,6 +27,8 @@ let cloneTerminal = new Term.Terminal("HARDWARIO TOWER Clone");
 
 let lastSelectedFolder = "";
 
+let releaseType = "debug";
+
 let contextGlobal: vscode.ExtensionContext;
 
 let serialPorts;
@@ -37,12 +39,17 @@ let selectedPort = "";
 
 let deviceIndex = 0;
 
+let releaseBar;
+
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
 	
 	contextGlobal = context;
 
+	const config = vscode.workspace.getConfiguration('window');
+	let title = config.get('title');
+	
 	vscode.window.onDidCloseTerminal((terminal) => {
 		if(buildTerminal._instance !== null && terminal === buildTerminal.get())
 		{
@@ -185,7 +192,7 @@ export function setup()
 	let compileCommand = vscode.commands.registerCommand('hardwario-tower.build', () => {
 		vscode.workspace.saveAll();
 		vscode.window.showInformationMessage('Compiling');
-		buildTerminal.get().sendText("make -j");
+		buildTerminal.get().sendText("make -j " + releaseType);
 		buildTerminal.get().show();
 	});
 
@@ -196,7 +203,7 @@ export function setup()
 
 		vscode.workspace.saveAll();
 		
-		flashTerminal.get().sendText("make -j");
+		flashTerminal.get().sendText("make -j " + releaseType);
 		if(selectedPort !== "")
 		{
 			flashTerminal.get().sendText("bcf flash --device " + selectedPort);
@@ -211,7 +218,12 @@ export function setup()
 
 	contextGlobal.subscriptions.push(uploadcommand);
 
-	let changeDevice = vscode.commands.registerCommand('hardwario-tower.change_device', async () => {		
+	let changeDevice = vscode.commands.registerCommand('hardwario-tower.change_device', async () => {	
+		if(serialPorts.length == 0)
+		{
+			return;
+		}
+
 		deviceIndex++;
 		if(deviceIndex >= serialPorts.length)
 		{
@@ -277,7 +289,7 @@ export function setup()
 			flashAndLogTerminal._instance = null;
 		}
 
-		flashAndLogTerminal.get().sendText("make -j");
+		flashAndLogTerminal.get().sendText("make -j " + releaseType);
 		if(selectedPort !== "")
 		{
 			flashAndLogTerminal.get().sendText("bcf flash --log --device " + selectedPort);
@@ -424,6 +436,19 @@ export function setup()
 
 	contextGlobal.subscriptions.push(cloneFromTemplateCommand);
 
+	let changeReleaseType = vscode.commands.registerCommand('hardwario-tower.change_release_type', () => {
+		if(releaseType == "debug")
+		{
+			releaseType = "release";
+		}
+		else
+		{
+			releaseType = "debug";
+		}
+		releaseBar.text = "Firmware type: " + releaseType;
+	});
+	contextGlobal.subscriptions.push(changeReleaseType);
+
 	let documentationCommand = vscode.commands.registerCommand('hardwario-tower.open_documentation', () => {
 		vscode.env.openExternal(vscode.Uri.parse('https://tower.hardwario.com/en/latest/'));
 	});
@@ -502,6 +527,17 @@ function createToolbar(context: vscode.ExtensionContext)
 	clean.show();
 	context.subscriptions.push(clean);
 
+	releaseBar = vscode.window.createStatusBarItem(
+		'toolbar',
+		vscode.StatusBarAlignment.Left,
+		1);
+
+	releaseBar.name = 'HARDWARIO: Toolbar';
+	releaseBar.text = "Firmware type: " + releaseType;
+	releaseBar.tooltip = 'Change release type';
+	releaseBar.command = 'hardwario-tower.change_release_type';
+	releaseBar.show();
+	context.subscriptions.push(releaseBar);
 }
 
 function updateFirmwareJson() {
