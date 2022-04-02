@@ -44,6 +44,10 @@
         "title": "HARDWARIO Tower Change Device"
       },
       {
+        "command": "hardwario-tower.debug",
+        "title": "HARDWARIO Tower Start Debugging"
+      },
+      {
         "command": "hardwario-tower.clone_skeleton",
         "title": "HARDWARIO Tower Clone Firmware"
       },
@@ -84,6 +88,17 @@
           "icon": "media/logo.svg"
         }
       ]
+    },
+    "configuration": {
+      "type": "object",
+      "title": "HARDWARIO TOWER configuration",
+      "properties": {
+        "hardwario-tower.jlinkBinPath": {
+          "type": "string",
+          "default": "",
+          "description": "Path to the J-Link server"
+        }
+      }
     },
     "views": {
       "hardwario-tower": [

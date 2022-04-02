@@ -12,6 +12,7 @@ export class PaletteProvider implements vscode.TreeDataProvider<PaletteCommand> 
 				new PaletteCommand('Build firmware', undefined, 'hardwario-tower.build'),
 				new PaletteCommand('Flash firmware', undefined, 'hardwario-tower.flash'),
 				new PaletteCommand('Flash and Log', undefined, 'hardwario-tower.flash_and_log'),
+				new PaletteCommand('Start debugging', undefined, 'hardwario-tower.debug'),
 				new PaletteCommand('Open console', undefined, 'hardwario-tower.console'),
 				new PaletteCommand('Clean output', undefined, 'hardwario-tower.clean'),
 			]),

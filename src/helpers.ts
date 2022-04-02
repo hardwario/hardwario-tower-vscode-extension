@@ -9,7 +9,7 @@ var commandExistsSync = require('command-exists').sync;
 export function isPortable()
 {
     const config = vscode.workspace.getConfiguration('window');
-	let title = config.get('title');
+    let title = config.get('title');
 
     let titleString = title.toString();
 

@@ -488,6 +488,113 @@ function setup()
 	});
 	contextGlobal.subscriptions.push(forumCommand);
 
+	let debugCommand = vscode.commands.registerCommand('hardwario-tower.debug', async () => {
+		let serverPath = "";
+		let armGccPath = vscode.workspace.getConfiguration('cortex-debug').get("armToolchainPath");
+
+		if(armGccPath === null) 
+		{
+			vscode.window.showInputBox().then((path) => {
+				if(path === undefined || path === "")
+				{
+					vscode.window.showWarningMessage("Please provide path to the arm toolchain");
+					return;
+				}
+				else
+				{
+					armGccPath = path;
+					vscode.workspace.getConfiguration('cortex-debug').update('armToolchainPath', path);
+				}
+			});
+		}
+		else
+		{
+			if(helpers.WINDOWS)
+			{
+				serverPath = "${execPath}/../data/tower/toolchain/SEGGER/JLink/JLinkGDBServerCL.exe";
+			}
+			else if(helpers.LINUX)
+			{
+				serverPath = "${execPath}/../data/tower/toolchain/SEGGER/JLink/JLinkGDBServerCL";
+			}
+
+			if(!helpers.isPortable())
+			{
+				if(vscode.workspace.getConfiguration('hardwario-tower').get("jlinkBinPath") === "")
+				{
+					vscode.window.showInputBox().then((path) => {
+						if(path === undefined || path === "")
+						{
+							return;
+						}
+						else
+						{
+							serverPath = path;
+							vscode.workspace.getConfiguration('hardwario-tower').update('jlinkBinPath', path);
+							vscode.debug.startDebugging(undefined, {
+								type: 'cortex-debug',
+								name: 'Debug J-Link',
+								request: 'launch',
+								cwd: "${workspaceRoot}",
+								executable: "./out/debug/firmware.elf",
+								servertype: "jlink",
+								serverpath: serverPath,
+								jlinkscript: "./sdk/tools/jlink/flash.jlink",
+								device: "STM32L083CZ",
+								interface: "swd",
+								svdFile: "./sdk/sys/svd/stm32l0x3.svd",
+								stopOnEntry: true
+							});
+						}
+					});
+				}
+				else
+				{
+					serverPath = vscode.workspace.getConfiguration('hardwario-tower', ).get("jlinkBinPath");
+					
+					vscode.debug.startDebugging(undefined, {
+						type: 'cortex-debug',
+						name: 'Debug J-Link',
+						request: 'launch',
+						cwd: "${workspaceRoot}",
+						executable: "./out/debug/firmware.elf",
+						servertype: "jlink",
+						serverpath: serverPath,
+						jlinkscript: "./sdk/tools/jlink/flash.jlink",
+						device: "STM32L083CZ",
+						interface: "swd",
+						svdFile: "./sdk/sys/svd/stm32l0x3.svd",
+						stopOnEntry: true
+					});
+				}
+			}
+			else
+			{
+				vscode.debug.startDebugging(undefined, {
+					type: 'cortex-debug',
+					name: 'Debug J-Link',
+					request: 'launch',
+					cwd: "${workspaceRoot}",
+					executable: "./out/debug/firmware.elf",
+					servertype: "jlink",
+					serverpath: serverPath,
+					jlinkscript: "./sdk/tools/jlink/flash.jlink",
+					device: "STM32L083CZ",
+					interface: "swd",
+					svdFile: "./sdk/sys/svd/stm32l0x3.svd",
+					stopOnEntry: true
+				});
+			}
+
+			if(serverPath === "")
+			{
+				vscode.window.showWarningMessage("Please provide path to the j-link server");
+			}
+	}
+	});
+
+	contextGlobal.subscriptions.push(debugCommand);
+
 	vscode.window.registerTreeDataProvider('palette', new PaletteProvider());
 
 	vscode.window.showInformationMessage("Setup done, you can use HARDWARIO Extension");
