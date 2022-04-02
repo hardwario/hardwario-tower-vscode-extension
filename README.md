@@ -22,17 +22,9 @@ You can download Portable Visual Studio Code version that contains all the depen
 ### Normal Visual Studio Code
 If you want to put this extension into your already installed version of Visual Studio Code you will have to install all dependencies and put them into the PATH. The extension will warn you about everything you are missing at the start. If you see no warning you are good to go.
 
-To add this extension into your list of extensions, go to the extensions folder and clone this repository into it.
+To install the extension, download *.vsix from releases, open your Visual Studio Code and go to `Extensions->...->Install from v VSIX...` and select the downloaded *.vsix
 
-Extensions folder is most likely located based on your system:
-- **Windows** - `%USERPROFILE%\.vscode\extensions`
-- **Linux** - `~/.vscode/extensions`
-- **macOS** - `~/.vscode/extensions`
-
-Go to the respective folder and put clone with this command:
-````
-git clone https://github.com/hardwario/hardwario-tower-vscode-extension.git hardwario-code
-````
+![alt How to install extension](/media/InstallGuide.png "How to install extension").
 
 #### Extension dependencies:
 - **make** - for compiling the firmware - TODO LINK
