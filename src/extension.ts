@@ -9,12 +9,10 @@ import { PaletteProvider, PaletteCommand } from './palette';
 import * as fs from 'fs';
 import * as path from 'path';
 
-import AdmZip = require("adm-zip");
 import { SerialPort } from 'serialport';
-import { env } from 'process';
 
-var commandExistsSync = require('command-exists').sync;
 const request = require('request');
+var commandExistsSync = require('command-exists').sync;
 
 const FIRMWARE_JSON_URL = "https://firmware.hardwario.com/tower/api/v1/list";
 
@@ -26,29 +24,18 @@ let cleanTerminal = new Term.Terminal("HARDWARIO TOWER Clean");
 let cloneTerminal = new Term.Terminal("HARDWARIO TOWER Clone");
 
 let lastSelectedFolder = "";
-
 let releaseType = "debug";
-
 let contextGlobal: vscode.ExtensionContext;
-
 let serialPorts;
-
 let portSelection = null;
-
 let selectedPort = "";
-
 let deviceIndex = 0;
-
 let releaseBar;
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
-	
 	contextGlobal = context;
-
-	const config = vscode.workspace.getConfiguration('window');
-	let title = config.get('title');
 	
 	vscode.window.onDidCloseTerminal((terminal) => {
 		if(buildTerminal._instance !== null && terminal === buildTerminal.get())
@@ -92,7 +79,9 @@ export function activate(context: vscode.ExtensionContext) {
 					ports.splice(index, 1);
 				}
 				else
+				{
 					index++;
+				}
 				console.log("Port: ", ports[i]);
 			}
 			if(JSON.stringify(ports) === JSON.stringify(serialPorts))
@@ -148,10 +137,59 @@ export function activate(context: vscode.ExtensionContext) {
 		  });
 	}, 2000);
 
+	if(helpers.isPortable())
+	{
+		setupPortable();
+	}
+	else
+	{
+		setupNormal();
+	}
+}
+
+function setupNormal()
+{
+	if(helpers.WINDOWS)
+	{
+		helpers.checkCommand('git', "Please install git, add it to PATH and restart VSCode", "How to install git", "Cancel", 'https://github.com/git-guides/install-git#install-git-on-linux');
+		helpers.checkCommand('make', "Please install make, add it to PATH and restart VSCode", "How to install make", "Cancel", 'https://github.com/git-guides/install-git#install-git-on-linux');
+		helpers.checkCommand('arm-none-eabi-gcc', "Please install arm-none-eabi-gcc, add it to PATH and restart VSCode", "How to install arm-none-eabi-gcc", "Cancel", 'https://github.com/git-guides/install-git#install-git-on-linux');
+		helpers.checkCommand('rm', "Please install linux commands, add them to PATH and restart VSCode", "How to install linux tools", "Cancel", 'https://github.com/git-guides/install-git#install-git-on-linux');
+		helpers.checkCommand('bcf', "Please install bcf, add if to PATH and restart VSCode", "How to install bcf", "Cancel", 'https://github.com/git-guides/install-git#install-git-on-linux');
+		
+		if(!commandExistsSync('python') && !commandExistsSync('python3')) {
+			vscode.window.showWarningMessage("Please install python, add it to PATH and restart VSCode", 
+			"How to install python", "Cancel")
+			.then(answer => {
+				if (answer === "How to install python") {
+					vscode.env.openExternal(vscode.Uri.parse('https://github.com/git-guides/install-git#install-git-on-linux'));
+					return;
+				}
+			});
+		}
+	}
+	else if(helpers.LINUX)
+	{
+		helpers.checkCommand('git', "Please install git, add it to PATH and restart VSCode", "How to install git", "Cancel", 'https://github.com/git-guides/install-git#install-git-on-linux');
+		helpers.checkCommand('make', "Please install make, add it to PATH and restart VSCode", "How to install make", "Cancel", 'https://github.com/git-guides/install-git#install-git-on-linux');
+		helpers.checkCommand('arm-none-eabi-gcc', "Please install arm-none-eabi-gcc, add it to PATH and restart VSCode", "How to install arm-none-eabi-gcc", "Cancel", 'https://github.com/git-guides/install-git#install-git-on-linux');
+		helpers.checkCommand('bcf', "Please install bcf, add if to PATH and restart VSCode", "How to install bcf", "Cancel", 'https://github.com/git-guides/install-git#install-git-on-linux');
+		
+		if(!commandExistsSync('python') && !commandExistsSync('python3')) {
+			vscode.window.showWarningMessage("Please install python, add it to PATH and restart VSCode", 
+			"How to install python", "Cancel")
+			.then(answer => {
+				if (answer === "How to install python") {
+					vscode.env.openExternal(vscode.Uri.parse('https://github.com/git-guides/install-git#install-git-on-linux'));
+					return;
+				}
+			});
+		}
+	}
 	setup();
 }
 
-export function setup()
+function setupPortable()
 {
 	let vscodepath = process.env.VSCODE_CWD;
 	let towerPath = path.join(vscodepath, 'data', 'tower');
@@ -167,31 +205,23 @@ export function setup()
 	}
 	else if(helpers.LINUX)
 	{
-		if(!commandExistsSync('git')) {
-			vscode.window
-			.showWarningMessage("Please install git with 'sudo apt install git' and restart VSCode", 
-			"How to install git", "Cancel")
-			.then(answer => {
-				if (answer === "How to install git") {
-					vscode.env.openExternal(vscode.Uri.parse('https://github.com/git-guides/install-git#install-git-on-linux'));
-					return;
-				}
-			})
-			return;
-		}
+		helpers.checkCommand('git', "Please install git with 'sudo apt install git' and restart VSCode", "How to install git", "Cancel", 'https://github.com/git-guides/install-git#install-git-on-linux');
 
-		let pythonBinPath = path.join(towerPath, 'python', 'install', 'bin')
+		let pythonBinPath = path.join(towerPath, 'python', 'install', 'bin');
 		if (!commandExistsSync(process.env.HOME + '/.local/bin/bcf') && !commandExistsSync(pythonBinPath + '/bcf')) {
 			buildTerminal.get().sendText("pip install bcf");
 		}
 	}	
 
-	vscode.window.showInformationMessage("Setup done, you can use HARDWARIO Extension");
+	setup();
+}
+
+function setup()
+{
 	createToolbar(contextGlobal);
 
 	let compileCommand = vscode.commands.registerCommand('hardwario-tower.build', () => {
 		vscode.workspace.saveAll();
-		vscode.window.showInformationMessage('Compiling');
 		buildTerminal.get().sendText("make -j " + releaseType);
 		buildTerminal.get().show();
 	});
@@ -199,8 +229,6 @@ export function setup()
 	contextGlobal.subscriptions.push(compileCommand);
 
 	let uploadcommand = vscode.commands.registerCommand('hardwario-tower.flash', async () => {
-		vscode.window.showInformationMessage('Uploading');
-
 		vscode.workspace.saveAll();
 		
 		flashTerminal.get().sendText("make -j " + releaseType);
@@ -219,7 +247,7 @@ export function setup()
 	contextGlobal.subscriptions.push(uploadcommand);
 
 	let changeDevice = vscode.commands.registerCommand('hardwario-tower.change_device', async () => {	
-		if(serialPorts.length == 0)
+		if(serialPorts.length === 0)
 		{
 			return;
 		}
@@ -257,7 +285,6 @@ export function setup()
 	contextGlobal.subscriptions.push(changeDevice);
 
 	let clearCommand = vscode.commands.registerCommand('hardwario-tower.clean', () => {
-		vscode.window.showInformationMessage('Cleaning');
 		cleanTerminal.get().sendText("make clean");
 		cleanTerminal.get().show();
 	});
@@ -265,7 +292,6 @@ export function setup()
 	contextGlobal.subscriptions.push(clearCommand);
 
 	let logCommand = vscode.commands.registerCommand('hardwario-tower.console', () => {
-		vscode.window.showInformationMessage('Logging');
 		if(selectedPort !== "")
 		{
 			consoleTerminal.get().sendText("bcf log --device " + selectedPort);
@@ -279,8 +305,6 @@ export function setup()
 	contextGlobal.subscriptions.push(logCommand);
 
 	let flashAndLog = vscode.commands.registerCommand('hardwario-tower.flash_and_log', () => {
-		vscode.window.showInformationMessage('Uploading and logging');
-
 		vscode.workspace.saveAll();
 
 		if(flashAndLogTerminal._instance !== null)
@@ -304,7 +328,6 @@ export function setup()
 	contextGlobal.subscriptions.push(flashAndLog);
 
 	let cloneCommand = vscode.commands.registerCommand('hardwario-tower.clone_skeleton', async () => {
-		vscode.window.showInformationMessage('Cloning');
 		const options: vscode.OpenDialogOptions = {
 			canSelectMany: false,
 			canSelectFiles: false,
@@ -348,16 +371,11 @@ export function setup()
 				});
 			}
 		});
-
-		vscode.window.showInformationMessage('Done');
-
 	});
 
 	contextGlobal.subscriptions.push(cloneCommand);
 
 	let cloneFromTemplateCommand = vscode.commands.registerCommand('hardwario-tower.clone_firmware', async () => {
-		vscode.window.showInformationMessage('Cloning');
-
 		updateFirmwareJson()
 		.then((data : string)=>{
 			let firmwareList = [];
@@ -428,16 +446,12 @@ export function setup()
 		.catch((err)=>{
 			console.log("error");
 		});
-
-		
-		vscode.window.showInformationMessage('Done');
-
 	});
 
 	contextGlobal.subscriptions.push(cloneFromTemplateCommand);
 
 	let changeReleaseType = vscode.commands.registerCommand('hardwario-tower.change_release_type', () => {
-		if(releaseType == "debug")
+		if(releaseType === "debug")
 		{
 			releaseType = "release";
 		}
@@ -474,7 +488,9 @@ export function setup()
 	});
 	contextGlobal.subscriptions.push(forumCommand);
 
-	vscode.window.registerTreeDataProvider('pallete', new PaletteProvider());
+	vscode.window.registerTreeDataProvider('palette', new PaletteProvider());
+
+	vscode.window.showInformationMessage("Setup done, you can use HARDWARIO Extension");
 }
 
 function createToolbar(context: vscode.ExtensionContext)

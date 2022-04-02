@@ -84,8 +84,8 @@
     "views": {
       "hardwario-tower": [
         {
-          "id": "pallete",
-          "name": "Pallete",
+          "id": "palette",
+          "name": "Palette",
           "icon": "media/logo.svg",
           "contextualTitle": "HARDWARIO Tower"
         }

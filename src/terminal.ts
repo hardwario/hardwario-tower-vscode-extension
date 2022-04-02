@@ -38,10 +38,12 @@ export class Terminal
                 let gitCmdPath = path.join(gitPath, 'cmd');
                 let gitUsrBinPath = path.join(gitPath, 'usr', 'bin');
                 let gitMingw64BinPath = path.join(gitPath, 'mingw64', 'bin');
-
-            
-                envClone.PATH += pythonPath + ';' + pythonScriptsPath + ';' + makeBinPath + ';' + gccBinPath + ';' + gccArmBinPath + ';' + gitCmdPath + ';' + gitUsrBinPath + ';' + gitMingw64BinPath;
-                envClone.Path += pythonPath + ';' + pythonScriptsPath + ';' + makeBinPath + ';' + gccBinPath + ';' + gccArmBinPath + ';' + gitCmdPath + ';' + gitUsrBinPath + ';' + gitMingw64BinPath;
+                
+                if(helpers.isPortable)
+                {
+                    envClone.PATH += pythonPath + ';' + pythonScriptsPath + ';' + makeBinPath + ';' + gccBinPath + ';' + gccArmBinPath + ';' + gitCmdPath + ';' + gitUsrBinPath + ';' + gitMingw64BinPath;
+                    envClone.Path += pythonPath + ';' + pythonScriptsPath + ';' + makeBinPath + ';' + gccBinPath + ';' + gccArmBinPath + ';' + gitCmdPath + ';' + gitUsrBinPath + ';' + gitMingw64BinPath;
+                }
             }
             else if(helpers.LINUX)
             {
@@ -51,8 +53,11 @@ export class Terminal
                 let makePath = path.join(toolchainPath, 'make');
                 let gccArmBinPath = path.join(toolchainPath, 'gcc', 'bin');
 
-                envClone.PATH = homePath + '/.local/bin:' + pythonBinPath + ':' + makePath + ':' + gccArmBinPath + ':' + process.env.PATH;
-                envClone.Path = homePath + '/.local/bin:' + pythonBinPath + ':' + makePath + ':' + gccArmBinPath + ':' + process.env.PATH;
+                if(helpers.isPortable)
+                {
+                    envClone.PATH = homePath + '/.local/bin:' + pythonBinPath + ':' + makePath + ':' + gccArmBinPath + ':' + process.env.PATH;
+                    envClone.Path = homePath + '/.local/bin:' + pythonBinPath + ':' + makePath + ':' + gccArmBinPath + ':' + process.env.PATH;
+                }
             }
             
             this._instance = vscode.window.createTerminal({
