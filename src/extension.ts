@@ -4,7 +4,7 @@ import * as vscode from 'vscode';
 import * as Term from './terminal';
 import * as helpers from './helpers';
 
-import { PaletteProvider, PaletteCommand } from './palette';
+import { PaletteProvider } from './palette';
 
 import * as fs from 'fs';
 import * as path from 'path';
