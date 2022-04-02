@@ -6,6 +6,10 @@
   "engines": {
     "vscode": "^1.64.0"
   },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hardwario/hardwario-tower-vscode-extension.git"
+  },
   "categories": [
     "Other"
   ],
