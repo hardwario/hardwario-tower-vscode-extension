@@ -82,7 +82,6 @@ export function activate(context: vscode.ExtensionContext) {
 				{
 					index++;
 				}
-				console.log("Port: ", ports[i]);
 			}
 			if(JSON.stringify(ports) === JSON.stringify(serialPorts))
 			{
@@ -364,7 +363,6 @@ function setup()
 					cloneTerminal.get().sendText("git clone --recursive https://github.com/hardwario/twr-tester-chester-x0.git " + folderUriString);
 					cloneTerminal.get().sendText("exit");
 					cloneTerminal.get().show();
-					console.log('Selected folder: ' + folderUri[0].path);
 					vscode.workspace.saveAll();
 	
 					lastSelectedFolder = folderUriString;
@@ -433,7 +431,6 @@ function setup()
 								cloneTerminal.get().sendText("git clone --recursive " + pickedItem.link + ' ' + folderUriString);
 								cloneTerminal.get().sendText("exit");
 								cloneTerminal.get().show();
-								console.log('Selected folder: ' + folderUri[0].path);
 								vscode.workspace.saveAll();
 				
 								lastSelectedFolder = folderUriString;
@@ -504,93 +501,14 @@ function setup()
 				{
 					armGccPath = path;
 					vscode.workspace.getConfiguration('cortex-debug').update('armToolchainPath', path);
+					checkJLinkPath(serverPath);
 				}
 			});
 		}
 		else
 		{
-			if(helpers.WINDOWS)
-			{
-				serverPath = "${execPath}/../data/tower/toolchain/SEGGER/JLink/JLinkGDBServerCL.exe";
-			}
-			else if(helpers.LINUX)
-			{
-				serverPath = "${execPath}/../data/tower/toolchain/SEGGER/JLink/JLinkGDBServerCL";
-			}
-
-			if(!helpers.isPortable())
-			{
-				if(vscode.workspace.getConfiguration('hardwario-tower').get("jlinkBinPath") === "")
-				{
-					vscode.window.showInputBox().then((path) => {
-						if(path === undefined || path === "")
-						{
-							return;
-						}
-						else
-						{
-							serverPath = path;
-							vscode.workspace.getConfiguration('hardwario-tower').update('jlinkBinPath', path);
-							vscode.debug.startDebugging(undefined, {
-								type: 'cortex-debug',
-								name: 'Debug J-Link',
-								request: 'launch',
-								cwd: "${workspaceRoot}",
-								executable: "./out/debug/firmware.elf",
-								servertype: "jlink",
-								serverpath: serverPath,
-								jlinkscript: "./sdk/tools/jlink/flash.jlink",
-								device: "STM32L083CZ",
-								interface: "swd",
-								svdFile: "./sdk/sys/svd/stm32l0x3.svd",
-								stopOnEntry: true
-							});
-						}
-					});
-				}
-				else
-				{
-					serverPath = vscode.workspace.getConfiguration('hardwario-tower', ).get("jlinkBinPath");
-					
-					vscode.debug.startDebugging(undefined, {
-						type: 'cortex-debug',
-						name: 'Debug J-Link',
-						request: 'launch',
-						cwd: "${workspaceRoot}",
-						executable: "./out/debug/firmware.elf",
-						servertype: "jlink",
-						serverpath: serverPath,
-						jlinkscript: "./sdk/tools/jlink/flash.jlink",
-						device: "STM32L083CZ",
-						interface: "swd",
-						svdFile: "./sdk/sys/svd/stm32l0x3.svd",
-						stopOnEntry: true
-					});
-				}
-			}
-			else
-			{
-				vscode.debug.startDebugging(undefined, {
-					type: 'cortex-debug',
-					name: 'Debug J-Link',
-					request: 'launch',
-					cwd: "${workspaceRoot}",
-					executable: "./out/debug/firmware.elf",
-					servertype: "jlink",
-					serverpath: serverPath,
-					jlinkscript: "./sdk/tools/jlink/flash.jlink",
-					device: "STM32L083CZ",
-					interface: "swd",
-					svdFile: "./sdk/sys/svd/stm32l0x3.svd",
-					stopOnEntry: true
-				});
-			}
-
-			if(serverPath === "")
-			{
-				vscode.window.showWarningMessage("Please provide path to the j-link server");
-			}
-	}
+			checkJLinkPath(serverPath);
+		}
 	});
 
 	contextGlobal.subscriptions.push(debugCommand);
@@ -598,6 +516,71 @@ function setup()
 	vscode.window.registerTreeDataProvider('palette', new PaletteProvider());
 
 	vscode.window.showInformationMessage("Setup done, you can use HARDWARIO Extension");
+}
+
+function checkJLinkPath(serverPath)
+{
+	if(helpers.WINDOWS)
+	{
+		serverPath = "${execPath}/../data/tower/toolchain/SEGGER/JLink/JLinkGDBServerCL.exe";
+	}
+	else if(helpers.LINUX)
+	{
+		serverPath = "${execPath}/../data/tower/toolchain/SEGGER/JLink/JLinkGDBServerCL";
+	}
+
+	if(!helpers.isPortable())
+	{
+		if(vscode.workspace.getConfiguration('hardwario-tower').get("jlinkBinPath") === "")
+		{
+			vscode.window.showInputBox().then((path) => {
+				if(path === undefined || path === "")
+				{
+					return;
+				}
+				else
+				{
+					serverPath = path;
+					vscode.workspace.getConfiguration('hardwario-tower').update('jlinkBinPath', path);
+					startDebug(serverPath);
+				}
+			});
+		}
+		else
+		{
+			serverPath = vscode.workspace.getConfiguration('hardwario-tower', ).get("jlinkBinPath");
+			
+			startDebug(serverPath);
+		}
+	}
+	else
+	{
+		startDebug(serverPath);
+	}
+
+	if(serverPath === "")
+	{
+		vscode.window.showWarningMessage("Please provide path to the j-link server");
+	}
+
+}
+
+function startDebug(serverPath)
+{
+	vscode.debug.startDebugging(undefined, {
+		type: 'cortex-debug',
+		name: 'Debug J-Link',
+		request: 'launch',
+		cwd: "${workspaceRoot}",
+		executable: "./out/debug/firmware.elf",
+		servertype: "jlink",
+		serverpath: serverPath,
+		jlinkscript: "./sdk/tools/jlink/flash.jlink",
+		device: "STM32L083CZ",
+		interface: "swd",
+		svdFile: "./sdk/sys/svd/stm32l0x3.svd",
+		stopOnEntry: true
+	});
 }
 
 function createToolbar(context: vscode.ExtensionContext)
