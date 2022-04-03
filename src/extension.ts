@@ -486,28 +486,37 @@ function setup()
 	contextGlobal.subscriptions.push(forumCommand);
 
 	let debugCommand = vscode.commands.registerCommand('hardwario-tower.debug', async () => {
-		let serverPath = "";
 		let armGccPath = vscode.workspace.getConfiguration('cortex-debug').get("armToolchainPath");
 
-		if(armGccPath === null) 
+		if(helpers.isPortable())
 		{
-			vscode.window.showInputBox().then((path) => {
-				if(path === undefined || path === "")
-				{
-					vscode.window.showWarningMessage("Please provide path to the arm toolchain");
-					return;
-				}
-				else
-				{
-					armGccPath = path;
-					vscode.workspace.getConfiguration('cortex-debug').update('armToolchainPath', path);
-					checkJLinkPath(serverPath);
-				}
-			});
+			armGccPath = "${execPath}/../data/tower/toolchain/gcc/bin/";
+			vscode.workspace.getConfiguration('cortex-debug').update('armToolchainPath', armGccPath);
+			checkJLinkPath();
 		}
+
 		else
 		{
-			checkJLinkPath(serverPath);
+			if(armGccPath === null) 
+			{
+				vscode.window.showInputBox().then((path) => {
+					if(path === undefined || path === "")
+					{
+						vscode.window.showWarningMessage("Please provide path to the arm toolchain");
+						return;
+					}
+					else
+					{
+						armGccPath = path;
+						vscode.workspace.getConfiguration('cortex-debug').update('armToolchainPath', path);
+						checkJLinkPath();
+					}
+				});
+			}
+			else
+			{
+				checkJLinkPath();
+			}
 		}
 	});
 
@@ -518,8 +527,9 @@ function setup()
 	vscode.window.showInformationMessage("Setup done, you can use HARDWARIO Extension");
 }
 
-function checkJLinkPath(serverPath)
+function checkJLinkPath()
 {
+	let serverPath = "";
 	if(helpers.WINDOWS)
 	{
 		serverPath = "${execPath}/../data/tower/toolchain/SEGGER/JLink/JLinkGDBServerCL.exe";
@@ -548,7 +558,7 @@ function checkJLinkPath(serverPath)
 		}
 		else
 		{
-			serverPath = vscode.workspace.getConfiguration('hardwario-tower', ).get("jlinkBinPath");
+			serverPath = vscode.workspace.getConfiguration('hardwario-tower').get("jlinkBinPath");
 			
 			startDebug(serverPath);
 		}
@@ -578,6 +588,7 @@ function startDebug(serverPath)
 		jlinkscript: "./sdk/tools/jlink/flash.jlink",
 		device: "STM32L083CZ",
 		interface: "swd",
+		showDevDebugOutput: true,
 		svdFile: "./sdk/sys/svd/stm32l0x3.svd",
 		stopOnEntry: true
 	});
