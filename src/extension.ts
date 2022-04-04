@@ -490,7 +490,7 @@ function setup()
 
 		if(helpers.isPortable())
 		{
-			armGccPath = "${execPath}/../data/tower/toolchain/gcc/bin/";
+			armGccPath = process.env.VSCODE_CWD + "/data/tower/toolchain/gcc/bin/";
 			vscode.workspace.getConfiguration('cortex-debug').update('armToolchainPath', armGccPath, true);
 			checkJLinkPath();
 		}
@@ -536,11 +536,16 @@ function checkJLinkPath()
 	let serverPath = "";
 	if(helpers.WINDOWS)
 	{
-		serverPath = "${execPath}/../data/tower/toolchain/SEGGER/JLink/JLinkGDBServerCL.exe";
+		serverPath = process.env.VSCODE_CWD + "/data/tower/toolchain/SEGGER/JLink/JLinkGDBServerCL.exe";
 	}
 	else if(helpers.LINUX)
 	{
-		serverPath = "${execPath}/../data/tower/toolchain/SEGGER/JLink/JLinkGDBServerCL";
+		if (!fs.existsSync('/etc/udev/rules.d/99-jlink.rules')) {
+			vscode.window.showWarningMessage("Please update udev rules so the JLink can be started by any user. Use 'sudo cp " 
+			+ process.env.VSCODE_CWD + "/data/tower/toolchain/SEGGER/JLink/99-jlink.rules /etc/udev/rules.d/' to copy 'sudo apt-get install libncurses5 libncurses5:i386' to install additional libraries. You WILL need to unplug and plug JLink back again for it to work");
+		}
+		
+		serverPath = process.env.VSCODE_CWD + "/data/tower/toolchain/SEGGER/JLink/JLinkGDBServerCLExe";
 	}
 
 	if(!helpers.isPortable())
@@ -548,7 +553,7 @@ function checkJLinkPath()
 		if(vscode.workspace.getConfiguration('hardwario-tower').get("jlinkBinPath") === "")
 		{
 			const inputOptions = {
-				title : "Please provide path to the JLinkGDBServerCL (with extension on Windows)",
+				title : "Please provide path to the JLinkGDBServerCLExe (JLinkGDBServerCL.exe on Windows)",
 			};
 			vscode.window.showInputBox(inputOptions).then((path) => {
 				if(path === undefined || path === "")
@@ -595,7 +600,6 @@ function startDebug(serverPath)
 		jlinkscript: "./sdk/tools/jlink/flash.jlink",
 		device: "STM32L083CZ",
 		interface: "swd",
-		showDevDebugOutput: true,
 		svdFile: "./sdk/sys/svd/stm32l0x3.svd",
 		stopOnEntry: true
 	});

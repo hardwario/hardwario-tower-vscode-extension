@@ -4,7 +4,7 @@ export const WINDOWS = process.platform.startsWith('win');
 export const OSX = process.platform === 'darwin';
 export const LINUX = !WINDOWS && !OSX;
 
-export const includePath: string[] = [
+export const includePathSetting : string[] = [
     "${workspaceFolder}/app/**",
     "${workspaceFolder}/sdk/bcl/inc",
     "${workspaceFolder}/sdk/bcl/stm/inc",
@@ -17,7 +17,7 @@ export const includePath: string[] = [
     "${default}"
 ];
 
-export const browsePath : string[] = [
+export const browsePathSetting : string[] = [
     "${workspaceFolder}/app",
     "${workspaceFolder}/sdk/bcl",
     "${workspaceFolder}/sdk/twr",
@@ -71,12 +71,12 @@ export function addCppExtensionSetting()
 
 	if(includePath === null || includePath.length === 0)
 	{
-		vscode.workspace.getConfiguration('C_Cpp.default').update('includePath', includePath);
+		vscode.workspace.getConfiguration('C_Cpp.default').update('includePath', includePathSetting);
 	}
 
 	if(browsePath === null || browsePath.length === 0)
 	{
-		vscode.workspace.getConfiguration('C_Cpp.default.browse').update('path', browsePath);
+		vscode.workspace.getConfiguration('C_Cpp.default.browse').update('path', browsePathSetting);
 	}
 
 	if(cStandard === '')
