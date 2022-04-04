@@ -491,7 +491,7 @@ function setup()
 		if(helpers.isPortable())
 		{
 			armGccPath = "${execPath}/../data/tower/toolchain/gcc/bin/";
-			vscode.workspace.getConfiguration('cortex-debug').update('armToolchainPath', armGccPath);
+			vscode.workspace.getConfiguration('cortex-debug').update('armToolchainPath', armGccPath, true);
 			checkJLinkPath();
 		}
 
@@ -499,7 +499,10 @@ function setup()
 		{
 			if(armGccPath === null) 
 			{
-				vscode.window.showInputBox().then((path) => {
+				const inputOptions = {
+					title : "Please provide path to the arm toolchain folder",
+				};
+				vscode.window.showInputBox(inputOptions).then((path) => {
 					if(path === undefined || path === "")
 					{
 						vscode.window.showWarningMessage("Please provide path to the arm toolchain");
@@ -508,7 +511,7 @@ function setup()
 					else
 					{
 						armGccPath = path;
-						vscode.workspace.getConfiguration('cortex-debug').update('armToolchainPath', path);
+						vscode.workspace.getConfiguration('cortex-debug').update('armToolchainPath', path, true);
 						checkJLinkPath();
 					}
 				});
@@ -522,8 +525,9 @@ function setup()
 
 	contextGlobal.subscriptions.push(debugCommand);
 
+	helpers.addCppExtensionSetting();
+	
 	vscode.window.registerTreeDataProvider('palette', new PaletteProvider());
-
 	vscode.window.showInformationMessage("Setup done, you can use HARDWARIO Extension");
 }
 
@@ -543,7 +547,10 @@ function checkJLinkPath()
 	{
 		if(vscode.workspace.getConfiguration('hardwario-tower').get("jlinkBinPath") === "")
 		{
-			vscode.window.showInputBox().then((path) => {
+			const inputOptions = {
+				title : "Please provide path to the JLinkGDBServerCL (with extension on Windows)",
+			};
+			vscode.window.showInputBox(inputOptions).then((path) => {
 				if(path === undefined || path === "")
 				{
 					return;
@@ -551,7 +558,7 @@ function checkJLinkPath()
 				else
 				{
 					serverPath = path;
-					vscode.workspace.getConfiguration('hardwario-tower').update('jlinkBinPath', path);
+					vscode.workspace.getConfiguration('hardwario-tower').update('jlinkBinPath', path, true);
 					startDebug(serverPath);
 				}
 			});
