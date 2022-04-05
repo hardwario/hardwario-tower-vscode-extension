@@ -12,6 +12,9 @@ jobs:
         with:
           node-version: '14'
       - run: npm install -g vsce
+      - name: Set helper variables
+        if: ${{ github.event_name == 'release' }}
+        run: echo "GITHUB_TAG=${GITHUB_REF#refs/*/}" | tee -a $GITHUB_ENV
       - name: Change version number
         run: |
           sed -r -i'' "s/\"0.0.1\"/\"${{ env.GITHUB_TAG }}\"/g" package.json
