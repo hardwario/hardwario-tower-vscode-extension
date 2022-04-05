@@ -37,7 +37,11 @@
       },
       {
         "command": "hardwario-tower.flash_and_log",
-        "title": "HARDWARIO Tower Flash and Log"
+        "title": "HARDWARIO Tower Flash and Attach"
+      },
+      {
+        "command": "hardwario-tower.flash_and_debug",
+        "title": "HARDWARIO Tower Flash and Debug"
       },
       {
         "command": "hardwario-tower.change_device",
@@ -86,7 +90,7 @@
       {
         "command": "hardwario-tower.open_sdk",
         "title": "HARDWARIO Tower SDK"
-      }
+      }      
     ],
     "viewsContainers": {
       "activitybar": [

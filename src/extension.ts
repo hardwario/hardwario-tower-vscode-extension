@@ -624,7 +624,7 @@ function createToolbar(context: vscode.ExtensionContext)
 
 	build.name = 'HARDWARIO: Toolbar';
 	build.text = '$(check)';
-	build.tooltip = 'Build firmware';
+	build.tooltip = 'Build Firmware';
 	build.command = 'hardwario-tower.build';
 	build.show();
 	context.subscriptions.push(build);
@@ -636,7 +636,7 @@ function createToolbar(context: vscode.ExtensionContext)
 
 	flash.name = 'HARDWARIO: Toolbar';
 	flash.text = '$(arrow-up)';
-	flash.tooltip = 'Flash firmware';
+	flash.tooltip = 'Flash Firmware';
 	flash.command = 'hardwario-tower.flash';
 	flash.show();
 	context.subscriptions.push(flash);
@@ -648,7 +648,7 @@ function createToolbar(context: vscode.ExtensionContext)
 
 	console.name = 'HARDWARIO: Toolbar';
 	console.text = '$(debug-alt)';
-	console.tooltip = 'Flash and log';
+	console.tooltip = 'Build & Flash & Attach';
 	console.command = 'hardwario-tower.flash_and_log';
 	console.show();
 	context.subscriptions.push(console);
@@ -659,8 +659,8 @@ function createToolbar(context: vscode.ExtensionContext)
 		1);
 
 	clean.name = 'HARDWARIO: Toolbar';
-	clean.text = '$(diff-review-close)';
-	clean.tooltip = 'Clean output';
+	clean.text = '$(notebook-delete-cell)';
+	clean.tooltip = 'Clean All Outputs';
 	clean.command = 'hardwario-tower.clean';
 	clean.show();
 	context.subscriptions.push(clean);

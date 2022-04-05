@@ -1,7 +1,7 @@
 import * as vscode from 'vscode';
 
 export class PaletteProvider implements vscode.TreeDataProvider<PaletteCommand>  {
-	
+
 	data: PaletteCommand[];
 
 	constructor() {
@@ -12,9 +12,9 @@ export class PaletteProvider implements vscode.TreeDataProvider<PaletteCommand> 
 			]),
 			new PaletteCommand('TOWER Firmware Commands', [
 				new PaletteCommand('Build & Flash & Attach', undefined, 'hardwario-tower.flash_and_log'),
-				new PaletteCommand('Build & Flash & Debug', undefined, 'hardwario-tower.flash_and_log'),
+				new PaletteCommand('Build & Flash & Debug', undefined, 'hardwario-tower.flash_and_debug'),
 
-				new PaletteCommand('Clean All Outputst', undefined, 'hardwario-tower.clean'),
+				new PaletteCommand('Clean All Outputs', undefined, 'hardwario-tower.clean'),
 				new PaletteCommand('Build Firmware', undefined, 'hardwario-tower.build'),
 				new PaletteCommand('Flash Firmware', undefined, 'hardwario-tower.flash'),
 

@@ -1,0 +1,26 @@
+name: Pack extension
+on:
+  release:
+    types: [published]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    environment: linux
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '14'
+      - run: npm install -g vsce
+      - name: Change version number
+        run: |
+          sed -r -i'' "s/\"0.0.1\"/\"${{ env.GITHUB_TAG }}\"/g" package.json
+          cat platform.json
+      - name: Pack the extension
+        run: vsce package --allow-star-activation
+      - name: Publish the extension;
+        uses: softprops/action-gh-release@v0.1.5
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          files: hardwario-tower-${{ env.GITHUB_TAG }}.vsix
