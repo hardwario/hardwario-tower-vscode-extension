@@ -78,6 +78,14 @@
       {
         "command": "hardwario-tower.open_forum",
         "title": "HARDWARIO Tower Forum"
+      },
+      {
+        "command": "hardwario-tower.open_website",
+        "title": "HARDWARIO Tower Website"
+      },
+      {
+        "command": "hardwario-tower.open_sdk",
+        "title": "HARDWARIO Tower SDK"
       }
     ],
     "viewsContainers": {

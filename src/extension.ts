@@ -465,6 +465,11 @@ function setup()
 	});
 	contextGlobal.subscriptions.push(documentationCommand);
 
+	let sdkCommand = vscode.commands.registerCommand('hardwario-tower.open_sdk', () => {
+		vscode.env.openExternal(vscode.Uri.parse('https://sdk.hardwario.com/index.html'));
+	});
+	contextGlobal.subscriptions.push(sdkCommand);
+
 	let shopCommand = vscode.commands.registerCommand('hardwario-tower.open_shop', () => {
 		vscode.env.openExternal(vscode.Uri.parse('https://shop.hardwario.com'));
 	});
@@ -484,6 +489,11 @@ function setup()
 		vscode.env.openExternal(vscode.Uri.parse('https://forum.hardwario.com'));
 	});
 	contextGlobal.subscriptions.push(forumCommand);
+
+	let websiteCommand = vscode.commands.registerCommand('hardwario-tower.open_website', () => {
+		vscode.env.openExternal(vscode.Uri.parse('https://www.hardwario.com/cs/kit/'));
+	});
+	contextGlobal.subscriptions.push(websiteCommand);
 
 	let debugCommand = vscode.commands.registerCommand('hardwario-tower.debug', async () => {
 		let armGccPath = vscode.workspace.getConfiguration('cortex-debug').get("armToolchainPath");
