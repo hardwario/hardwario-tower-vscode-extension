@@ -18,7 +18,7 @@ jobs:
       - name: Change version number
         run: |
           sed -r -i'' "s/\"0.0.1\"/\"${{ env.GITHUB_TAG }}\"/g" package.json
-          cat platform.json
+          cat package.json
       - name: Pack the extension
         run: vsce package --allow-star-activation
       - name: Publish the extension;
