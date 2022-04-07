@@ -5,7 +5,6 @@
   "version": "0.0.1",
   "publisher": "HARDWARIO s.r.o.",
   "license": "MIT",
-  "icon": "./media/hardwario_logo.png",
   "engines": {
     "vscode": "^1.64.0"
   },
