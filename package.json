@@ -1,8 +1,10 @@
 {
   "name": "hardwario-tower",
   "displayName": "HARDWARIO Tower",
-  "description": "",
+  "description": "Extension for development of a firmware for HARDWARIO TOWER Industrial IoT Kit",
   "version": "0.0.1",
+  "publisher": "HARDWARIO s.r.o.",
+  "license": "MIT",
   "engines": {
     "vscode": "^1.64.0"
   },
@@ -18,6 +20,48 @@
   ],
   "main": "./out/extension.js",
   "contributes": {
+    "breakpoints": [
+      {
+        "language": "c"
+      }
+    ],
+    "debuggers": [
+      {
+        "initialConfigurations": [
+          {
+            "name": "HARDWARIO TOWER Debug",
+            "request": "launch",
+            "type": "cortex-debug",
+            "preLaunchCommands" : [
+              "make -j"
+            ],
+            "cwd": "${workspaceFolder}",
+            "device": "STM32L083CZ",
+            "servertype": "jlink",
+            "jlinkscript": "./sdk/tools/jlink/flash.jlink",
+            "interface": "swd",
+            "serverpath": "${command:hardwario-tower.locate_jlink}",
+            "svdFile": "./sdk/sys/svd/stm32l0x3.svd",
+            "MIMode": "gdb",
+            "logging": {
+              "engineLogging": true
+            },
+            "executable": "${workspaceFolder}\\out\\debug\\firmware.elf",
+            "miDebuggerPath": "${command:hardwario-tower.locate_toolchain}",
+            "serverLaunchTimeout": 10000,
+            "windows": {
+                "miDebuggerPath": "${command:hardwario-tower.locate_toolchain}.exe",
+                "serverpath": "${command:hardwario-tower.locate_jlink}.exe"
+            }
+          }
+        ],
+        "label": "HARDWARIO TOWER Debug",
+        "type": "hardwario-debugger",
+        "languages": [
+          "c"
+        ]
+      }
+    ],
     "commands": [
       {
         "command": "hardwario-tower.build",

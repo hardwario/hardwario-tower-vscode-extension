@@ -1,4 +1,6 @@
 import * as vscode from 'vscode';
+import * as fs from 'fs';
+import * as path from 'path';
 
 export const WINDOWS = process.platform.startsWith('win');
 export const OSX = process.platform === 'darwin';
@@ -6,6 +8,7 @@ export const LINUX = !WINDOWS && !OSX;
 
 export const includePathSetting : string[] = [
     "${workspaceFolder}/app/**",
+    "${workspaceFolder}/src/**",
     "${workspaceFolder}/sdk/bcl/inc",
     "${workspaceFolder}/sdk/bcl/stm/inc",
     "${workspaceFolder}/sdk/sys/inc",
@@ -19,6 +22,7 @@ export const includePathSetting : string[] = [
 
 export const browsePathSetting : string[] = [
     "${workspaceFolder}/app",
+    "${workspaceFolder}/src",
     "${workspaceFolder}/sdk/bcl",
     "${workspaceFolder}/sdk/twr",
     "${workspaceFolder}/sdk/lib",
@@ -61,11 +65,42 @@ export function checkCommand(command, warningMessage, firstOption, secondOption,
     }
 }
 
-export function addCppExtensionSetting()
+export function isHardwarioProject()
+{
+    let workspaceFolder = vscode.workspace.workspaceFolders[0];
+    if (fs.existsSync(path.join(workspaceFolder.uri.fsPath.toString(), "app", "application.c")) || fs.existsSync(path.join(workspaceFolder.uri.fsPath.toString(), "src", "application.c"))) {
+        let data;
+        try {
+            data = fs.readFileSync(path.join(workspaceFolder.uri.fsPath.toString(), "src", "application.c"));
+        } catch (error) {
+            try {
+                data = fs.readFileSync(path.join(workspaceFolder.uri.fsPath.toString(), "app", "application.c"));
+            } catch (error) {
+                console.log("ERROR");
+            }
+        }
+        if(data.includes('application_init('))
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
+    }
+    else
+    {
+        return false;
+    }
+    
+}
+
+export function addSetting()
 {
     let includePath: string[] = vscode.workspace.getConfiguration('C_Cpp.default').get('includePath');
 	let browsePath: string[] = vscode.workspace.getConfiguration('C_Cpp.default.browse').get('path');
 	let cStandard = vscode.workspace.getConfiguration('C_Cpp.default').get('cStandard');
+    let terminalIntegratedShell = vscode.workspace.getConfiguration('terminal.integrated.shell').get('windows');
 
     let fileAssociations = vscode.workspace.getConfiguration('files.associations').get('ranges');
 
@@ -87,5 +122,10 @@ export function addCppExtensionSetting()
     if(fileAssociations === '')
     {
         vscode.workspace.getConfiguration('files.associations').update('ranges', 'c');
+    }
+
+    if(terminalIntegratedShell === null || terminalIntegratedShell === '')
+    {
+        vscode.workspace.getConfiguration('terminal.integrated.shell').update('windows', "C:\\Windows\\sysnative\\cmd.exe");
     }
 }

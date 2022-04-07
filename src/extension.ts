@@ -36,113 +36,121 @@ let releaseBar;
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
 	contextGlobal = context;
-	
+
 	vscode.window.onDidCloseTerminal((terminal) => {
 		if(buildTerminal._instance !== null && terminal === buildTerminal.get())
 		{
-			buildTerminal._instance = null;
-		}
-		else if(flashTerminal._instance !== null &&terminal === flashTerminal.get())
-		{
-			flashTerminal._instance = null;
-		}
-		else if(consoleTerminal._instance !== null &&terminal === consoleTerminal.get())
-		{
-			consoleTerminal._instance = null;
-		}
-		else if(cleanTerminal._instance !== null &&terminal === cleanTerminal.get())
-		{
-			cleanTerminal._instance = null;
-		}
-		else if(flashAndLogTerminal._instance !== null &&terminal === flashAndLogTerminal.get())
-		{
-			flashAndLogTerminal._instance = null;
-		}
-		else if(cloneTerminal._instance !== null &&terminal === cloneTerminal.get())
-		{
-			if(lastSelectedFolder !== "")
-			{
-				vscode.commands.executeCommand('vscode.openFolder', vscode.Uri.file(lastSelectedFolder));
-				lastSelectedFolder = "";
+				buildTerminal._instance = null;
 			}
-		}
-	});
-
-	setInterval(()=> { 
-		SerialPort.list().then(function(ports){
-			let index = 0;
-			let portsLen = ports.length
-			for(let i = 0; i < portsLen; i++)
+			else if(flashTerminal._instance !== null &&terminal === flashTerminal.get())
 			{
-				if(ports[index].serialNumber === undefined || (!ports[index].serialNumber.includes('usb-dongle') && !ports[index].serialNumber.includes('core-module')))
+				flashTerminal._instance = null;
+			}
+			else if(consoleTerminal._instance !== null &&terminal === consoleTerminal.get())
+			{
+				consoleTerminal._instance = null;
+			}
+			else if(cleanTerminal._instance !== null &&terminal === cleanTerminal.get())
+			{
+				cleanTerminal._instance = null;
+			}
+			else if(flashAndLogTerminal._instance !== null &&terminal === flashAndLogTerminal.get())
+			{
+				flashAndLogTerminal._instance = null;
+			}
+			else if(cloneTerminal._instance !== null &&terminal === cloneTerminal.get())
+			{
+				if(lastSelectedFolder !== "")
 				{
-					ports.splice(index, 1);
+					vscode.commands.executeCommand('vscode.openFolder', vscode.Uri.file(lastSelectedFolder));
+					lastSelectedFolder = "";
+				}
+			}
+		});
+		
+	if(helpers.isHardwarioProject())
+	{		
+		setInterval(()=> { 
+			SerialPort.list().then(function(ports){
+				let index = 0;
+				let portsLen = ports.length
+				for(let i = 0; i < portsLen; i++)
+				{
+					if(ports[index].serialNumber === undefined || (!ports[index].serialNumber.includes('usb-dongle') && !ports[index].serialNumber.includes('core-module')))
+					{
+						ports.splice(index, 1);
+					}
+					else
+					{
+						index++;
+					}
+				}
+				if(JSON.stringify(ports) === JSON.stringify(serialPorts))
+				{
+					return;
 				}
 				else
 				{
-					index++;
+					serialPorts = ports; 
+					if(portSelection !== null)
+					{
+						portSelection.dispose();
+						portSelection = null;
+					}
 				}
-			}
-			if(JSON.stringify(ports) === JSON.stringify(serialPorts))
-			{
-				return;
-			}
-			else
-			{
-				serialPorts = ports; 
-				if(portSelection !== null)
+				
+				if(portSelection === null)
 				{
-					portSelection.dispose();
-					portSelection = null;
+					if(deviceIndex >= serialPorts.length)
+					{
+						deviceIndex = serialPorts.length - 1;
+					}
+	
+					if(ports.length !== 0)
+					{
+						selectedPort = ports[deviceIndex]['path'];
+					}
+					else
+					{
+						selectedPort = "";
+						deviceIndex = 0;
+					}
+					portSelection = vscode.window.createStatusBarItem(
+						'toolbar',
+						vscode.StatusBarAlignment.Left,
+						1);
+				
+					portSelection.name = 'HARDWARIO: Toolbar';
+	
+					if(ports.length === 0)
+					{
+						portSelection.text = 'No device found!';
+					}
+					else
+					{
+						portSelection.text = 'Device: ' + ports[deviceIndex]['path'] + ' - ' + ports[deviceIndex]['serialNumber'].split('-').slice(0, 3).join('-') ;
+					}
+					portSelection.tooltip = 'Change device';
+					portSelection.command = 'hardwario-tower.change_device';
+					portSelection.show();
+					context.subscriptions.push(portSelection);
 				}
-			}
-			
-			if(portSelection === null)
-			{
-				if(deviceIndex >= serialPorts.length)
-				{
-					deviceIndex = serialPorts.length - 1;
-				}
-
-				if(ports.length !== 0)
-				{
-					selectedPort = ports[deviceIndex]['path'];
-				}
-				else
-				{
-					selectedPort = "";
-					deviceIndex = 0;
-				}
-				portSelection = vscode.window.createStatusBarItem(
-					'toolbar',
-					vscode.StatusBarAlignment.Left,
-					1);
-			
-				portSelection.name = 'HARDWARIO: Toolbar';
-
-				if(ports.length === 0)
-				{
-					portSelection.text = 'No device found!';
-				}
-				else
-				{
-					portSelection.text = 'Device: ' + ports[deviceIndex]['path'] + ' - ' + ports[deviceIndex]['serialNumber'].split('-').slice(0, 3).join('-') ;
-				}
-				portSelection.tooltip = 'Change device';
-				portSelection.command = 'hardwario-tower.change_device';
-				portSelection.show();
-				context.subscriptions.push(portSelection);
-			}
-		  });
-	}, 2000);
-
-	if(helpers.isPortable())
-	{
-		setupPortable();
+			  });
+		}, 2000);
+	
+		if(helpers.isPortable())
+		{
+			setupPortable();
+		}
+		else
+		{
+			setupNormal();
+		}
 	}
 	else
 	{
-		setupNormal();
+		pushGeneralCommands();
+		vscode.window.registerTreeDataProvider('palette', new PaletteProvider());
 	}
 }
 
@@ -219,6 +227,180 @@ function setup()
 {
 	createToolbar(contextGlobal);
 
+	pushGeneralCommands();
+	pushHardwarioCommands();
+
+	helpers.addSetting();
+	
+	vscode.window.registerTreeDataProvider('palette', new PaletteProvider());
+	vscode.window.showInformationMessage("Setup done, you can use HARDWARIO Extension");
+}
+
+function pushGeneralCommands()
+{
+	let cloneCommand = vscode.commands.registerCommand('hardwario-tower.clone_skeleton', async () => {
+		helpers.checkCommand('git', "Please install git with 'sudo apt install git' and restart VSCode", "How to install git", "Cancel", 'https://github.com/git-guides/install-git#install-git-on-linux');
+
+		const options: vscode.OpenDialogOptions = {
+			canSelectMany: false,
+			canSelectFiles: false,
+			canSelectFolders: true,
+			title: "Select Empty Folder For New Firmware",
+			openLabel: "Select folder"
+	   };
+	   vscode.window.showOpenDialog(options).then(folderUri => {
+			if (folderUri) {
+				let folderUriString = "";
+				if(helpers.WINDOWS)
+				{
+					folderUriString = folderUri[0].path.substring(1) + "/";
+				}
+				else if(helpers.LINUX)
+				{
+					folderUriString = folderUri[0].path + '/';
+				}
+
+				const inputOptions = {
+					value : "twr-skeleton",
+					title : "Skeleton folder name",
+				};
+
+				vscode.window.showInputBox(inputOptions).then((text) => {
+					if(text === undefined || text === "")
+					{
+						folderUriString += "twr-skeleton";
+					}
+					else
+					{
+						folderUriString += text;
+					}
+					cloneTerminal.get().sendText("git clone --recursive https://github.com/hardwario/twr-tester-chester-x0.git " + folderUriString);
+					cloneTerminal.get().sendText("exit");
+					cloneTerminal.get().show();
+					vscode.workspace.saveAll();
+	
+					lastSelectedFolder = folderUriString;
+				});
+			}
+		});
+	});
+
+	contextGlobal.subscriptions.push(cloneCommand);
+
+	let cloneFromTemplateCommand = vscode.commands.registerCommand('hardwario-tower.clone_firmware', async () => {
+		helpers.checkCommand('git', "Please install git with 'sudo apt install git' and restart VSCode", "How to install git", "Cancel", 'https://github.com/git-guides/install-git#install-git-on-linux');
+
+		updateFirmwareJson()
+		.then((data : string)=>{
+			let firmwareList = [];
+			const json = JSON.parse(data);
+			
+			json.forEach(function(firmware){
+				firmwareList.push({label: firmware.name.split('/')[1], description: firmware.description, link: firmware.repository + '.git'});
+			});
+
+			const quickPickOptions: vscode.QuickPickOptions = {
+				placeHolder: "Pick firmware template",
+				canPickMany: false,
+				title: "Firmware template"
+			   };
+
+			vscode.window.showQuickPick(
+				firmwareList,
+				quickPickOptions).then(pickedItem => {
+				if(pickedItem)
+				{
+					const options: vscode.OpenDialogOptions = {
+						canSelectMany: false,
+						canSelectFiles: false,
+						canSelectFolders: true,
+						title: "Select Empty Folder For New Firmware",
+						openLabel: "Select folder"
+					   };
+	
+					vscode.window.showOpenDialog(options).then(folderUri => {
+						if (folderUri) {
+							let folderUriString = "";
+							if(helpers.WINDOWS)
+							{
+								folderUriString = folderUri[0].path.substring(1) + "/";
+							}
+							else if(helpers.LINUX)
+							{
+								folderUriString = folderUri[0].path + '/';
+							}
+
+							const inputOptions = {
+								value : pickedItem.label,
+								title : "Skeleton folder name",
+							};
+			
+							vscode.window.showInputBox(inputOptions).then((text) => {
+								if(text === undefined || text === "")
+								{
+									folderUriString += pickedItem.label;
+								}
+								else
+								{
+									folderUriString += text;
+								}
+								cloneTerminal.get().sendText("git clone --recursive " + pickedItem.link + ' ' + folderUriString);
+								cloneTerminal.get().sendText("exit");
+								cloneTerminal.get().show();
+								vscode.workspace.saveAll();
+				
+								lastSelectedFolder = folderUriString;
+							});
+						}
+					});
+				}
+			});
+		})
+		.catch((err)=>{
+			console.log("error");
+		});
+	});
+
+	contextGlobal.subscriptions.push(cloneFromTemplateCommand);
+
+	let documentationCommand = vscode.commands.registerCommand('hardwario-tower.open_documentation', () => {
+		vscode.env.openExternal(vscode.Uri.parse('https://tower.hardwario.com/en/latest/'));
+	});
+	contextGlobal.subscriptions.push(documentationCommand);
+
+	let sdkCommand = vscode.commands.registerCommand('hardwario-tower.open_sdk', () => {
+		vscode.env.openExternal(vscode.Uri.parse('https://sdk.hardwario.com/index.html'));
+	});
+	contextGlobal.subscriptions.push(sdkCommand);
+
+	let shopCommand = vscode.commands.registerCommand('hardwario-tower.open_shop', () => {
+		vscode.env.openExternal(vscode.Uri.parse('https://shop.hardwario.com'));
+	});
+	contextGlobal.subscriptions.push(shopCommand);
+
+	let projectsCommand = vscode.commands.registerCommand('hardwario-tower.open_projects', () => {
+		vscode.env.openExternal(vscode.Uri.parse('https://www.hackster.io/hardwario/projects'));
+	});
+	contextGlobal.subscriptions.push(projectsCommand);
+
+	let githubCommand = vscode.commands.registerCommand('hardwario-tower.open_github', () => {
+		vscode.env.openExternal(vscode.Uri.parse('https://github.com/hardwario'));
+	});
+	contextGlobal.subscriptions.push(githubCommand);
+
+	let forumCommand = vscode.commands.registerCommand('hardwario-tower.open_forum', () => {
+		vscode.env.openExternal(vscode.Uri.parse('https://forum.hardwario.com'));
+	});
+	contextGlobal.subscriptions.push(forumCommand);
+
+	let websiteCommand = vscode.commands.registerCommand('hardwario-tower.open_website', () => {
+		vscode.env.openExternal(vscode.Uri.parse('https://www.hardwario.com/cs/kit/'));
+	});
+	contextGlobal.subscriptions.push(websiteCommand);
+}
+
+function pushHardwarioCommands()
+{
 	let compileCommand = vscode.commands.registerCommand('hardwario-tower.build', () => {
 		vscode.workspace.saveAll();
 		buildTerminal.get().sendText("make -j " + releaseType);
@@ -326,183 +508,13 @@ function setup()
 
 	contextGlobal.subscriptions.push(flashAndLog);
 
-	let cloneCommand = vscode.commands.registerCommand('hardwario-tower.clone_skeleton', async () => {
-		const options: vscode.OpenDialogOptions = {
-			canSelectMany: false,
-			canSelectFiles: false,
-			canSelectFolders: true,
-			title: "Select Empty Folder For New Firmware",
-			openLabel: "Select folder"
-	   };
-	   vscode.window.showOpenDialog(options).then(folderUri => {
-			if (folderUri) {
-				let folderUriString = "";
-				if(helpers.WINDOWS)
-				{
-					folderUriString = folderUri[0].path.substring(1) + "/";
-				}
-				else if(helpers.LINUX)
-				{
-					folderUriString = folderUri[0].path + '/';
-				}
-
-				const inputOptions = {
-					value : "twr-skeleton",
-					title : "Skeleton folder name",
-				};
-
-				vscode.window.showInputBox(inputOptions).then((text) => {
-					if(text === undefined || text === "")
-					{
-						folderUriString += "twr-skeleton";
-					}
-					else
-					{
-						folderUriString += text;
-					}
-					cloneTerminal.get().sendText("git clone --recursive https://github.com/hardwario/twr-tester-chester-x0.git " + folderUriString);
-					cloneTerminal.get().sendText("exit");
-					cloneTerminal.get().show();
-					vscode.workspace.saveAll();
 	
-					lastSelectedFolder = folderUriString;
-				});
-			}
-		});
-	});
-
-	contextGlobal.subscriptions.push(cloneCommand);
-
-	let cloneFromTemplateCommand = vscode.commands.registerCommand('hardwario-tower.clone_firmware', async () => {
-		updateFirmwareJson()
-		.then((data : string)=>{
-			let firmwareList = [];
-			const json = JSON.parse(data);
-			
-			json.forEach(function(firmware){
-				firmwareList.push({label: firmware.name.split('/')[1], description: firmware.description, link: firmware.repository + '.git'});
-			});
-
-			const quickPickOptions: vscode.QuickPickOptions = {
-				placeHolder: "Pick firmware template",
-				canPickMany: false,
-				title: "Firmware template"
-			   };
-
-			vscode.window.showQuickPick(
-				firmwareList,
-				quickPickOptions).then(pickedItem => {
-				if(pickedItem)
-				{
-					const options: vscode.OpenDialogOptions = {
-						canSelectMany: false,
-						canSelectFiles: false,
-						canSelectFolders: true,
-						title: "Select Empty Folder For New Firmware",
-						openLabel: "Select folder"
-					   };
-	
-					vscode.window.showOpenDialog(options).then(folderUri => {
-						if (folderUri) {
-							let folderUriString = "";
-							if(helpers.WINDOWS)
-							{
-								folderUriString = folderUri[0].path.substring(1) + "/";
-							}
-							else if(helpers.LINUX)
-							{
-								folderUriString = folderUri[0].path + '/';
-							}
-
-							const inputOptions = {
-								value : pickedItem.label,
-								title : "Skeleton folder name",
-							};
-			
-							vscode.window.showInputBox(inputOptions).then((text) => {
-								if(text === undefined || text === "")
-								{
-									folderUriString += pickedItem.label;
-								}
-								else
-								{
-									folderUriString += text;
-								}
-								cloneTerminal.get().sendText("git clone --recursive " + pickedItem.link + ' ' + folderUriString);
-								cloneTerminal.get().sendText("exit");
-								cloneTerminal.get().show();
-								vscode.workspace.saveAll();
-				
-								lastSelectedFolder = folderUriString;
-							});
-						}
-					});
-				}
-			});
-		})
-		.catch((err)=>{
-			console.log("error");
-		});
-	});
-
-	contextGlobal.subscriptions.push(cloneFromTemplateCommand);
-
-	let changeReleaseType = vscode.commands.registerCommand('hardwario-tower.change_release_type', () => {
-		if(releaseType === "debug")
-		{
-			releaseType = "release";
-		}
-		else
-		{
-			releaseType = "debug";
-		}
-		releaseBar.text = "Firmware type: " + releaseType;
-	});
-	contextGlobal.subscriptions.push(changeReleaseType);
-
-	let documentationCommand = vscode.commands.registerCommand('hardwario-tower.open_documentation', () => {
-		vscode.env.openExternal(vscode.Uri.parse('https://tower.hardwario.com/en/latest/'));
-	});
-	contextGlobal.subscriptions.push(documentationCommand);
-
-	let sdkCommand = vscode.commands.registerCommand('hardwario-tower.open_sdk', () => {
-		vscode.env.openExternal(vscode.Uri.parse('https://sdk.hardwario.com/index.html'));
-	});
-	contextGlobal.subscriptions.push(sdkCommand);
-
-	let shopCommand = vscode.commands.registerCommand('hardwario-tower.open_shop', () => {
-		vscode.env.openExternal(vscode.Uri.parse('https://shop.hardwario.com'));
-	});
-	contextGlobal.subscriptions.push(shopCommand);
-
-	let projectsCommand = vscode.commands.registerCommand('hardwario-tower.open_projects', () => {
-		vscode.env.openExternal(vscode.Uri.parse('https://www.hackster.io/hardwario/projects'));
-	});
-	contextGlobal.subscriptions.push(projectsCommand);
-
-	let githubCommand = vscode.commands.registerCommand('hardwario-tower.open_github', () => {
-		vscode.env.openExternal(vscode.Uri.parse('https://github.com/hardwario'));
-	});
-	contextGlobal.subscriptions.push(githubCommand);
-
-	let forumCommand = vscode.commands.registerCommand('hardwario-tower.open_forum', () => {
-		vscode.env.openExternal(vscode.Uri.parse('https://forum.hardwario.com'));
-	});
-	contextGlobal.subscriptions.push(forumCommand);
-
-	let websiteCommand = vscode.commands.registerCommand('hardwario-tower.open_website', () => {
-		vscode.env.openExternal(vscode.Uri.parse('https://www.hardwario.com/cs/kit/'));
-	});
-	contextGlobal.subscriptions.push(websiteCommand);
-
 	let debugCommand = vscode.commands.registerCommand('hardwario-tower.debug', async () => {
 		let armGccPath = vscode.workspace.getConfiguration('cortex-debug').get("armToolchainPath");
 
 		if(helpers.isPortable())
 		{
 			armGccPath = process.env.VSCODE_CWD + "/data/tower/toolchain/gcc/bin/";
-			vscode.workspace.getConfiguration('cortex-debug').update('armToolchainPath', armGccPath, true);
-			checkJLinkPath();
 		}
 
 		else
@@ -535,10 +547,45 @@ function setup()
 
 	contextGlobal.subscriptions.push(debugCommand);
 
-	helpers.addCppExtensionSetting();
+	let changeReleaseType = vscode.commands.registerCommand('hardwario-tower.change_release_type', () => {
+		if(releaseType === "debug")
+		{
+			releaseType = "release";
+		}
+		else
+		{
+			releaseType = "debug";
+		}
+		releaseBar.text = "Firmware type: " + releaseType;
+	});
+	contextGlobal.subscriptions.push(changeReleaseType);
+
 	
-	vscode.window.registerTreeDataProvider('palette', new PaletteProvider());
-	vscode.window.showInformationMessage("Setup done, you can use HARDWARIO Extension");
+	let locateToolchain = vscode.commands.registerCommand('hardwario-tower.locate_toolchain', () => {
+		if(helpers.isPortable())
+		{
+			return process.env.VSCODE_CWD + "/data/tower/toolchain/gcc/bin/";
+		}
+		else
+		{
+			return "arm-none-eabi-gdb";
+		}
+	});
+
+	contextGlobal.subscriptions.push(locateToolchain);
+
+	let locateJlink = vscode.commands.registerCommand('hardwario-tower.locate_jlink', () => {
+		if(helpers.isPortable())
+		{
+			return process.env.VSCODE_CWD + "/data/tower/toolchain/SEGGER/JLink/JLinkGDBServerCL";
+		}
+		else
+		{
+			return "JLinkGDBServerCL";
+		}
+	});
+
+	contextGlobal.subscriptions.push(locateJlink);
 }
 
 function checkJLinkPath()
