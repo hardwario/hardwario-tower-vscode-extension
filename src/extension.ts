@@ -40,33 +40,33 @@ export function activate(context: vscode.ExtensionContext) {
 	vscode.window.onDidCloseTerminal((terminal) => {
 		if(buildTerminal._instance !== null && terminal === buildTerminal.get())
 		{
-				buildTerminal._instance = null;
-			}
-			else if(flashTerminal._instance !== null &&terminal === flashTerminal.get())
+			buildTerminal._instance = null;
+		}
+		else if(flashTerminal._instance !== null &&terminal === flashTerminal.get())
+		{
+			flashTerminal._instance = null;
+		}
+		else if(consoleTerminal._instance !== null &&terminal === consoleTerminal.get())
+		{
+			consoleTerminal._instance = null;
+		}
+		else if(cleanTerminal._instance !== null &&terminal === cleanTerminal.get())
+		{
+			cleanTerminal._instance = null;
+		}
+		else if(flashAndLogTerminal._instance !== null &&terminal === flashAndLogTerminal.get())
+		{
+			flashAndLogTerminal._instance = null;
+		}
+		else if(cloneTerminal._instance !== null &&terminal === cloneTerminal.get())
+		{
+			if(lastSelectedFolder !== "")
 			{
-				flashTerminal._instance = null;
+				vscode.commands.executeCommand('vscode.openFolder', vscode.Uri.file(lastSelectedFolder));
+				lastSelectedFolder = "";
 			}
-			else if(consoleTerminal._instance !== null &&terminal === consoleTerminal.get())
-			{
-				consoleTerminal._instance = null;
-			}
-			else if(cleanTerminal._instance !== null &&terminal === cleanTerminal.get())
-			{
-				cleanTerminal._instance = null;
-			}
-			else if(flashAndLogTerminal._instance !== null &&terminal === flashAndLogTerminal.get())
-			{
-				flashAndLogTerminal._instance = null;
-			}
-			else if(cloneTerminal._instance !== null &&terminal === cloneTerminal.get())
-			{
-				if(lastSelectedFolder !== "")
-				{
-					vscode.commands.executeCommand('vscode.openFolder', vscode.Uri.file(lastSelectedFolder));
-					lastSelectedFolder = "";
-				}
-			}
-		});
+		}
+	});
 		
 	if(helpers.isHardwarioProject())
 	{		
@@ -146,6 +146,10 @@ export function activate(context: vscode.ExtensionContext) {
 		{
 			setupNormal();
 		}
+		helpers.checkProjectStructure();
+
+		const provider = new HardwarioTowerDebugConfigurationProvider();
+		context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('hardwario-debugger', provider));
 	}
 	else
 	{
@@ -739,3 +743,46 @@ function updateFirmwareJson() {
 
 // this method is called when your extension is deactivated
 export function deactivate() {}
+
+
+class HardwarioTowerDebugConfigurationProvider implements vscode.DebugConfigurationProvider {
+	resolveDebugConfiguration(folder: vscode.WorkspaceFolder | undefined, config: vscode.DebugConfiguration, token?: vscode.CancellationToken): vscode.ProviderResult<vscode.DebugConfiguration> {
+
+		// if launch.json is missing or empty
+		if (!config.type && !config.request && !config.name) {
+			const editor = vscode.window.activeTextEditor;
+			if (editor && editor.document.languageId === 'c') {
+				config.name = 'HARDWARIO TOWER Debug';
+				config.request = 'launch';
+				config.type = 'cortex-debug';
+				config.preLaunchCommands = ['make -j'];
+				config.cwd = '${workspaceFolder}';
+				config.device = 'STM32L083CZ',
+				config.servertype = 'jlink';
+				config.jlinkscript = './sdk/tools/jlink/flash.jlink';
+				config.interface = 'swd';
+				config.serverpath = '${command:hardwario-tower.locate_jlink}';
+				config.svdFile = './sdk/sys/svd/stm32l0x3.svd';
+				config.MIMode = 'gdb';
+				config.logging = {
+					'engineLogging' : true
+				};
+				config.executable = '${workspaceFolder}\\out\\debug\\firmware.elf';
+				config.miDebuggerPath = '${command:hardwario-tower.locate_toolchain}';
+				config.serverLaunchTimeout = 10000;
+				config.windows = {
+					'miDebuggerPath' : '${command:hardwario-tower.locate_toolchain}.exe',
+					'serverpath' : '${command:hardwario-tower.locate_jlink}.exe'
+				};
+			}
+		}
+
+		if (!config.executable) {
+			return vscode.window.showInformationMessage("Cannot find a program to debug").then(_ => {
+				return undefined;	// abort launch
+			});
+		}
+
+		return config;
+	}
+}
