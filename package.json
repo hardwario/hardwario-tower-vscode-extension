@@ -5,12 +5,13 @@
   "version": "0.0.1",
   "publisher": "HARDWARIO s.r.o.",
   "license": "MIT",
+  "icon": "media/hardwario-logo.png",
   "engines": {
     "vscode": "^1.64.0"
   },
   "extensionDependencies": [
-    "vscode.git",
-    "ms-vscode.cpptools-extension-pack"
+    "ms-vscode.cpptools-extension-pack",
+    "marus25.cortex-debug"
   ],
   "repository": {
     "type": "git",

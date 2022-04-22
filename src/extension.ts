@@ -360,7 +360,7 @@ function pushGeneralCommands()
 				}
 			});
 		})
-		.catch((err)=>{
+		.catch((_err)=>{
 			console.log("error");
 		});
 	});
@@ -731,8 +731,8 @@ function createToolbar(context: vscode.ExtensionContext)
 
 function updateFirmwareJson() {
 	process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
-    return new Promise((resolve, reject) => {
-        request.get(FIRMWARE_JSON_URL, function(err, response, body) {
+    return new Promise((resolve) => {
+        request.get(FIRMWARE_JSON_URL, function(_err, _response, body) {
 
 			process.env.NODE_TLS_REJECT_UNAUTHORIZED = '1';
         	resolve(body);
@@ -746,7 +746,7 @@ export function deactivate() {}
 
 
 class HardwarioTowerDebugConfigurationProvider implements vscode.DebugConfigurationProvider {
-	resolveDebugConfiguration(folder: vscode.WorkspaceFolder | undefined, config: vscode.DebugConfiguration, token?: vscode.CancellationToken): vscode.ProviderResult<vscode.DebugConfiguration> {
+	resolveDebugConfiguration(_folder: vscode.WorkspaceFolder | undefined, config: vscode.DebugConfiguration, _token?: vscode.CancellationToken): vscode.ProviderResult<vscode.DebugConfiguration> {
 
 		// if launch.json is missing or empty
 		if (!config.type && !config.request && !config.name) {

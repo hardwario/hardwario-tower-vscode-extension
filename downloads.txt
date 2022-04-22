@@ -1,2 +1,0 @@
-gcc - https://developer.arm.com/tools-and-software/open-source-software/developer-tools/gnu-toolchain/gnu-rm/downloads
-make - https://github.com/ScoopInstaller/Main/blob/master/bucket/make.json
