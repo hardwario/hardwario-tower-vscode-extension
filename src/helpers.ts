@@ -68,6 +68,10 @@ export function checkCommand(command, warningMessage, firstOption, secondOption,
 
 export function isHardwarioProject()
 {
+    if(vscode.workspace.workspaceFolders === undefined)
+    {
+        return false;
+    }
     let workspaceFolder = vscode.workspace.workspaceFolders[0];
     if (fs.existsSync(path.join(workspaceFolder.uri.fsPath.toString(), "app", "application.c")) || fs.existsSync(path.join(workspaceFolder.uri.fsPath.toString(), "src", "application.c"))) {
         let data;
