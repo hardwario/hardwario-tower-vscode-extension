@@ -73,7 +73,7 @@ export function activate(context: vscode.ExtensionContext) {
 		setInterval(()=> { 
 			SerialPort.list().then(function(ports){
 				let index = 0;
-				let portsLen = ports.length
+				let portsLen = ports.length;
 				for(let i = 0; i < portsLen; i++)
 				{
 					if(ports[index].serialNumber === undefined || (!ports[index].serialNumber.includes('usb-dongle') && !ports[index].serialNumber.includes('core-module')))
@@ -179,7 +179,7 @@ function setupNormal()
 			});
 		}
 	}
-	else if(helpers.LINUX)
+	else if(helpers.LINUX || helpers.OSX)
 	{
 		helpers.checkCommand('git', "Please install git, add it to PATH and restart VSCode", "How to install git", "Cancel", 'https://github.com/git-guides/install-git#install-git-on-linux');
 		helpers.checkCommand('make', "Please install make, add it to PATH and restart VSCode", "How to install make", "Cancel", 'https://github.com/git-guides/install-git#install-git-on-linux');
@@ -212,6 +212,12 @@ function setupPortable()
 	{
 		if (!fs.existsSync(path.join(pythonScriptsPath, "bcf.exe"))) {
 			buildTerminal.get().sendText("python -m pip install bcf");
+		}
+	}
+	else if(helpers.OSX)
+	{
+		if (!commandExistsSync('bcf')) {
+			buildTerminal.get().sendText("python3 -m pip install bcf");
 		}
 	}
 	else if(helpers.LINUX)
