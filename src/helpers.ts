@@ -187,6 +187,24 @@ function updateToSupportedFirmwareStructure(workspacePath)
                    } 
                 });
               });
+            fs.readFile(path.join(workspacePath, 'Makefile'), 'utf8', function (err,data) {
+                if (err) {
+                  return console.log(err);
+                }
+                var result = data.replace(/app/g, 'src');
+                result = result.replace('lib/twr-sdk', 'sdk');
+                result = result.replace('lib/twr-sdk', 'sdk');
+                result = result.replace('INC_DIR += include', '');
+                result = result.replace('# @git submodule update --remote --merge .vscode', '');
+                result = result.replace('# @git submodule update --init .vscode', '');
+              
+                fs.writeFile(path.join(workspacePath, 'Makefile'), result, 'utf8', function (err) {
+                   if (err)
+                   {
+                       return console.log(err);  
+                   } 
+                });
+              });
         }
     });
 
