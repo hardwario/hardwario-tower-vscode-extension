@@ -265,7 +265,7 @@ function pushGeneralCommands()
 				{
 					folderUriString = folderUri[0].path.substring(1) + "/";
 				}
-				else if(helpers.LINUX)
+				else if(helpers.LINUX || helpers.OSX)
 				{
 					folderUriString = folderUri[0].path + '/';
 				}
@@ -335,7 +335,7 @@ function pushGeneralCommands()
 							{
 								folderUriString = folderUri[0].path.substring(1) + "/";
 							}
-							else if(helpers.LINUX)
+							else if(helpers.LINUX || helpers.OSX)
 							{
 								folderUriString = folderUri[0].path + '/';
 							}
