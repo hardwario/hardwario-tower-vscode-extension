@@ -18,10 +18,10 @@ export class Terminal
         if(this._instance === null)
         {
             const envClone = Object.create(process.env);
-            let vscodepath = process.env.VSCODE_CWD;
 
             if(!helpers.OSX)
-            {            
+            {        
+                let vscodepath = process.env.VSCODE_CWD;
                 let towerPath = path.join(vscodepath, 'data', 'tower');
                 let pythonPath = path.join(towerPath, 'python');
                 let toolchainPath = path.join(towerPath, 'toolchain');
@@ -64,7 +64,9 @@ export class Terminal
             }
             else
             {
-                let towerPath = path.join(vscodepath, '..', 'code-portable-data', 'tower');
+                let vscodepath = process.env.VSCODE_PORTABLE;
+
+                let towerPath = path.join(vscodepath, 'tower');
                 let toolchainPath = path.join(towerPath, 'toolchain');
                 let gccPath = path.join(toolchainPath, 'gcc');
                 let gccBinPath = path.join(gccPath, 'bin');
