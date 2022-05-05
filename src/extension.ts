@@ -685,5 +685,6 @@ class HardwarioTowerDebugConfigurationProvider implements vscode.DebugConfigurat
 				startDebug();
 			}
 		}
+		return undefined;
 	}
 }
