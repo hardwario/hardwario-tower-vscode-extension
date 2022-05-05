@@ -520,39 +520,7 @@ function pushHardwarioCommands()
 
 	
 	let debugCommand = vscode.commands.registerCommand('hardwario-tower.debug', async () => {
-		let armGccPath = vscode.workspace.getConfiguration('cortex-debug').get("armToolchainPath");
-
-		if(helpers.isPortable())
-		{
-			armGccPath = process.env.VSCODE_CWD + "/data/tower/toolchain/gcc/bin/";
-		}
-
-		else
-		{
-			if(armGccPath === null) 
-			{
-				const inputOptions = {
-					title : "Please provide path to the arm toolchain folder",
-				};
-				vscode.window.showInputBox(inputOptions).then((path) => {
-					if(path === undefined || path === "")
-					{
-						vscode.window.showWarningMessage("Please provide path to the arm toolchain");
-						return;
-					}
-					else
-					{
-						armGccPath = path;
-						vscode.workspace.getConfiguration('cortex-debug').update('armToolchainPath', path, true);
-						checkJLinkPath();
-					}
-				});
-			}
-			else
-			{
-				checkJLinkPath();
-			}
-		}
+		startDebug();
 	});
 
 	contextGlobal.subscriptions.push(debugCommand);
@@ -598,77 +566,33 @@ function pushHardwarioCommands()
 	contextGlobal.subscriptions.push(locateJlink);
 }
 
-function checkJLinkPath()
-{
-	let serverPath = "";
-	if(helpers.WINDOWS)
-	{
-		serverPath = process.env.VSCODE_CWD + "/data/tower/toolchain/SEGGER/JLink/JLinkGDBServerCL.exe";
-	}
-	else if(helpers.LINUX)
-	{
-		if (!fs.existsSync('/etc/udev/rules.d/99-jlink.rules')) {
-			vscode.window.showWarningMessage("Please update udev rules so the JLink can be started by any user. Use 'sudo cp " 
-			+ process.env.VSCODE_CWD + "/data/tower/toolchain/SEGGER/JLink/99-jlink.rules /etc/udev/rules.d/' to copy 'sudo apt-get install libncurses5 libncurses5:i386' to install additional libraries. You WILL need to unplug and plug JLink back again for it to work");
-		}
-		
-		serverPath = process.env.VSCODE_CWD + "/data/tower/toolchain/SEGGER/JLink/JLinkGDBServerCLExe";
-	}
-
-	if(!helpers.isPortable())
-	{
-		if(vscode.workspace.getConfiguration('hardwario-tower').get("jlinkBinPath") === "")
-		{
-			const inputOptions = {
-				title : "Please provide path to the JLinkGDBServerCLExe (JLinkGDBServerCL.exe on Windows)",
-			};
-			vscode.window.showInputBox(inputOptions).then((path) => {
-				if(path === undefined || path === "")
-				{
-					return;
-				}
-				else
-				{
-					serverPath = path;
-					vscode.workspace.getConfiguration('hardwario-tower').update('jlinkBinPath', path, true);
-					startDebug(serverPath);
-				}
-			});
-		}
-		else
-		{
-			serverPath = vscode.workspace.getConfiguration('hardwario-tower').get("jlinkBinPath");
-			
-			startDebug(serverPath);
-		}
-	}
-	else
-	{
-		startDebug(serverPath);
-	}
-
-	if(serverPath === "")
-	{
-		vscode.window.showWarningMessage("Please provide path to the j-link server");
-	}
-
-}
-
-function startDebug(serverPath)
+function startDebug()
 {
 	vscode.debug.startDebugging(undefined, {
-		type: 'cortex-debug',
-		name: 'Debug J-Link',
-		request: 'launch',
-		cwd: "${workspaceRoot}",
-		executable: "./out/debug/firmware.elf",
-		servertype: "jlink",
-		serverpath: serverPath,
-		jlinkscript: "./sdk/tools/jlink/flash.jlink",
-		device: "STM32L083CZ",
-		interface: "swd",
-		svdFile: "./sdk/sys/svd/stm32l0x3.svd",
-		stopOnEntry: true
+		name : 'HARDWARIO TOWER Debug',
+		request : 'launch',
+		type : 'cortex-debug',
+		preLaunchCommands : ['make -j'],
+		cwd : '${workspaceFolder}',
+		device : 'STM32L083CZ',
+		servertype : 'jlink',
+		jlinkscript : './sdk/tools/jlink/flash.jlink',
+		interface : 'swd',
+		serverpath : '${command:hardwario-tower.locate_jlink}',
+		svdFile : './sdk/sys/svd/stm32l0x3.svd',
+		MIMode : 'gdb',
+		gdbPath : '${command:hardwario-tower.locate_toolchain}',
+		logging : {
+			'engineLogging' : true
+		},
+		executable : '${workspaceFolder}\\out\\debug\\firmware.elf',
+		miDebuggerPath : '${command:hardwario-tower.locate_toolchain}',
+		serverLaunchTimeout : 10000,
+		windows : {
+			'gdbPath' : '${command:hardwario-tower.locate_toolchain}.exe',
+			'miDebuggerPath' : '${command:hardwario-tower.locate_toolchain}.exe',
+			'serverpath' : '${command:hardwario-tower.locate_jlink}.exe'
+		}
 	});
 }
 
@@ -757,38 +681,9 @@ class HardwarioTowerDebugConfigurationProvider implements vscode.DebugConfigurat
 		// if launch.json is missing or empty
 		if (!config.type && !config.request && !config.name) {
 			const editor = vscode.window.activeTextEditor;
-			if (editor && editor.document.languageId === 'c') {
-				config.name = 'HARDWARIO TOWER Debug';
-				config.request = 'launch';
-				config.type = 'cortex-debug';
-				config.preLaunchCommands = ['make -j'];
-				config.cwd = '${workspaceFolder}';
-				config.device = 'STM32L083CZ',
-				config.servertype = 'jlink';
-				config.jlinkscript = './sdk/tools/jlink/flash.jlink';
-				config.interface = 'swd';
-				config.serverpath = '${command:hardwario-tower.locate_jlink}';
-				config.svdFile = './sdk/sys/svd/stm32l0x3.svd';
-				config.MIMode = 'gdb';
-				config.logging = {
-					'engineLogging' : true
-				};
-				config.executable = '${workspaceFolder}\\out\\debug\\firmware.elf';
-				config.miDebuggerPath = '${command:hardwario-tower.locate_toolchain}';
-				config.serverLaunchTimeout = 10000;
-				config.windows = {
-					'miDebuggerPath' : '${command:hardwario-tower.locate_toolchain}.exe',
-					'serverpath' : '${command:hardwario-tower.locate_jlink}.exe'
-				};
+			if (editor && editor.document.languageId === 'c' && helpers.isHardwarioProject()) {
+				startDebug();
 			}
 		}
-
-		if (!config.executable) {
-			return vscode.window.showInformationMessage("Cannot find a program to debug").then(_ => {
-				return undefined;	// abort launch
-			});
-		}
-
-		return config;
 	}
 }
