@@ -414,6 +414,7 @@ function pushHardwarioCommands()
 	let compileCommand = vscode.commands.registerCommand('hardwario-tower.build', () => {
 		vscode.workspace.saveAll();
 		buildTerminal.get().sendText("make -j " + releaseType);
+		buildTerminal.get().sendText("exit");
 		buildTerminal.get().show();
 	});
 
@@ -581,6 +582,7 @@ function startDebug()
 		serverpath : '${command:hardwario-tower.locate_jlink}',
 		svdFile : './sdk/sys/svd/stm32l0x3.svd',
 		MIMode : 'gdb',
+		runToEntryPoint : 'application_init',
 		gdbPath : '${command:hardwario-tower.locate_toolchain}',
 		logging : {
 			'engineLogging' : true

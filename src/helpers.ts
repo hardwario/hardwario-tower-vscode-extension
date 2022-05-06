@@ -36,20 +36,33 @@ var commandExistsSync = require('command-exists').sync;
 
 export function isPortable()
 {
-    const config = vscode.workspace.getConfiguration('window');
-    let title = config.get('title');
-
-    let titleString = title.toString();
-
-    if(titleString.includes("HARDWARIO Code"))
+    if(WINDOWS || LINUX)
     {
-        return true;
+        const config = vscode.workspace.getConfiguration('window');
+        let title = config.get('title');
+    
+        let titleString = title.toString();
+    
+        if(titleString.includes("HARDWARIO Code"))
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
-    else
+    else if(OSX)
     {
-        return false;
+        if(process.env.VSCODE_PORTABLE !== undefined)
+        {
+            return true;
+        }
+        else
+        {
+            return false;
+        }
     }
-
 }
 
 export function checkCommand(command, warningMessage, firstOption, secondOption, guideLink)
