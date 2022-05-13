@@ -32,6 +32,8 @@ let selectedPort = "";
 let deviceIndex = 0;
 let releaseBar;
 
+let preDebugBuildActive = false;
+
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
@@ -40,6 +42,11 @@ export function activate(context: vscode.ExtensionContext) {
 	vscode.window.onDidCloseTerminal((terminal) => {
 		if(buildTerminal._instance !== null && terminal === buildTerminal.get())
 		{
+			if(preDebugBuildActive)
+			{
+				preDebugBuildActive = false;
+				startDebug();
+			}
 			buildTerminal._instance = null;
 		}
 		else if(flashTerminal._instance !== null &&terminal === flashTerminal.get())
@@ -414,7 +421,6 @@ function pushHardwarioCommands()
 	let compileCommand = vscode.commands.registerCommand('hardwario-tower.build', () => {
 		vscode.workspace.saveAll();
 		buildTerminal.get().sendText("make -j " + releaseType);
-		buildTerminal.get().sendText("exit");
 		buildTerminal.get().show();
 	});
 
@@ -521,7 +527,8 @@ function pushHardwarioCommands()
 
 	
 	let debugCommand = vscode.commands.registerCommand('hardwario-tower.debug', async () => {
-		startDebug();
+		preDebugBuild();
+		preDebugBuildActive = true;
 	});
 
 	contextGlobal.subscriptions.push(debugCommand);
@@ -543,7 +550,7 @@ function pushHardwarioCommands()
 	let locateToolchain = vscode.commands.registerCommand('hardwario-tower.locate_toolchain', () => {
 		if(helpers.isPortable())
 		{
-			return process.env.VSCODE_CWD + "/data/tower/toolchain/gcc/bin/";
+			return process.env.VSCODE_CWD + "/data/tower/toolchain/gcc/bin/arm-none-eabi-gdb";
 		}
 		else
 		{
@@ -567,13 +574,20 @@ function pushHardwarioCommands()
 	contextGlobal.subscriptions.push(locateJlink);
 }
 
+function preDebugBuild()
+{
+	vscode.workspace.saveAll();
+	buildTerminal.get().sendText("make -j debug");
+	buildTerminal.get().sendText("exit");
+	buildTerminal.get().show();
+}
+
 function startDebug()
 {
 	vscode.debug.startDebugging(undefined, {
 		name : 'HARDWARIO TOWER Debug',
 		request : 'launch',
 		type : 'cortex-debug',
-		preLaunchCommands : ['make -j'],
 		cwd : '${workspaceFolder}',
 		device : 'STM32L083CZ',
 		servertype : 'jlink',
@@ -581,9 +595,9 @@ function startDebug()
 		interface : 'swd',
 		serverpath : '${command:hardwario-tower.locate_jlink}',
 		svdFile : './sdk/sys/svd/stm32l0x3.svd',
+		gdbPath : '${command:hardwario-tower.locate_toolchain}',
 		MIMode : 'gdb',
 		runToEntryPoint : 'application_init',
-		gdbPath : '${command:hardwario-tower.locate_toolchain}',
 		logging : {
 			'engineLogging' : true
 		},
@@ -684,7 +698,8 @@ class HardwarioTowerDebugConfigurationProvider implements vscode.DebugConfigurat
 		if (!config.type && !config.request && !config.name) {
 			const editor = vscode.window.activeTextEditor;
 			if (editor && editor.document.languageId === 'c' && helpers.isHardwarioProject()) {
-				startDebug();
+				preDebugBuild();
+				preDebugBuildActive = true;
 			}
 		}
 		return undefined;

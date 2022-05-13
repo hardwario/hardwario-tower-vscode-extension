@@ -37,9 +37,6 @@
             "name": "HARDWARIO TOWER Debug",
             "request": "launch",
             "type": "cortex-debug",
-            "preLaunchCommands" : [
-              "make -j"
-            ],
             "cwd": "${workspaceFolder}",
             "device": "STM32L083CZ",
             "servertype": "jlink",
@@ -47,7 +44,9 @@
             "interface": "swd",
             "serverpath": "${command:hardwario-tower.locate_jlink}",
             "svdFile": "./sdk/sys/svd/stm32l0x3.svd",
+            "gdbPath" : "${command:hardwario-tower.locate_toolchain}",
             "MIMode": "gdb",
+            "runToEntryPoint" : "application_init",
             "logging": {
               "engineLogging": true
             },
@@ -55,6 +54,7 @@
             "miDebuggerPath": "${command:hardwario-tower.locate_toolchain}",
             "serverLaunchTimeout": 10000,
             "windows": {
+                "gdbPath" : "${command:hardwario-tower.locate_toolchain}.exe",
                 "miDebuggerPath": "${command:hardwario-tower.locate_toolchain}.exe",
                 "serverpath": "${command:hardwario-tower.locate_jlink}.exe"
             }
