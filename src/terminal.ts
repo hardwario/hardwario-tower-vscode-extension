@@ -41,7 +41,7 @@ export class Terminal
                     let gitUsrBinPath = path.join(gitPath, 'usr', 'bin');
                     let gitMingw64BinPath = path.join(gitPath, 'mingw64', 'bin');
                     
-                    if(helpers.isPortable)
+                    if(helpers.isPortable())
                     {
                         envClone.PATH += pythonPath + ';' + pythonScriptsPath + ';' + makeBinPath + ';' + gccBinPath + ';' + gccArmBinPath + ';' + gitCmdPath + ';' + gitUsrBinPath + ';' + gitMingw64BinPath;
                         envClone.Path += pythonPath + ';' + pythonScriptsPath + ';' + makeBinPath + ';' + gccBinPath + ';' + gccArmBinPath + ';' + gitCmdPath + ';' + gitUsrBinPath + ';' + gitMingw64BinPath;
@@ -55,7 +55,7 @@ export class Terminal
                     let makePath = path.join(toolchainPath, 'make');
                     let gccArmBinPath = path.join(toolchainPath, 'gcc', 'bin');
 
-                    if(helpers.isPortable)
+                    if(helpers.isPortable())
                     {
                         envClone.PATH = homePath + '/.local/bin:' + pythonBinPath + ':' + makePath + ':' + gccArmBinPath + ':' + process.env.PATH;
                         envClone.Path = homePath + '/.local/bin:' + pythonBinPath + ':' + makePath + ':' + gccArmBinPath + ':' + process.env.PATH;
@@ -64,16 +64,16 @@ export class Terminal
             }
             else
             {
-                let vscodepath = process.env.VSCODE_PORTABLE;
-
-                let towerPath = path.join(vscodepath, 'tower');
-                let toolchainPath = path.join(towerPath, 'toolchain');
-                let gccPath = path.join(toolchainPath, 'gcc');
-                let gccBinPath = path.join(gccPath, 'bin');
-                let gccArmBinPath = path.join(gccPath, 'arm-none-eabi', 'bin');
-
-                if(helpers.isPortable)
+                if(helpers.isPortable())
                 {
+                    let vscodepath = process.env.VSCODE_PORTABLE;
+
+                    let towerPath = path.join(vscodepath, 'tower');
+                    let toolchainPath = path.join(towerPath, 'toolchain');
+                    let gccPath = path.join(toolchainPath, 'gcc');
+                    let gccBinPath = path.join(gccPath, 'bin');
+                    let gccArmBinPath = path.join(gccPath, 'arm-none-eabi', 'bin');
+
                     envClone.PATH = gccBinPath + ':' + gccArmBinPath + ':' + process.env.PATH;
                     envClone.Path = gccBinPath + ':' + gccArmBinPath + ':' + process.env.PATH;
                 }
