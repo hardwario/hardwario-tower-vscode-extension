@@ -45,17 +45,10 @@
             "serverpath": "${command:hardwario-tower.locate_jlink}",
             "svdFile": "./sdk/sys/svd/stm32l0x3.svd",
             "gdbPath" : "${command:hardwario-tower.locate_toolchain}",
-            "MIMode": "gdb",
             "runToEntryPoint" : "application_init",
-            "logging": {
-              "engineLogging": true
-            },
             "executable": "${workspaceFolder}/out/debug/firmware.elf",
-            "miDebuggerPath": "${command:hardwario-tower.locate_toolchain}",
-            "serverLaunchTimeout": 10000,
             "windows": {
                 "gdbPath" : "${command:hardwario-tower.locate_toolchain}.exe",
-                "miDebuggerPath": "${command:hardwario-tower.locate_toolchain}.exe",
                 "serverpath": "${command:hardwario-tower.locate_jlink}.exe"
             }
           }
