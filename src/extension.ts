@@ -601,7 +601,7 @@ function startDebug()
 		logging : {
 			'engineLogging' : true
 		},
-		executable : '${workspaceFolder}\\out\\debug\\firmware.elf',
+		executable : '${workspaceFolder}/out/debug/firmware.elf',
 		miDebuggerPath : '${command:hardwario-tower.locate_toolchain}',
 		serverLaunchTimeout : 10000,
 		windows : {
