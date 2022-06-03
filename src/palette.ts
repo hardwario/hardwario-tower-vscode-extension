@@ -1,11 +1,17 @@
 import * as vscode from 'vscode';
 import * as helpers from './helpers';
 
+/**
+ * Class for the command palette provided to the user
+ */
 export class PaletteProvider implements vscode.TreeDataProvider<PaletteCommand>  {
 
 	data: PaletteCommand[];
 
 	constructor() {
+		/**
+		 * If open folder is a HARDWARIO TOWER firmware provide all the options, otherwise provide just the basic options
+		 */
 		if(helpers.isHardwarioProject())
 		{
 			this.data = [
@@ -71,6 +77,9 @@ export class PaletteProvider implements vscode.TreeDataProvider<PaletteCommand> 
 	  }
 }
 
+/**
+ * Class constructing palette commands
+ */
 export class PaletteCommand extends vscode.TreeItem {
 	children?: PaletteCommand[]|undefined;
 	command?: vscode.Command|undefined;

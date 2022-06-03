@@ -3,6 +3,9 @@ import * as path from 'path';
 import { env } from 'process';
 import * as helpers from './helpers';
 
+/**
+ * Terminal class for each terminal used by this extension
+ */
 export class Terminal
 {
     name: string;
@@ -13,6 +16,10 @@ export class Terminal
         this.name = name;
     }
 
+    /**
+     * Creates the terminal with given specification based on if the VSCode is portable or normally installed
+     * @returns instance of the terminal
+     */
     get()
     {
         if(this._instance === null)

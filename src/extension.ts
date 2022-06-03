@@ -14,8 +14,12 @@ import { SerialPort } from 'serialport';
 const request = require('request');
 var commandExistsSync = require('command-exists').sync;
 
+/* URL for the list of firmware available for the HARDWARIO TOWER */
 const FIRMWARE_JSON_URL = "https://firmware.hardwario.com/tower/api/v1/list";
 
+/**
+ * Instances of all the available terminals
+ */
 let buildTerminal = new Term.Terminal("HARDWARIO TOWER Build");
 let flashTerminal = new Term.Terminal("HARDWARIO TOWER Flash");
 let flashAndLogTerminal = new Term.Terminal("HARDWARIO TOWER Flash And Log");
@@ -23,19 +27,34 @@ let consoleTerminal = new Term.Terminal("HARDWARIO TOWER Console");
 let cleanTerminal = new Term.Terminal("HARDWARIO TOWER Clean");
 let cloneTerminal = new Term.Terminal("HARDWARIO TOWER Clone");
 
+
 let lastSelectedFolder = "";
+
+/* Build type of the firmware */
 let releaseType = "debug";
+let releaseBar: vscode.StatusBarItem;
+
 let contextGlobal: vscode.ExtensionContext;
+
+/* List of serial ports available for flashing */
 let serialPorts;
-let portSelection = null;
+
+/* Currently selected serial port (item on the bottom bar) */
+let portSelection : vscode.StatusBarItem = null;
+
+/* Actual name of currently selected serial port */
 let selectedPort = "";
+
+/* Index of currently selected device on serial port */
 let deviceIndex = 0;
-let releaseBar;
 
 let preDebugBuildActive = false;
 
-// this method is called when your extension is activated
-// your extension is activated the very first time the command is executed
+/**
+ * Activation function that fires at the start of VSCode
+ * Takes care of setting up the command palette and all of the commands
+ * @param context 
+ */
 export function activate(context: vscode.ExtensionContext) {
 	contextGlobal = context;
 
@@ -75,8 +94,15 @@ export function activate(context: vscode.ExtensionContext) {
 		}
 	});
 		
+	/**
+	 * If the open folder is HARDWARIO TOWER firmware the extension will be started in full
+	 */
 	if(helpers.isHardwarioProject())
 	{		
+		/**
+		 * Looks for the HARDWARIO TOWER devices connected to the computer by a serial port
+		 * Every 2 seconds
+		 */
 		setInterval(()=> { 
 			SerialPort.list().then(function(ports){
 				let index = 0;
@@ -145,6 +171,9 @@ export function activate(context: vscode.ExtensionContext) {
 			  });
 		}, 2000);
 	
+		/**
+		 * Selects how to setup the extension based on the type of VSCode
+		 */
 		if(helpers.isPortable())
 		{
 			setupPortable();
@@ -158,6 +187,9 @@ export function activate(context: vscode.ExtensionContext) {
 		const provider = new HardwarioTowerDebugConfigurationProvider();
 		context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('hardwario-debugger', provider));
 	}
+	/**
+	 * If the open folder is not HARDWARIO TOWER firmware the extension will be initialized in a limited mode
+	 */
 	else
 	{
 		pushGeneralCommands();
@@ -165,6 +197,9 @@ export function activate(context: vscode.ExtensionContext) {
 	}
 }
 
+/**
+ * Sets up the extension in full if the VSCode is not portable
+ */
 function setupNormal()
 {
 	if(helpers.WINDOWS)
@@ -207,6 +242,9 @@ function setupNormal()
 	setup();
 }
 
+/**
+ * Sets up the extension in full if the VSCode is portable
+ */
 function setupPortable()
 {
 	let vscodepath = process.env.VSCODE_CWD;
@@ -240,6 +278,9 @@ function setupPortable()
 	setup();
 }
 
+/**
+ * Setup the rest of the extension (not based on portable version)
+ */
 function setup()
 {
 	createToolbar(contextGlobal);
@@ -253,8 +294,14 @@ function setup()
 	vscode.window.showInformationMessage("Setup done, you can use HARDWARIO Extension");
 }
 
+/**
+ * Create, define and push the basic commands to the palette
+ */
 function pushGeneralCommands()
 {
+	/**
+	 * Clone skeleton firmware from github and open it as a folder
+	 */
 	let cloneCommand = vscode.commands.registerCommand('hardwario-tower.clone_skeleton', async () => {
 		helpers.checkCommand('git', "Please install git with 'sudo apt install git' and restart VSCode", "How to install git", "Cancel", 'https://github.com/git-guides/install-git#install-git-on-linux');
 
@@ -304,6 +351,9 @@ function pushGeneralCommands()
 
 	contextGlobal.subscriptions.push(cloneCommand);
 
+	/**
+	 * Clone selected firmware from the github and open it as a folder
+	 */
 	let cloneFromTemplateCommand = vscode.commands.registerCommand('hardwario-tower.clone_firmware', async () => {
 		helpers.checkCommand('git', "Please install git with 'sudo apt install git' and restart VSCode", "How to install git", "Cancel", 'https://github.com/git-guides/install-git#install-git-on-linux');
 
@@ -380,44 +430,71 @@ function pushGeneralCommands()
 
 	contextGlobal.subscriptions.push(cloneFromTemplateCommand);
 
+	/**
+	 * Open documentation website
+	 */
 	let documentationCommand = vscode.commands.registerCommand('hardwario-tower.open_documentation', () => {
 		vscode.env.openExternal(vscode.Uri.parse('https://tower.hardwario.com/en/latest/'));
 	});
 	contextGlobal.subscriptions.push(documentationCommand);
 
+	/**
+	 * Open SDK website
+	 */
 	let sdkCommand = vscode.commands.registerCommand('hardwario-tower.open_sdk', () => {
 		vscode.env.openExternal(vscode.Uri.parse('https://sdk.hardwario.com/index.html'));
 	});
 	contextGlobal.subscriptions.push(sdkCommand);
 
+	/**
+	 * Open shop website
+	 */
 	let shopCommand = vscode.commands.registerCommand('hardwario-tower.open_shop', () => {
 		vscode.env.openExternal(vscode.Uri.parse('https://shop.hardwario.com'));
 	});
 	contextGlobal.subscriptions.push(shopCommand);
 
+	/**
+	 * Open hackster.io projects website
+	 */
 	let projectsCommand = vscode.commands.registerCommand('hardwario-tower.open_projects', () => {
 		vscode.env.openExternal(vscode.Uri.parse('https://www.hackster.io/hardwario/projects'));
 	});
 	contextGlobal.subscriptions.push(projectsCommand);
 
+	/**
+	 * Open company github page
+	 */
 	let githubCommand = vscode.commands.registerCommand('hardwario-tower.open_github', () => {
 		vscode.env.openExternal(vscode.Uri.parse('https://github.com/hardwario'));
 	});
 	contextGlobal.subscriptions.push(githubCommand);
 
+	/**
+	 * Open HARDWARIO Forum
+	 */
 	let forumCommand = vscode.commands.registerCommand('hardwario-tower.open_forum', () => {
 		vscode.env.openExternal(vscode.Uri.parse('https://forum.hardwario.com'));
 	});
 	contextGlobal.subscriptions.push(forumCommand);
 
+	/**
+	 * Open HARDWARIO main website
+	 */
 	let websiteCommand = vscode.commands.registerCommand('hardwario-tower.open_website', () => {
 		vscode.env.openExternal(vscode.Uri.parse('https://www.hardwario.com/cs/kit/'));
 	});
 	contextGlobal.subscriptions.push(websiteCommand);
 }
 
+/**
+ * Create, define and push the advanced commands to the palette when HARDWARIO TOWER firmware is opened
+ */
 function pushHardwarioCommands()
 {
+	/**
+	 * Build code with make and create final binary
+	 */
 	let compileCommand = vscode.commands.registerCommand('hardwario-tower.build', () => {
 		vscode.workspace.saveAll();
 		buildTerminal.get().sendText("make -j " + releaseType);
@@ -426,6 +503,9 @@ function pushHardwarioCommands()
 
 	contextGlobal.subscriptions.push(compileCommand);
 
+	/**
+	 * Build and upload the firmware to the selected connected device
+	 */
 	let uploadcommand = vscode.commands.registerCommand('hardwario-tower.flash', async () => {
 		vscode.workspace.saveAll();
 		
@@ -444,6 +524,9 @@ function pushHardwarioCommands()
 
 	contextGlobal.subscriptions.push(uploadcommand);
 
+	/**
+	 * Change selected device where the firmware should be uploaded to
+	 */
 	let changeDevice = vscode.commands.registerCommand('hardwario-tower.change_device', async () => {	
 		if(serialPorts.length === 0)
 		{
@@ -482,6 +565,9 @@ function pushHardwarioCommands()
 
 	contextGlobal.subscriptions.push(changeDevice);
 
+	/**
+	 * Clear all builded binaries
+	 */
 	let clearCommand = vscode.commands.registerCommand('hardwario-tower.clean', () => {
 		cleanTerminal.get().sendText("make clean");
 		cleanTerminal.get().show();
@@ -489,6 +575,9 @@ function pushHardwarioCommands()
 
 	contextGlobal.subscriptions.push(clearCommand);
 
+	/**
+	 * Attach the console to the selected device for the logging messages
+	 */
 	let logCommand = vscode.commands.registerCommand('hardwario-tower.console', () => {
 		if(selectedPort !== "")
 		{
@@ -502,6 +591,9 @@ function pushHardwarioCommands()
 	});
 	contextGlobal.subscriptions.push(logCommand);
 
+	/**
+	 * Build and upload firmware to selected device. After the upload the console will be attached to the device
+	 */
 	let flashAndLog = vscode.commands.registerCommand('hardwario-tower.flash_and_log', () => {
 		vscode.workspace.saveAll();
 
@@ -533,6 +625,9 @@ function pushHardwarioCommands()
 
 	contextGlobal.subscriptions.push(debugCommand);
 
+	/**
+	 * Change the type of builded firmware (debug/release)
+	 */
 	let changeReleaseType = vscode.commands.registerCommand('hardwario-tower.change_release_type', () => {
 		if(releaseType === "debug")
 		{
@@ -546,7 +641,9 @@ function pushHardwarioCommands()
 	});
 	contextGlobal.subscriptions.push(changeReleaseType);
 
-	
+	/**
+	 * Internal command that finds the arm toolchain based on the portable version
+	 */
 	let locateToolchain = vscode.commands.registerCommand('hardwario-tower.locate_toolchain', () => {
 		if(helpers.isPortable())
 		{
@@ -560,6 +657,9 @@ function pushHardwarioCommands()
 
 	contextGlobal.subscriptions.push(locateToolchain);
 
+	/**
+	 * Internal command that finds the JLink based on the portable version
+	 */
 	let locateJlink = vscode.commands.registerCommand('hardwario-tower.locate_jlink', () => {
 		if(helpers.isPortable())
 		{
@@ -574,6 +674,9 @@ function pushHardwarioCommands()
 	contextGlobal.subscriptions.push(locateJlink);
 }
 
+/**
+ * Builds the project before the start of the debug session with Jlink
+ */
 function preDebugBuild()
 {
 	vscode.workspace.saveAll();
@@ -582,6 +685,9 @@ function preDebugBuild()
 	buildTerminal.get().show();
 }
 
+/**
+ * Starts the debug session with JLink and given configuration
+ */
 function startDebug()
 {
 	vscode.debug.startDebugging(undefined, {
@@ -605,6 +711,10 @@ function startDebug()
 	});
 }
 
+/**
+ * Creates the icons on the bottom panel of the VSCode and assigns the commands to them
+ * @param context vscode context
+ */
 function createToolbar(context: vscode.ExtensionContext)
 {
 	const build = vscode.window.createStatusBarItem(
@@ -668,6 +778,10 @@ function createToolbar(context: vscode.ExtensionContext)
 	context.subscriptions.push(releaseBar);
 }
 
+/**
+ * Downloads and updates the list of available firmware for the HARDWARIO TOWER
+ * @returns promise that resolves when the firmware list is downloaded
+ */
 function updateFirmwareJson() {
 	process.env.NODE_TLS_REJECT_UNAUTHORIZED = '0';
     return new Promise((resolve) => {
@@ -684,6 +798,10 @@ function updateFirmwareJson() {
 export function deactivate() {}
 
 
+/**
+ * Debug configuration with HARDWARIO TOWER Debug name
+ * Calls preDebugBuild function if no launch.json is present
+ */
 class HardwarioTowerDebugConfigurationProvider implements vscode.DebugConfigurationProvider {
 	resolveDebugConfiguration(_folder: vscode.WorkspaceFolder | undefined, config: vscode.DebugConfiguration, _token?: vscode.CancellationToken): vscode.ProviderResult<vscode.DebugConfiguration> {
 

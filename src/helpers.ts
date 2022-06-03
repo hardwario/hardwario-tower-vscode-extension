@@ -3,6 +3,9 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as Term from './terminal';
 
+/**
+ * Constants that represent the platform that the VSCode runs on
+ */
 export const WINDOWS = process.platform.startsWith('win');
 export const OSX = process.platform === 'darwin';
 export const LINUX = !WINDOWS && !OSX;
@@ -34,8 +37,14 @@ export const browsePathSetting : string[] = [
 
 var commandExistsSync = require('command-exists').sync;
 
+/**
+ * Checks if the version of VSCode is portable or normally installed
+ * There are few things that are based on this (PATH variable, etc.)
+ * @returns true if portable, false otherwise
+ */
 export function isPortable()
 {
+    /* Windows and linux versions are detected based on the window title */
     if(WINDOWS || LINUX)
     {
         const config = vscode.workspace.getConfiguration('window');
@@ -52,6 +61,7 @@ export function isPortable()
             return false;
         }
     }
+    /* OSX is decided by a presence special env variable */
     else if(OSX)
     {
         if(process.env.VSCODE_PORTABLE !== undefined)
@@ -65,6 +75,14 @@ export function isPortable()
     }
 }
 
+/**
+ * Checks if the command exists in PATH and shows a warning if it does not
+ * @param command what command should be checked
+ * @param warningMessage warning message shown to the user if the command does not exist
+ * @param firstOption what option should be given to the user as a first button
+ * @param secondOption what option should be given to the user as a second option
+ * @param guideLink link to website with a guide how to solve the missing command
+ */
 export function checkCommand(command, warningMessage, firstOption, secondOption, guideLink)
 {
     if(!commandExistsSync(command)) {
@@ -79,6 +97,13 @@ export function checkCommand(command, warningMessage, firstOption, secondOption,
     }
 }
 
+/**
+ * Checks if the opened folder is HARDWARIO TOWER firmware
+ * Looks for app/application.c or src/application.c
+ * If one of these is present it looks for application_init function inside it
+ * If application_init is found it is most likely HARDWARIO TOWER firmware
+ * @returns true if is hardwario project, false otherwise
+ */
 export function isHardwarioProject()
 {
     if(vscode.workspace.workspaceFolders === undefined)
@@ -113,6 +138,9 @@ export function isHardwarioProject()
     
 }
 
+/**
+ * Adds all needed setting to the setting.json in .vscode folder
+ */
 export function addSetting()
 {
     let includePath: string[] = vscode.workspace.getConfiguration('C_Cpp.default').get('includePath');
@@ -148,6 +176,10 @@ export function addSetting()
     }
 }
 
+/**
+ * Checks for correct project structure
+ * If there is anything wrong with the project structure it will give an option to fix it
+ */
 export function checkProjectStructure()
 {
     let workspaceFolder = vscode.workspace.workspaceFolders[0];
@@ -167,6 +199,10 @@ export function checkProjectStructure()
     }
 }
 
+/**
+ * Updates the project to latest supported project structure
+ * @param workspacePath path to the current workspace
+ */
 function updateToSupportedFirmwareStructure(workspacePath)
 {
     let updateFirmwareTerminal = new Term.Terminal("HARDWARIO TOWER Update firmware");
