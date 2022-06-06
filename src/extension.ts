@@ -647,7 +647,14 @@ function pushHardwarioCommands()
 	let locateToolchain = vscode.commands.registerCommand('hardwario-tower.locate_toolchain', () => {
 		if(helpers.isPortable())
 		{
-			return process.env.VSCODE_CWD + "/data/tower/toolchain/gcc/bin/arm-none-eabi-gdb";
+			if(helpers.WINDOWS || helpers.LINUX)
+			{
+				return process.env.VSCODE_CWD + "/data/tower/toolchain/gcc/bin/arm-none-eabi-gdb";
+			}
+			if(helpers.OSX)
+			{
+				return process.env.VSCODE_PORTABLE + "/tower/toolchain/gcc/bin/arm-none-eabi-gdb";
+			}
 		}
 		else
 		{
@@ -663,7 +670,14 @@ function pushHardwarioCommands()
 	let locateJlink = vscode.commands.registerCommand('hardwario-tower.locate_jlink', () => {
 		if(helpers.isPortable())
 		{
-			return process.env.VSCODE_CWD + "/data/tower/toolchain/SEGGER/JLink/JLinkGDBServerCL";
+			if(helpers.LINUX || helpers.WINDOWS)
+			{
+				return process.env.VSCODE_CWD + "/data/tower/toolchain/SEGGER/JLink/JLinkGDBServerCL";
+			}
+			if(helpers.OSX)
+			{
+				return process.env.VSCODE_PORTABLE + "/tower/toolchain/SEGGER/JLink/JLinkGDBServerCLExe";
+			}
 		}
 		else
 		{
