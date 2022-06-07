@@ -617,10 +617,15 @@ function pushHardwarioCommands()
 
 	contextGlobal.subscriptions.push(flashAndLog);
 
-	
-	let debugCommand = vscode.commands.registerCommand('hardwario-tower.debug', async () => {
+	let flashAndDebug = vscode.commands.registerCommand('hardwario-tower.flash_and_debug', async () => {
 		preDebugBuild();
 		preDebugBuildActive = true;
+	});
+	
+	contextGlobal.subscriptions.push(flashAndDebug);
+	
+	let debugCommand = vscode.commands.registerCommand('hardwario-tower.debug', async () => {
+		startDebug();
 	});
 
 	contextGlobal.subscriptions.push(debugCommand);
@@ -670,7 +675,7 @@ function pushHardwarioCommands()
 	let locateJlink = vscode.commands.registerCommand('hardwario-tower.locate_jlink', () => {
 		if(helpers.isPortable())
 		{
-			if(helpers.LINUX || helpers.WINDOWS)
+			if(helpers.WINDOWS)
 			{
 				return process.env.VSCODE_CWD + "/data/tower/toolchain/SEGGER/JLink/JLinkGDBServerCL";
 			}
@@ -678,10 +683,21 @@ function pushHardwarioCommands()
 			{
 				return process.env.VSCODE_PORTABLE + "/tower/toolchain/SEGGER/JLink/JLinkGDBServerCLExe";
 			}
+			if(helpers.LINUX)
+			{
+				return process.env.VSCODE_CWD + "/data/tower/toolchain/SEGGER/JLink/JLinkGDBServerCLExe";
+			}
 		}
 		else
 		{
-			return "JLinkGDBServerCL";
+			if(helpers.LINUX || helpers.OSX)
+			{
+				return "JLinkGDBServerCLExe";
+			}
+			if(helpers.WINDOWS)
+			{
+				return "JLinkGDBServerCL";
+			}
 		}
 	});
 
