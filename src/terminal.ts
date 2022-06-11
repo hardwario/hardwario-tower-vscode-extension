@@ -28,7 +28,7 @@ class Terminal {
     if (this.instance === null) {
       const envClone = Object.create(process.env);
 
-      if (!helpers.OSX) {
+      if (!helpers.MACOS) {
         const vscodepath = process.env.VSCODE_CWD;
         const towerPath = path.join(vscodepath, 'data', 'tower');
         const pythonPath = path.join(towerPath, 'python');

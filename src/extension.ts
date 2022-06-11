@@ -77,7 +77,7 @@ function pushGeneralCommands() {
         let folderUriString = '';
         if (helpers.WINDOWS) {
           folderUriString = `${folderUri[0].path.substring(1)}/`;
-        } else if (helpers.LINUX || helpers.OSX) {
+        } else if (helpers.LINUX || helpers.MACOS) {
           folderUriString = `${folderUri[0].path}/`;
         }
 
@@ -144,7 +144,7 @@ function pushGeneralCommands() {
                 let folderUriString = '';
                 if (helpers.WINDOWS) {
                   folderUriString = `${folderUri[0].path.substring(1)}/`;
-                } else if (helpers.LINUX || helpers.OSX) {
+                } else if (helpers.LINUX || helpers.MACOS) {
                   folderUriString = `${folderUri[0].path}/`;
                 }
 
@@ -385,7 +385,7 @@ function pushHardwarioCommands() {
       if (helpers.WINDOWS || helpers.LINUX) {
         return `${process.env.VSCODE_CWD}/data/tower/toolchain/gcc/bin/arm-none-eabi-gdb`;
       }
-      if (helpers.OSX) {
+      if (helpers.MACOS) {
         return `${process.env.VSCODE_PORTABLE}/tower/toolchain/gcc/bin/arm-none-eabi-gdb`;
       }
     }
@@ -402,14 +402,14 @@ function pushHardwarioCommands() {
       if (helpers.WINDOWS) {
         return `${process.env.VSCODE_CWD}/data/tower/toolchain/SEGGER/JLink/JLinkGDBServerCL`;
       }
-      if (helpers.OSX) {
+      if (helpers.MACOS) {
         return `${process.env.VSCODE_PORTABLE}/tower/toolchain/SEGGER/JLink/JLinkGDBServerCLExe`;
       }
       if (helpers.LINUX) {
         return `${process.env.VSCODE_CWD}/data/tower/toolchain/SEGGER/JLink/JLinkGDBServerCLExe`;
       }
     } else {
-      if (helpers.LINUX || helpers.OSX) {
+      if (helpers.LINUX || helpers.MACOS) {
         return 'JLinkGDBServerCLExe';
       }
       if (helpers.WINDOWS) {
@@ -551,7 +551,7 @@ function setupNormal() {
           }
         });
     }
-  } else if (helpers.OSX) {
+  } else if (helpers.MACOS) {
     helpers.checkCommand('git', 'Please install git and restart VSCode', 'How to install git', 'Cancel', 'https://git-scm.com/book/en/v2/Getting-Started-Installing-Git');
     helpers.checkCommand('make', 'Please install make and restart VSCode', 'How to install make', 'Cancel', 'https://formulae.brew.sh/formula/make');
     helpers.checkCommand('arm-none-eabi-gcc', 'Please install arm-none-eabi-gcc and restart VSCode', 'How to install arm-none-eabi-gcc', 'Cancel', 'https://mynewt.apache.org/latest/get_started/native_install/cross_tools.html#installing-the-arm-toolchain-for-mac-os-x');
@@ -588,7 +588,7 @@ function setupPortable() {
     if (!fs.existsSync(path.join(pythonScriptsPath, 'bcf.exe'))) {
       buildTerminal.get().sendText('python -m pip install bcf');
     }
-  } else if (helpers.OSX) {
+  } else if (helpers.MACOS) {
     if (!commandExistsSync('bcf')) {
       buildTerminal.get().sendText('python3 -m pip install bcf');
     }

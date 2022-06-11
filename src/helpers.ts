@@ -12,8 +12,8 @@ import Terminal from './terminal';
  * Constants that represent the platform that the VSCode runs on
  */
 export const WINDOWS = process.platform.startsWith('win');
-export const OSX = process.platform === 'darwin';
-export const LINUX = !WINDOWS && !OSX;
+export const MACOS = process.platform === 'darwin';
+export const LINUX = !WINDOWS && !MACOS;
 
 /* URL for the list of firmware available for the HARDWARIO TOWER */
 const FIRMWARE_JSON_URL = 'https://firmware.hardwario.com/tower/api/v1/list';
@@ -78,8 +78,8 @@ export function isPortable() {
 
     return false;
   }
-  /* OSX is decided by a presence special env variable */
-  if (OSX) {
+  /* MACOS is decided by a presence special env variable */
+  if (MACOS) {
     if (process.env.VSCODE_PORTABLE !== undefined) {
       return true;
     }
