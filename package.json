@@ -132,6 +132,14 @@
       {
         "command": "hardwario-tower.open_sdk",
         "title": "HARDWARIO Tower SDK"
+      },
+      {
+        "command": "hardwario-tower.update_sdk",
+        "title": "HARDWARIO Tower Update Firmware SDK"
+      },
+      {
+        "command": "hardwario-tower.upgrade_firmware",
+        "title": "HARDWARIO Tower Upgrade Firmware"
       }
     ],
     "viewsContainers": {

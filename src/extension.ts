@@ -310,7 +310,7 @@ function pushHardwarioCommands() {
 
       portSelection.text = `Device: ${serialPorts[deviceIndex].path} - ${serialPorts[deviceIndex].serialNumber.split('-').slice(0, 3).join('-')}`;
 
-      portSelection.tooltip = 'Change device';
+      portSelection.tooltip = 'HARDWARIO: Change device';
       portSelection.command = 'hardwario-tower.change_device';
       portSelection.show();
       contextGlobal.subscriptions.push(portSelection);
@@ -449,6 +449,27 @@ function pushHardwarioCommands() {
   });
 
   contextGlobal.subscriptions.push(locateJlink);
+
+  /**
+   * Update firmware SDK
+   */
+  const updateSDKCommand = vscode.commands.registerCommand('hardwario-tower.update_sdk', () => {
+    buildTerminal.get().sendText('git submodule update --remote --merge sdk');
+  });
+
+  contextGlobal.subscriptions.push(updateSDKCommand);
+
+  /**
+   * Upgrade firmware project from platformio
+   */
+  const upgradeFirmware = vscode.commands.registerCommand('hardwario-tower.upgrade_firmware', () => {
+    const workspaceFolder = vscode.workspace.workspaceFolders[0];
+    const workspacePath = workspaceFolder.uri.fsPath.toString();
+
+    helpers.updateToSupportedFirmwareStructure(workspacePath);
+  });
+
+  contextGlobal.subscriptions.push(upgradeFirmware);
 }
 
 /**
@@ -464,7 +485,7 @@ function createToolbar(context: vscode.ExtensionContext) {
 
   build.name = 'HARDWARIO: Toolbar';
   build.text = '$(check)';
-  build.tooltip = 'Build Firmware';
+  build.tooltip = 'HARDWARIO: Build Firmware';
   build.command = 'hardwario-tower.build';
   build.show();
   context.subscriptions.push(build);
@@ -477,7 +498,7 @@ function createToolbar(context: vscode.ExtensionContext) {
 
   flash.name = 'HARDWARIO: Toolbar';
   flash.text = '$(arrow-up)';
-  flash.tooltip = 'Flash Firmware';
+  flash.tooltip = 'HARDWARIO: Flash Firmware';
   flash.command = 'hardwario-tower.flash';
   flash.show();
   context.subscriptions.push(flash);
@@ -490,7 +511,7 @@ function createToolbar(context: vscode.ExtensionContext) {
 
   console.name = 'HARDWARIO: Toolbar';
   console.text = '$(debug-alt)';
-  console.tooltip = 'Build & Flash & Attach';
+  console.tooltip = 'HARDWARIO: Build + Flash (Console)';
   console.command = 'hardwario-tower.flash_and_log';
   console.show();
   context.subscriptions.push(console);
@@ -503,7 +524,7 @@ function createToolbar(context: vscode.ExtensionContext) {
 
   clean.name = 'HARDWARIO: Toolbar';
   clean.text = '$(notebook-delete-cell)';
-  clean.tooltip = 'Clean All Outputs';
+  clean.tooltip = 'HARDWARIO: Clean All Outputs';
   clean.command = 'hardwario-tower.clean';
   clean.show();
   context.subscriptions.push(clean);
@@ -516,7 +537,7 @@ function createToolbar(context: vscode.ExtensionContext) {
 
   releaseBar.name = 'HARDWARIO: Toolbar';
   releaseBar.text = `Firmware type: ${releaseType}`;
-  releaseBar.tooltip = 'Change release type';
+  releaseBar.tooltip = 'HARDWARIO: Change release type';
   releaseBar.command = 'hardwario-tower.change_release_type';
   releaseBar.show();
   context.subscriptions.push(releaseBar);
@@ -716,7 +737,7 @@ export function activate(context: vscode.ExtensionContext) {
           } else {
             portSelection.text = `Device: ${ports[deviceIndex].path} - ${ports[deviceIndex].serialNumber.split('-').slice(0, 3).join('-')}`;
           }
-          portSelection.tooltip = 'Change device';
+          portSelection.tooltip = 'HARDWARIO: Change device';
           portSelection.command = 'hardwario-tower.change_device';
           portSelection.show();
           context.subscriptions.push(portSelection);

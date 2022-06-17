@@ -118,7 +118,7 @@ export function checkCommand(command, warningMessage, firstOption, secondOption,
  * Looks for app/application.c or src/application.c
  * If one of these is present it looks for application_init function inside it
  * If application_init is found it is most likely HARDWARIO TOWER firmware
- * @returns true if is hardwario project, false otherwise
+ * @returns true if is HARDWARIO project, false otherwise
  */
 export function isHardwarioProject() {
   if (vscode.workspace.workspaceFolders === undefined) {
@@ -182,7 +182,7 @@ export function addSetting() {
  * Updates the project to latest supported project structure
  * @param workspacePath path to the current workspace
  */
-function updateToSupportedFirmwareStructure(workspacePath) {
+export function updateToSupportedFirmwareStructure(workspacePath) {
   const updateFirmwareTerminal = new Terminal('HARDWARIO TOWER Update firmware');
 
   if (!fs.existsSync(path.join(workspacePath, 'sdk'))) {

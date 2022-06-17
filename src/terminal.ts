@@ -48,9 +48,12 @@ class Terminal {
           const gitUsrBinPath = path.join(gitPath, 'usr', 'bin');
           const gitMingw64BinPath = path.join(gitPath, 'mingw64', 'bin');
 
+          const cmakePath = path.join(toolchainPath, 'cmake', 'bin');
+          const ninjaPath = path.join(toolchainPath, 'ninja');
+
           if (helpers.isPortable()) {
-            envClone.PATH = `${pythonPath};${pythonScriptsPath};${makeBinPath};${gccBinPath};${gccArmBinPath};${gitCmdPath};${gitUsrBinPath};${gitMingw64BinPath}`;
-            envClone.Path = `${pythonPath};${pythonScriptsPath};${makeBinPath};${gccBinPath};${gccArmBinPath};${gitCmdPath};${gitUsrBinPath};${gitMingw64BinPath}`;
+            envClone.PATH = `${pythonPath};${pythonScriptsPath};${makeBinPath};${gccBinPath};${gccArmBinPath};${gitCmdPath};${gitUsrBinPath};${gitMingw64BinPath};${cmakePath};${ninjaPath}`;
+            envClone.Path = `${pythonPath};${pythonScriptsPath};${makeBinPath};${gccBinPath};${gccArmBinPath};${gitCmdPath};${gitUsrBinPath};${gitMingw64BinPath};${cmakePath};${ninjaPath}`;
           }
         } else if (helpers.LINUX) {
           const homePath = env.HOME;
