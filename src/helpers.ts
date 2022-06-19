@@ -146,6 +146,16 @@ export function isHardwarioProject() {
   return false;
 }
 
+export function isCmakeProject() {
+  const workspaceFolder = vscode.workspace.workspaceFolders[0];
+
+  if (fs.existsSync(path.join(workspaceFolder.uri.fsPath.toString(), 'CMakeLists.txt'))) {
+    return true;
+  }
+
+  return false;
+}
+
 /**
  * Adds all needed setting to the setting.json in .vscode folder
  */
@@ -186,8 +196,7 @@ export function updateToSupportedFirmwareStructure(workspacePath) {
   const updateFirmwareTerminal = new Terminal('HARDWARIO TOWER Update firmware');
 
   if (!fs.existsSync(path.join(workspacePath, 'sdk'))) {
-    updateFirmwareTerminal.get().sendText('git submodule add https://github.com/hardwario/twr-sdk.git sdk');
-    updateFirmwareTerminal.get().sendText('exit');
+    updateFirmwareTerminal.get().sendText('git submodule add https://github.com/hardwario/twr-sdk.git sdk && exit');
     updateFirmwareTerminal.get().show();
   } else {
     updateFirmwareTerminal.get().sendText('make update');
@@ -303,6 +312,55 @@ export function checkProjectStructure() {
         }
       });
   }
+}
+
+export function isCmakeGenerated(type: string) {
+  const workspaceFolder = vscode.workspace.workspaceFolders[0];
+
+  const objDebugPath = path.join(workspaceFolder.uri.fsPath.toString(), 'obj', 'debug');
+  const objReleasePath = path.join(workspaceFolder.uri.fsPath.toString(), 'obj', 'release');
+
+  if (type === 'debug') {
+    if (!fs.existsSync(path.join(objDebugPath, 'CMakeFiles'))
+    || !fs.existsSync(path.join(objDebugPath, 'sdk'))
+    || !fs.existsSync(path.join(objDebugPath, 'src'))
+    || !fs.existsSync(path.join(objDebugPath, 'build.ninja'))
+    || !fs.existsSync(path.join(objDebugPath, 'cmake_install.cmake'))) {
+      return false;
+    }
+    return true;
+  }
+
+  if (type === 'release') {
+    if (!fs.existsSync(path.join(objReleasePath, 'CMakeFiles'))
+        || !fs.existsSync(path.join(objReleasePath, 'sdk'))
+        || !fs.existsSync(path.join(objReleasePath, 'src'))
+        || !fs.existsSync(path.join(objReleasePath, 'build.ninja'))
+        || !fs.existsSync(path.join(objReleasePath, 'cmake_install.cmake'))) {
+      return false;
+    }
+    return true;
+  }
+
+  return true;
+}
+
+export function buildMakeCommand(type: string, includeExit: boolean = false) {
+  let command = '';
+  if (isCmakeProject()) {
+    if (!isCmakeGenerated(type)) {
+      command += `cmake -Bobj/${type} . -G Ninja -DCMAKE_TOOLCHAIN_FILE=sdk/toolchain/toolchain.cmake -DTYPE=${type} && `;
+    }
+    command += `ninja -C obj/${type}`;
+  } else {
+    command = `make -j ${type}`;
+  }
+
+  if (includeExit) {
+    command += ' && exit';
+  }
+
+  return command;
 }
 
 /**

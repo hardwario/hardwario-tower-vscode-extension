@@ -151,17 +151,6 @@
         }
       ]
     },
-    "configuration": {
-      "type": "object",
-      "title": "HARDWARIO TOWER configuration",
-      "properties": {
-        "hardwario-tower.jlinkBinPath": {
-          "type": "string",
-          "default": "",
-          "description": "Path to the J-Link server"
-        }
-      }
-    },
     "views": {
       "hardwario-tower": [
         {

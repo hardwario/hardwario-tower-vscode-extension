@@ -50,8 +50,8 @@ let preDebugBuildActive = false;
  */
 function preDebugBuild() {
   vscode.workspace.saveAll();
-  buildTerminal.get().sendText('make -j debug');
-  buildTerminal.get().sendText('exit');
+  const command = helpers.buildMakeCommand('debug', true);
+  buildTerminal.get().sendText(command);
   buildTerminal.get().show();
 }
 
@@ -94,8 +94,7 @@ function pushGeneralCommands() {
           } else {
             folderUriString += text;
           }
-          cloneTerminal.get().sendText(`git clone --recursive https://github.com/hardwario/twr-tester-chester-x0.git ${folderUriString}`);
-          cloneTerminal.get().sendText('exit');
+          cloneTerminal.get().sendText(`git clone --recursive https://github.com/hardwario/twr-tester-chester-x0.git ${folderUriString} && exit`);
           cloneTerminal.get().show();
           vscode.workspace.saveAll();
 
@@ -163,8 +162,7 @@ function pushGeneralCommands() {
                   } else {
                     folderUriString += text;
                   }
-                  cloneTerminal.get().sendText(`git clone --recursive ${pickedItem.link} ${folderUriString}`);
-                  cloneTerminal.get().sendText('exit');
+                  cloneTerminal.get().sendText(`git clone --recursive ${pickedItem.link} ${folderUriString} && exit`);
                   cloneTerminal.get().show();
                   vscode.workspace.saveAll();
 
@@ -247,7 +245,9 @@ function pushHardwarioCommands() {
    */
   const compileCommand = vscode.commands.registerCommand('hardwario-tower.build', () => {
     vscode.workspace.saveAll();
-    buildTerminal.get().sendText(`make -j ${releaseType}`);
+
+    const command = helpers.buildMakeCommand(releaseType);
+    buildTerminal.get().sendText(command);
     buildTerminal.get().show();
   });
 
@@ -269,13 +269,13 @@ function pushHardwarioCommands() {
       flashAndLogTerminal.instance = null;
     }
 
-    flashTerminal.get().sendText(`make -j ${releaseType}`);
+    let command = helpers.buildMakeCommand(releaseType);
     if (selectedPort !== '') {
-      flashTerminal.get().sendText(`bcf flash --device ${selectedPort}`);
+      command += ` && bcf flash --device ${selectedPort}`;
     } else {
-      flashTerminal.get().sendText('bcf flash');
+      command += ' && bcf flash';
     }
-
+    flashTerminal.get().sendText(command);
     flashTerminal.get().show();
   });
 
@@ -323,7 +323,12 @@ function pushHardwarioCommands() {
    * Clear all builded binaries
    */
   const clearCommand = vscode.commands.registerCommand('hardwario-tower.clean', () => {
-    cleanTerminal.get().sendText('make clean');
+    if (helpers.isCmakeProject()) {
+      cleanTerminal.get().sendText('ninja -C obj/release clean');
+      cleanTerminal.get().sendText('ninja -C obj/debug clean');
+    } else {
+      cleanTerminal.get().sendText('make clean');
+    }
     cleanTerminal.get().show();
   });
 
@@ -369,12 +374,13 @@ function pushHardwarioCommands() {
       flashAndLogTerminal.instance = null;
     }
 
-    flashAndLogTerminal.get().sendText(`make -j ${releaseType}`);
+    let command = helpers.buildMakeCommand(releaseType);
     if (selectedPort !== '') {
-      flashAndLogTerminal.get().sendText(`bcf flash --log --device ${selectedPort}`);
+      command += ` && bcf flash --log --device ${selectedPort} `;
     } else {
-      flashAndLogTerminal.get().sendText('bcf flash --log');
+      command += ` && bcf flash --log --device ${selectedPort} `;
     }
+    flashAndLogTerminal.get().sendText(command);
     flashAndLogTerminal.get().show();
   });
 
