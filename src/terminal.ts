@@ -3,8 +3,8 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { env } from 'process';
-import { exec } from 'child_process';
 import * as helpers from './helpers';
+import { execSync } from 'child_process';
 
 /**
  * Terminal class for each terminal used by this extension
@@ -51,20 +51,13 @@ class Terminal {
           const cmakePath = path.join(toolchainPath, 'cmake', 'bin');
           const ninjaPath = path.join(toolchainPath, 'ninja');
 
-          if (helpers.isPortable()) {
-            exec('where cmd.exe', (error, stdout, stderr) => {
-              if (error) {
-                return;
-              }
-              if (stderr) {
-                return;
-              }
-              let cmdPath = stdout;
-              cmdPath = cmdPath.replace(/(\r\n|\n|\r)/gm, '');
+          if (helpers.isPortable()) {  
 
-              envClone.PATH = `${pythonPath};${pythonScriptsPath};${makeBinPath};${gccBinPath};${gccArmBinPath};${gitCmdPath};${gitUsrBinPath};${gitMingw64BinPath};${cmakePath};${ninjaPath};${cmdPath}`;
-              envClone.Path = `${pythonPath};${pythonScriptsPath};${makeBinPath};${gccBinPath};${gccArmBinPath};${gitCmdPath};${gitUsrBinPath};${gitMingw64BinPath};${cmakePath};${ninjaPath};${cmdPath}`;
-            });
+            let systemCmdPath = execSync('where cmd.exe', {timeout: 5000}).toString();
+            systemCmdPath = systemCmdPath.replace(/(\r\n|\n|\r)/gm, '');
+                  
+            envClone.PATH = `${pythonPath};${pythonScriptsPath};${makeBinPath};${gccBinPath};${gccArmBinPath};${gitCmdPath};${gitUsrBinPath};${gitMingw64BinPath};${cmakePath};${ninjaPath};${systemCmdPath}`;
+            envClone.Path = `${pythonPath};${pythonScriptsPath};${makeBinPath};${gccBinPath};${gccArmBinPath};${gitCmdPath};${gitUsrBinPath};${gitMingw64BinPath};${cmakePath};${ninjaPath};${systemCmdPath}`;
           }
         } else if (helpers.LINUX) {
           const homePath = env.HOME;
