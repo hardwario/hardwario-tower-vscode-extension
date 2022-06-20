@@ -4,6 +4,7 @@ import * as vscode from 'vscode';
 import * as path from 'path';
 import { env } from 'process';
 import * as helpers from './helpers';
+import * as child_process from 'child_process'
 
 /**
  * Terminal class for each terminal used by this extension
@@ -52,8 +53,22 @@ class Terminal {
           const ninjaPath = path.join(toolchainPath, 'ninja');
 
           if (helpers.isPortable()) {
-            envClone.PATH = `${pythonPath};${pythonScriptsPath};${makeBinPath};${gccBinPath};${gccArmBinPath};${gitCmdPath};${gitUsrBinPath};${gitMingw64BinPath};${cmakePath};${ninjaPath}`;
-            envClone.Path = `${pythonPath};${pythonScriptsPath};${makeBinPath};${gccBinPath};${gccArmBinPath};${gitCmdPath};${gitUsrBinPath};${gitMingw64BinPath};${cmakePath};${ninjaPath}`;
+            
+            child_process.exec("where cmd.exe", (error, stdout, stderr) => {
+              if (error) {
+                  console.log(`error: ${error.message}`);
+                  return;
+              }
+              if (stderr) {
+                  console.log(`stderr: ${stderr}`);
+                  return;
+              }
+              let cmdPath = stdout;
+              cmdPath = cmdPath.replace(/(\r\n|\n|\r)/gm, "");
+
+              envClone.PATH = `${pythonPath};${pythonScriptsPath};${makeBinPath};${gccBinPath};${gccArmBinPath};${gitCmdPath};${gitUsrBinPath};${gitMingw64BinPath};${cmakePath};${ninjaPath};${cmdPath}`;
+              envClone.Path = `${pythonPath};${pythonScriptsPath};${makeBinPath};${gccBinPath};${gccArmBinPath};${gitCmdPath};${gitUsrBinPath};${gitMingw64BinPath};${cmakePath};${ninjaPath};${cmdPath}`;
+            });     
           }
         } else if (helpers.LINUX) {
           const homePath = env.HOME;
@@ -62,9 +77,12 @@ class Terminal {
           const makePath = path.join(toolchainPath, 'make');
           const gccArmBinPath = path.join(toolchainPath, 'gcc', 'bin');
 
+          const cmakePath = path.join(toolchainPath, 'cmake', 'bin');
+          const ninjaPath = path.join(toolchainPath, 'ninja');
+
           if (helpers.isPortable()) {
-            envClone.PATH = `${homePath}/.local/bin:${pythonBinPath}:${makePath}:${gccArmBinPath}:${process.env.PATH}`;
-            envClone.Path = `${homePath}/.local/bin:${pythonBinPath}:${makePath}:${gccArmBinPath}:${process.env.PATH}`;
+            envClone.PATH = `${homePath}/.local/bin:${pythonBinPath}:${makePath}:${gccArmBinPath}:${cmakePath}:${ninjaPath}:${process.env.PATH}`;
+            envClone.Path = `${homePath}/.local/bin:${pythonBinPath}:${makePath}:${gccArmBinPath}:${cmakePath}:${ninjaPath}:${process.env.PATH}`;
           }
         }
       } else
@@ -77,8 +95,11 @@ class Terminal {
         const gccBinPath = path.join(gccPath, 'bin');
         const gccArmBinPath = path.join(gccPath, 'arm-none-eabi', 'bin');
 
-        envClone.PATH = `${gccBinPath}:${gccArmBinPath}:${process.env.PATH}`;
-        envClone.Path = `${gccBinPath}:${gccArmBinPath}:${process.env.PATH}`;
+        const cmakePath = path.join(vscodepath, 'cmake', 'bin');
+        const ninjaPath = path.join(vscodepath, 'ninja');       
+
+        envClone.PATH = `${gccBinPath}:${gccArmBinPath}:${cmakePath}:${ninjaPath}:${process.env.PATH}`;
+        envClone.Path = `${gccBinPath}:${gccArmBinPath}:${cmakePath}:${ninjaPath}:${process.env.PATH}`;
       }
 
       this.instance = vscode.window.createTerminal({
