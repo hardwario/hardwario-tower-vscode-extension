@@ -323,18 +323,15 @@ function pushHardwarioCommands() {
    * Clear all builded binaries
    */
   const clearCommand = vscode.commands.registerCommand('hardwario-tower.clean', () => {
+    const workspaceFolder = vscode.workspace.workspaceFolders[0];
     if (helpers.isCmakeProject()) {
-      const workspaceFolder = vscode.workspace.workspaceFolders[0];
-      
       cleanTerminal.get().sendText('ninja -C obj/release clean');
       cleanTerminal.get().sendText('ninja -C obj/debug clean');
-
-      fs.rmSync(path.join(workspaceFolder.uri.fsPath.toString(), 'out'), { recursive: true, force: true });
-      fs.rmSync(path.join(workspaceFolder.uri.fsPath.toString(), 'obj'), { recursive: true, force: true });
-
     } else {
       cleanTerminal.get().sendText('make clean');
     }
+    fs.rmSync(path.join(workspaceFolder.uri.fsPath.toString(), 'out'), { recursive: true, force: true });
+    fs.rmSync(path.join(workspaceFolder.uri.fsPath.toString(), 'obj'), { recursive: true, force: true });
     cleanTerminal.get().show();
   });
 
