@@ -54,7 +54,8 @@ class Terminal {
           if (helpers.isPortable()) {  
 
             let systemCmdPath = execSync('where cmd.exe', {timeout: 5000}).toString();
-            systemCmdPath = systemCmdPath.replace(/(\r\n|\n|\r)/gm, '');
+            systemCmdPath = systemCmdPath.replace(/(\r\n|\n|\r)/gm, '')
+            systemCmdPath = systemCmdPath.substring(0, systemCmdPath.length - 8);
                   
             envClone.PATH = `${pythonPath};${pythonScriptsPath};${makeBinPath};${gccBinPath};${gccArmBinPath};${gitCmdPath};${gitUsrBinPath};${gitMingw64BinPath};${cmakePath};${ninjaPath};${systemCmdPath}`;
             envClone.Path = `${pythonPath};${pythonScriptsPath};${makeBinPath};${gccBinPath};${gccArmBinPath};${gitCmdPath};${gitUsrBinPath};${gitMingw64BinPath};${cmakePath};${ninjaPath};${systemCmdPath}`;
