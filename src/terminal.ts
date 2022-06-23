@@ -3,8 +3,8 @@
 import * as vscode from 'vscode';
 import * as path from 'path';
 import { env } from 'process';
-import * as helpers from './helpers';
 import { execSync } from 'child_process';
+import * as helpers from './helpers';
 
 /**
  * Terminal class for each terminal used by this extension
@@ -51,12 +51,11 @@ class Terminal {
           const cmakePath = path.join(toolchainPath, 'cmake', 'bin');
           const ninjaPath = path.join(toolchainPath, 'ninja');
 
-          if (helpers.isPortable()) {  
-
-            let systemCmdPath = execSync('where cmd.exe', {timeout: 5000}).toString();
-            systemCmdPath = systemCmdPath.replace(/(\r\n|\n|\r)/gm, '')
+          if (helpers.isPortable()) {
+            let systemCmdPath = execSync('where cmd.exe', { timeout: 5000 }).toString();
+            systemCmdPath = systemCmdPath.replace(/(\r\n|\n|\r)/gm, '');
             systemCmdPath = systemCmdPath.substring(0, systemCmdPath.length - 8);
-                  
+
             envClone.PATH = `${pythonPath};${pythonScriptsPath};${makeBinPath};${gccBinPath};${gccArmBinPath};${gitCmdPath};${gitUsrBinPath};${gitMingw64BinPath};${cmakePath};${ninjaPath};${systemCmdPath}`;
             envClone.Path = `${pythonPath};${pythonScriptsPath};${makeBinPath};${gccBinPath};${gccArmBinPath};${gitCmdPath};${gitUsrBinPath};${gitMingw64BinPath};${cmakePath};${ninjaPath};${systemCmdPath}`;
           }
@@ -85,8 +84,8 @@ class Terminal {
         const gccBinPath = path.join(gccPath, 'bin');
         const gccArmBinPath = path.join(gccPath, 'arm-none-eabi', 'bin');
 
-        const cmakePath = path.join(vscodepath, 'cmake', 'bin');
-        const ninjaPath = path.join(vscodepath, 'ninja');
+        const cmakePath = path.join(toolchainPath, 'cmake');
+        const ninjaPath = path.join(toolchainPath, 'ninja');
 
         envClone.PATH = `${gccBinPath}:${gccArmBinPath}:${cmakePath}:${ninjaPath}:${process.env.PATH}`;
         envClone.Path = `${gccBinPath}:${gccArmBinPath}:${cmakePath}:${ninjaPath}:${process.env.PATH}`;
