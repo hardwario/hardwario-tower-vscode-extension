@@ -572,7 +572,6 @@ function setup() {
  */
 function setupNormal() {
   if (helpers.WINDOWS) {
-
     helpers.checkCommand('git', 'Please install git, add it to PATH and restart VSCode', 'How to install git', 'Cancel', 'https://git-scm.com/book/en/v2/Getting-Started-Installing-Git');
     helpers.checkCommand('make', 'Please install make, add it to PATH and restart VSCode', 'How to install make', 'Cancel', 'https://www.technewstoday.com/install-and-use-make-in-windows/');
     helpers.checkCommand('arm-none-eabi-gcc', 'Please install arm-none-eabi-gcc, add it to PATH and restart VSCode', 'How to install arm-none-eabi-gcc', 'Cancel', 'https://mynewt.apache.org/latest/get_started/native_install/cross_tools.html#installing-the-arm-toolchain-for-windows');
@@ -634,7 +633,8 @@ function setupNormal() {
           }
         });
     }
-    buildTerminal.get().sendText('pip install --upgrade --force-reinstall bcf');
+    buildTerminal.get().sendText('python -m pip install --upgrade --force-reinstall bcf');
+    buildTerminal.get().sendText('python3 -m pip install --upgrade --force-reinstall bcf');
   }
   setup();
 }
@@ -643,19 +643,16 @@ function setupNormal() {
  * Sets up the extension in full if the VSCode is portable
  */
 function setupPortable() {
-  const vscodepath = process.env.VSCODE_CWD;
-  const towerPath = path.join(vscodepath, 'data', 'tower');
-
-  const pythonPath = path.join(towerPath, 'python');
-  const pythonScriptsPath = path.join(pythonPath, 'Scripts');
-
   if (helpers.WINDOWS) {
     buildTerminal.get().sendText('python -m pip install --upgrade --force-reinstall bcf');
+    buildTerminal.get().sendText('python3 -m pip install --upgrade --force-reinstall bcf');
   } else if (helpers.MACOS) {
     buildTerminal.get().sendText('python -m pip install --upgrade --force-reinstall bcf');
+    buildTerminal.get().sendText('python3 -m pip install --upgrade --force-reinstall bcf');
   } else if (helpers.LINUX) {
     helpers.checkCommand('git', "Please install git with 'sudo apt install git' and restart VSCode", 'How to install git', 'Cancel', 'https://github.com/git-guides/install-git#install-git-on-linux');
-    buildTerminal.get().sendText('pip install --upgrade --force-reinstall bcf');
+    buildTerminal.get().sendText('python -m pip install --upgrade --force-reinstall bcf');
+    buildTerminal.get().sendText('python3 -m pip install --upgrade --force-reinstall bcf');
   }
 
   setup();
