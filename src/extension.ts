@@ -572,6 +572,7 @@ function setup() {
  */
 function setupNormal() {
   if (helpers.WINDOWS) {
+
     helpers.checkCommand('git', 'Please install git, add it to PATH and restart VSCode', 'How to install git', 'Cancel', 'https://git-scm.com/book/en/v2/Getting-Started-Installing-Git');
     helpers.checkCommand('make', 'Please install make, add it to PATH and restart VSCode', 'How to install make', 'Cancel', 'https://www.technewstoday.com/install-and-use-make-in-windows/');
     helpers.checkCommand('arm-none-eabi-gcc', 'Please install arm-none-eabi-gcc, add it to PATH and restart VSCode', 'How to install arm-none-eabi-gcc', 'Cancel', 'https://mynewt.apache.org/latest/get_started/native_install/cross_tools.html#installing-the-arm-toolchain-for-windows');
@@ -591,6 +592,8 @@ function setupNormal() {
           }
         });
     }
+    buildTerminal.get().sendText('python -m pip install --upgrade --force-reinstall bcf');
+    buildTerminal.get().sendText('python3 -m pip install --upgrade --force-reinstall bcf');
   } else if (helpers.LINUX) {
     helpers.checkCommand('git', 'Please install git and restart VSCode', 'How to install git', 'Cancel', 'https://git-scm.com/book/en/v2/Getting-Started-Installing-Git');
     helpers.checkCommand('make', 'Please install make and restart VSCode', 'How to install make', 'Cancel', 'https://linuxhint.com/install-make-ubuntu/');
@@ -610,6 +613,8 @@ function setupNormal() {
           }
         });
     }
+    buildTerminal.get().sendText('python -m pip install --upgrade --force-reinstall bcf');
+    buildTerminal.get().sendText('python3 -m pip install --upgrade --force-reinstall bcf');
   } else if (helpers.MACOS) {
     helpers.checkCommand('git', 'Please install git and restart VSCode', 'How to install git', 'Cancel', 'https://git-scm.com/book/en/v2/Getting-Started-Installing-Git');
     helpers.checkCommand('make', 'Please install make and restart VSCode', 'How to install make', 'Cancel', 'https://formulae.brew.sh/formula/make');
@@ -629,6 +634,7 @@ function setupNormal() {
           }
         });
     }
+    buildTerminal.get().sendText('pip install --upgrade --force-reinstall bcf');
   }
   setup();
 }
