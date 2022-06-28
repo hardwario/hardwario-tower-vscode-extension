@@ -381,7 +381,7 @@ function pushHardwarioCommands() {
     if (selectedPort !== '') {
       command += ` && bcf flash --log --device ${selectedPort} `;
     } else {
-      command += ` && bcf flash --log --device ${selectedPort} `;
+      command += ' && bcf flash --log';
     }
     flashAndLogTerminal.get().sendText(command);
     flashAndLogTerminal.get().show();

@@ -7,7 +7,7 @@
   "license": "MIT",
   "icon": "media/hardwario-logo.png",
   "engines": {
-    "vscode": "^1.64.0"
+    "vscode": "^1.0.0"
   },
   "extensionDependencies": [
     "ms-vscode.cpptools-extension-pack",
