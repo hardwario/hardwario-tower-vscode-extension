@@ -644,20 +644,12 @@ function setupPortable() {
   const pythonScriptsPath = path.join(pythonPath, 'Scripts');
 
   if (helpers.WINDOWS) {
-    if (!fs.existsSync(path.join(pythonScriptsPath, 'bcf.exe'))) {
-      buildTerminal.get().sendText('python -m pip install bcf');
-    }
+    buildTerminal.get().sendText('python -m pip install --upgrade --force-reinstall bcf');
   } else if (helpers.MACOS) {
-    if (!commandExistsSync('bcf')) {
-      buildTerminal.get().sendText('python3 -m pip install bcf');
-    }
+    buildTerminal.get().sendText('python -m pip install --upgrade --force-reinstall bcf');
   } else if (helpers.LINUX) {
     helpers.checkCommand('git', "Please install git with 'sudo apt install git' and restart VSCode", 'How to install git', 'Cancel', 'https://github.com/git-guides/install-git#install-git-on-linux');
-
-    const pythonBinPath = path.join(towerPath, 'python', 'install', 'bin');
-    if (!commandExistsSync(`${process.env.HOME}/.local/bin/bcf`) && !commandExistsSync(`${pythonBinPath}/bcf`)) {
-      buildTerminal.get().sendText('pip install bcf');
-    }
+    buildTerminal.get().sendText('pip install --upgrade --force-reinstall bcf');
   }
 
   setup();
