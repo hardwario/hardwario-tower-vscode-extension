@@ -11,6 +11,8 @@ import * as helpers from './helpers';
 
 import PaletteProvider from './palette';
 
+import { flash } from './flasher/flasherSerial';
+
 const commandExistsSync = require('command-exists').sync;
 
 /**
@@ -259,6 +261,27 @@ function pushHardwarioCommands() {
   const uploadcommand = vscode.commands.registerCommand('hardwario-tower.flash', async () => {
     vscode.workspace.saveAll();
 
+    const workspaceFolder = vscode.workspace.workspaceFolders[0];
+    const firmwarePath = path.join(workspaceFolder.uri.fsPath.toString(), 'firmware.bin');
+
+    flash(selectedPort, firmwarePath, (type, progress, progress_max) => {
+      // console.log(type, progress, progress_max);
+
+      const percent = Math.round((progress / 100) * 100);
+
+      console.log(percent);
+    })
+      .then(() => {
+        console.log('Done');
+        /* event.sender.send('firmware:done');
+        flash_lock = false; */
+      })
+      .catch((e) => {
+        const msg = e.toString();
+
+        console.log('catch', JSON.stringify(msg));
+      });
+
     if (consoleTerminal.instance !== null) {
       consoleTerminal.get().dispose();
       consoleTerminal.instance = null;
@@ -499,18 +522,18 @@ function createToolbar(context: vscode.ExtensionContext) {
   build.show();
   context.subscriptions.push(build);
 
-  const flash = vscode.window.createStatusBarItem(
+  const flashCommand = vscode.window.createStatusBarItem(
     'toolbar',
     vscode.StatusBarAlignment.Left,
     1,
   );
 
-  flash.name = 'HARDWARIO: Toolbar';
-  flash.text = '$(arrow-up)';
-  flash.tooltip = 'HARDWARIO: Flash Firmware';
-  flash.command = 'hardwario-tower.flash';
-  flash.show();
-  context.subscriptions.push(flash);
+  flashCommand.name = 'HARDWARIO: Toolbar';
+  flashCommand.text = '$(arrow-up)';
+  flashCommand.tooltip = 'HARDWARIO: Flash Firmware';
+  flashCommand.command = 'hardwario-tower.flash';
+  flashCommand.show();
+  context.subscriptions.push(flashCommand);
 
   const console = vscode.window.createStatusBarItem(
     'toolbar',
