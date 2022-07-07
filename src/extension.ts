@@ -11,7 +11,7 @@ import * as helpers from './helpers';
 
 import PaletteProvider from './palette';
 
-import { flash } from './flasher/flasherSerial';
+const { flash, port_list } = require("./flasher/flasherSerial");
 
 const commandExistsSync = require('command-exists').sync;
 
@@ -41,6 +41,7 @@ let portSelection : vscode.StatusBarItem = null;
 
 /* Actual name of currently selected serial port */
 let selectedPort = '';
+let selectedPortPath '';
 
 /* Index of currently selected device on serial port */
 let deviceIndex = 0;
@@ -265,7 +266,7 @@ function pushHardwarioCommands() {
     const firmwarePath = path.join(workspaceFolder.uri.fsPath.toString(), 'firmware.bin');
 
     flash(selectedPort, firmwarePath, (type, progress, progress_max) => {
-      // console.log(type, progress, progress_max);
+      console.log(type, progress, progress_max);
 
       const percent = Math.round((progress / 100) * 100);
 
@@ -282,7 +283,7 @@ function pushHardwarioCommands() {
         console.log('catch', JSON.stringify(msg));
       });
 
-    if (consoleTerminal.instance !== null) {
+    /*if (consoleTerminal.instance !== null) {
       consoleTerminal.get().dispose();
       consoleTerminal.instance = null;
     }
@@ -299,7 +300,8 @@ function pushHardwarioCommands() {
       command += ' && bcf flash';
     }
     flashTerminal.get().sendText(command);
-    flashTerminal.get().show();
+    flashTerminal.get().show();*/
+    console.log("DONE");
   });
 
   contextGlobal.subscriptions.push(uploadcommand);
