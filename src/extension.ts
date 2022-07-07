@@ -593,6 +593,7 @@ function setupNormal() {
     }
     buildTerminal.get().sendText('python -m pip install --upgrade --force-reinstall --user bcf');
     buildTerminal.get().sendText('python3 -m pip install --upgrade --force-reinstall --user bcf');
+    buildTerminal.get().sendText('exit 0');
   } else if (helpers.LINUX) {
     helpers.checkCommand('git', 'Please install git and restart VSCode', 'How to install git', 'Cancel', 'https://git-scm.com/book/en/v2/Getting-Started-Installing-Git');
     helpers.checkCommand('make', 'Please install make and restart VSCode', 'How to install make', 'Cancel', 'https://linuxhint.com/install-make-ubuntu/');
@@ -614,6 +615,7 @@ function setupNormal() {
     }
     buildTerminal.get().sendText('python -m pip install --upgrade --force-reinstall --user bcf');
     buildTerminal.get().sendText('python3 -m pip install --upgrade --force-reinstall --user bcf');
+    buildTerminal.get().sendText('exit 0');
   } else if (helpers.MACOS) {
     helpers.checkCommand('git', 'Please install git and restart VSCode', 'How to install git', 'Cancel', 'https://git-scm.com/book/en/v2/Getting-Started-Installing-Git');
     helpers.checkCommand('make', 'Please install make and restart VSCode', 'How to install make', 'Cancel', 'https://formulae.brew.sh/formula/make');
@@ -635,6 +637,7 @@ function setupNormal() {
     }
     buildTerminal.get().sendText('python -m pip install --upgrade --force-reinstall --user bcf');
     buildTerminal.get().sendText('python3 -m pip install --upgrade --force-reinstall --user bcf');
+    buildTerminal.get().sendText('exit 0');
   }
   setup();
 }
@@ -646,13 +649,16 @@ function setupPortable() {
   if (helpers.WINDOWS) {
     buildTerminal.get().sendText('python -m pip install --upgrade --force-reinstall --user bcf');
     buildTerminal.get().sendText('python3 -m pip install --upgrade --force-reinstall --user bcf');
+    buildTerminal.get().sendText('exit 0');
   } else if (helpers.MACOS) {
     buildTerminal.get().sendText('python -m pip install --upgrade --force-reinstall --user bcf');
     buildTerminal.get().sendText('python3 -m pip install --upgrade --force-reinstall --user bcf');
+    buildTerminal.get().sendText('exit 0');
   } else if (helpers.LINUX) {
     helpers.checkCommand('git', "Please install git with 'sudo apt install git' and restart VSCode", 'How to install git', 'Cancel', 'https://github.com/git-guides/install-git#install-git-on-linux');
     buildTerminal.get().sendText('python -m pip install --upgrade --force-reinstall --user bcf');
     buildTerminal.get().sendText('python3 -m pip install --upgrade --force-reinstall --user bcf');
+    buildTerminal.get().sendText('exit 0');
   }
 
   setup();
