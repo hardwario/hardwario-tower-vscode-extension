@@ -1,13 +1,16 @@
+/* eslint-disable consistent-return */
+/* eslint-disable import/extensions */
+/* eslint-disable import/no-unresolved */
 import { SerialPort } from 'serialPort';
 
-import * as helpers from '../helpers';
+import { sleep } from '../helpers';
 
 export default class SerialPortFtdi {
-  _serial : any;
+  serial : any;
 
   connected: boolean;
 
-  _ser: any;
+  port: any;
 
   write: any;
 
@@ -16,7 +19,7 @@ export default class SerialPortFtdi {
   flush: any;
 
   constructor(device) {
-    this._serial = new SerialPort({
+    this.serial = new SerialPort({
       path: device,
       autoOpen: false,
       baudRate: 921600,
@@ -25,35 +28,35 @@ export default class SerialPortFtdi {
       dataBits: 8,
     });
 
-    this._serial.on('open', () => {
+    this.serial.on('open', () => {
       console.log('open');
 
       this.connected = true;
     });
 
-    this._serial.on('close', () => {
+    this.serial.on('close', () => {
       this.connected = false;
     });
 
     this.open = this.open.bind(this);
     this.close = this.close.bind(this);
-    this.clear_buffer = this.clear_buffer.bind(this);
-    this.reset_sequence = this.reset_sequence.bind(this);
-    this.boot_sequence = this.boot_sequence.bind(this);
+    this.clearBuffer = this.clearBuffer.bind(this);
+    this.resetSequence = this.resetSequence.bind(this);
+    this.bootSequence = this.bootSequence.bind(this);
   }
 
   open() {
     return new Promise((resolve, reject) => {
-      this._serial.open((error) => {
+      this.serial.open((error) => {
         if (error) return reject(error);
 
-        this._ser = this._serial.port;
+        this.port = this.serial.port;
 
-        this.write = this._ser.write.bind(this._ser);
-        this.read = this._ser.read.bind(this._ser);
-        this.flush = this._ser.flush.bind(this._ser);
+        this.write = this.port.write.bind(this.port);
+        this.read = this.port.read.bind(this.port);
+        this.flush = this.port.flush.bind(this.port);
 
-        this.clear_buffer()
+        this.clearBuffer()
           .then(resolve)
           .catch(reject);
       });
@@ -62,7 +65,7 @@ export default class SerialPortFtdi {
 
   close() {
     return new Promise<void>((resolve, reject) => {
-      this._serial.close((error) => {
+      this.serial.close((error) => {
         if (error) {
           reject(error);
         } else {
@@ -72,51 +75,41 @@ export default class SerialPortFtdi {
     });
   }
 
-  clear_buffer() {
+  clearBuffer() {
     return new Promise((resolve) => {
-      this._ser.flush()
-        .then(() => this._ser.drain())
+      this.port.flush()
+        .then(() => this.port.drain())
         .then(() => resolve(true));
     });
   }
 
-  reset_sequence() {
+  resetSequence() {
     return new Promise((resolve, reject) => {
-      this._ser.set({ rts: true, dtr: false }).then(() => {
-        helpers.sleep(100);
-        this._ser.set({ rts: true, dtr: true }).then(resolve).catch(reject);
+      this.port.set({ rts: true, dtr: false }).then(() => {
+        sleep(100);
+        this.port.set({ rts: true, dtr: true }).then(resolve).catch(reject);
       });
     });
   }
 
-  boot_sequence() {
+  bootSequence() {
     return new Promise((resolve, reject) => {
-      this._ser.set({ rts: false, dtr: false })
+      this.port.set({ rts: false, dtr: false })
         .then(() => {
-          helpers.sleep(100);
-          return this._ser.set({ rts: true, dtr: false });
+          sleep(100);
+          return this.port.set({ rts: true, dtr: false });
         })
         .then(() => {
-          helpers.sleep(100);
-          return this._ser.set({ rts: true, dtr: true });
+          sleep(100);
+          return this.port.set({ rts: true, dtr: true });
         })
-        .then(() => this._ser.set({ rts: false, dtr: true }))
+        .then(() => this.port.set({ rts: false, dtr: true }))
         .then(() => {
-          helpers.sleep(100);
-          return this._ser.set({ rts: true, dtr: true });
+          sleep(100);
+          return this.port.set({ rts: true, dtr: true });
         })
         .then(resolve)
         .catch(reject);
     });
   }
-}
-
-function port_list(callback) {
-  SerialPort.list()
-    .then((ports) => {
-      callback(ports.filter((port) => port.manufacturer == '0403' || port.vendorId == '0403'));
-    })
-    .catch(() => {
-      callback([]);
-    });
 }

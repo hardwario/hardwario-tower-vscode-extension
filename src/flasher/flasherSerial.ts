@@ -1,10 +1,16 @@
+/* eslint-disable no-promise-executor-return */
+/* eslint-disable no-await-in-loop */
+/* eslint-disable consistent-return */
+/* eslint-disable no-bitwise */
+/* eslint-disable import/no-unresolved */
+/* eslint-disable import/extensions */
 import * as fs from 'fs';
+import { getAddressBufferWithXor, calculateXor } from './flasherSerialHelpers';
 import SerialPortFtdi from './serialportFtdi';
 
 import * as helpers from '../helpers';
 
 const ACK = 0x79;
-const NACK = 0x1F;
 
 const BOOTLOADER_VERSION = Buffer.from([0x31, 0x00, 0x00]);
 const BOOTLOADER_ID = Buffer.from([0x01, 0x04, 0x47]);
@@ -17,44 +23,44 @@ const COMMAND_MEMORY_READ = Buffer.from([0x11, 0xee]);
 const COMMAND_MEMORY_WRITE = Buffer.from([0x31, 0xce]);
 const COMMAND_EX_ERASE_MEMORY = Buffer.from([0x44, 0xbb]);
 
-const ERASE_FULL = 196608;
+export class FlashSerial {
+  port: any;
 
-export class Flash_Serial {
   constructor(device) {
     this.connect = this.connect.bind(this);
-    this.start_bootloader = this.start_bootloader.bind(this);
-    this.get_version = this.get_version.bind(this);
-    this.get_ID = this.get_ID.bind(this);
+    this.startBootloader = this.startBootloader.bind(this);
+    this.getVersion = this.getVersion.bind(this);
+    this.getID = this.getID.bind(this);
 
-    this._wait_for_ack = this._wait_for_ack.bind(this);
-    this._read = this._read.bind(this);
+    this.waitForAck = this.waitForAck.bind(this);
+    this.read = this.read.bind(this);
 
     this.memory_read = this.memory_read.bind(this);
-    this.memory_write = this.memory_write.bind(this);
-    this.extended_erase_memory = this.extended_erase_memory.bind(this);
+    this.memoryWrite = this.memoryWrite.bind(this);
+    this.extendedEraseMemory = this.extendedEraseMemory.bind(this);
     this.go = this.go.bind(this);
     this.erase = this.erase.bind(this);
     this.write = this.write.bind(this);
     this.verify = this.verify.bind(this);
 
-    this._ser = new SerialPortFtdi(device);
+    this.port = new SerialPortFtdi(device);
   }
 
-  _connect() {
+  connectPrivate() {
     return new Promise((resolve, reject) => {
-      this.start_bootloader()
-        /* .then(this._ser.clear_buffer()) */
-        .then(() => this.get_version())
+      this.startBootloader()
+        .then(this.port.clearBuffer())
+        .then(() => this.getVersion())
         .then((version) => {
           if (!BOOTLOADER_VERSION.equals(version)) {
-            throw 'Bad version';
+            throw new Error('Bad version');
           }
 
-          return this.get_ID();
+          return this.getID();
         })
         .then((id) => {
           if (!BOOTLOADER_ID.equals(id)) {
-            throw 'Bad id';
+            throw new Error('Bad id');
           }
         })
         .then(resolve)
@@ -63,237 +69,218 @@ export class Flash_Serial {
   }
 
   connect() {
-    return new Promise((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
       (async () => {
-        for (let i = 0; i < 10; i++) {
-          console.log('_connect', i);
+        for (let i = 0; i < 10; i += 1) {
+          console.log('connectPrivate', i);
           try {
-            await this._ser.open();
-            await this._connect();
+            await this.port.open();
+            await this.connectPrivate();
 
             return resolve();
           } catch (error) {
             console.log('connect error', error);
-            await this._ser.close().catch(() => {});
+            await this.port.close().catch(() => {});
             helpers.sleep(100);
           }
         }
-        reject('Connection error');
+        reject(new Error('Connection error'));
       })();
     });
   }
 
   disconect() {
-    return this._ser.close();
+    return this.port.close();
   }
 
-  start_bootloader() {
-    console.log('start_bootloader');
+  startBootloader() {
+    console.log('startBootloader');
 
-    return new Promise((resolve, reject) => {
+    return new Promise<void>((resolve, reject) => {
       const buffer = Buffer.from([0x7f]);
 
-      this._ser.boot_sequence()
-        .then(() => this._ser.clear_buffer())
+      this.port.bootSequence()
+        .then(() => this.port.clearBuffer())
         .then(() => {
           helpers.sleep(50);
-          return this._ser.write(buffer);
+          return this.port.write(buffer);
         })
-        .then(() => this._read(buffer, 1))
+        .then(() => this.read(buffer, 1))
         .then((length) => {
-          console.log(length, buffer, buffer.readUInt8());
-          if ((length == 1) && (buffer.readUInt8() == ACK)) {
+          if ((length === 1) && (buffer.readUInt8() === ACK)) {
             resolve();
           } else {
-            reject('start bootloader expect ACK');
+            reject(new Error('start bootloader expect ACK'));
           }
         })
         .catch(() => {
-          reject('Error start bootloader');
+          reject(new Error('Error start bootloader'));
         });
     });
   }
 
-  get_version() {
+  getVersion() {
     return new Promise((resolve, reject) => {
       const outBuffer = Buffer.alloc(5);
 
-      this._ser.write(COMMAND_GET_VERSION)
-        .then(() => this._read(outBuffer, 5))
-        .then((length) => {
-          if ((outBuffer[0] == ACK) && outBuffer[4] == ACK) {
+      this.port.write(COMMAND_GET_VERSION)
+        .then(() => this.read(outBuffer, 5))
+        .then(() => {
+          if ((outBuffer[0] === ACK) && outBuffer[4] === ACK) {
             resolve(outBuffer.subarray(1, 4));
           } else {
-            reject('fail get_version');
+            reject(new Error('fail getVersion'));
           }
         })
         .catch(reject);
     });
   }
 
-  get_ID() {
+  getID() {
     return new Promise((resolve, reject) => {
       const outBuffer = Buffer.alloc(5);
 
-      this._ser.write(COMMAND_GET_ID)
-        .then(() => this._read(outBuffer, 5))
-        .then((length) => {
-          if ((outBuffer[0] == ACK) && outBuffer[4] == ACK) {
+      this.port.write(COMMAND_GET_ID)
+        .then(() => this.read(outBuffer, 5))
+        .then(() => {
+          if ((outBuffer[0] === ACK) && outBuffer[4] === ACK) {
             resolve(outBuffer.subarray(1, 4));
           } else {
-            reject('fail get_ID');
+            reject(new Error('fail getID'));
           }
         })
         .catch(reject);
     });
   }
 
-  _get_address_buffer_with_xor(address) {
-    const buff = Buffer.allocUnsafe(5);
-    buff.writeUInt32BE(address, 0);
-    buff[4] = 0;
-    for (let i = 0; i < 4; i++) {
-      buff[4] ^= buff[i];
-    }
-    return buff;
-  }
-
-  _calculate_xor(buffer, length) {
-    let xor = 0;
-    for (let i = 0, l = length || buffer.length; i < l; i++) {
-      xor ^= buffer[i];
-    }
-    return xor;
-  }
-
-  _wait_for_ack() {
+  waitForAck() {
     const readBuffer = Buffer.alloc(1);
 
-    return new Promise((resolve, reject) => {
-      this._ser.read(readBuffer, 0, 1)
+    return new Promise<void>((resolve, reject) => {
+      this.port.read(readBuffer, 0, 1)
         .then((ret) => {
-          if (readBuffer[0] == ACK) {
+          if (readBuffer[0] === ACK) {
             resolve();
           } else {
             console.log(ret.bytesRead, readBuffer);
-            reject('Expect ACK');
+            reject(new Error('Expect ACK'));
           }
         })
         .catch(reject);
     });
   }
 
-  _read(readBuffer, length, timeout = 1000) {
+  read(readBuffer, length, timeout = 1000) {
     return new Promise((resolve, reject) => {
-      let read_length = 0;
+      let readLength = 0;
 
       (async () => {
         const timer = setTimeout(() => {
           console.log('timeout');
-          this._ser.close();
+          this.port.close();
         }, timeout);
 
         let ret;
 
-        while (read_length < length) {
-          ret = await this._ser.read(readBuffer, read_length, length - read_length).catch((e) => {
+        while (readLength < length) {
+          ret = await this.port.read(readBuffer, readLength, length - readLength).catch((e) => {
             clearTimeout(timer);
             reject(e);
           });
-          read_length += ret.bytesRead;
+          readLength += ret.bytesRead;
         }
 
         clearTimeout(timer);
 
-        resolve(read_length);
+        resolve(readLength);
       })();
     });
   }
 
-  memory_read(start_address, length) {
+  memory_read(startAddress, length) {
     return new Promise((resolve, reject) => {
       if ((length > 256) || (length < 0)) {
-        return reject('Bad length min 1 max 256');
+        return reject(new Error('Bad length min 1 max 256'));
       }
 
       const readBuffer = Buffer.alloc(length < 3 ? 3 : length);
 
-      const address_buf = this._get_address_buffer_with_xor(start_address);
+      const addressBuf = getAddressBufferWithXor(startAddress);
 
       const n = length - 1;
 
-      const length_buf = Buffer.from([n, 0xff ^ n]);
+      const lengthBuf = Buffer.from([n, 0xff ^ n]);
 
-      this._ser.write(COMMAND_MEMORY_READ)
-        .then(() => this._ser.write(address_buf))
-        .then(() => this._ser.write(length_buf))
-        .then(() => this._read(readBuffer, 3))
-        .then((l) => {
-          if ((readBuffer[0] & readBuffer[1] & readBuffer[2]) != ACK) {
-            throw 'Expect ACK';
+      this.port.write(COMMAND_MEMORY_READ)
+        .then(() => this.port.write(addressBuf))
+        .then(() => this.port.write(lengthBuf))
+        .then(() => this.read(readBuffer, 3))
+        .then(() => {
+          if ((readBuffer[0] & readBuffer[1] & readBuffer[2]) !== ACK) {
+            throw new Error('Expect ACK');
           }
         })
-        .then(() => this._read(readBuffer, length))
+        .then(() => this.read(readBuffer, length))
         .then((l) => {
-          if (l == length) {
+          if (l === length) {
             resolve(readBuffer);
           } else {
             console.log(l, length);
-            reject('Bad receive length');
+            reject(new Error('Bad receive length'));
           }
         })
         .catch(reject);
     });
   }
 
-  memory_write(start_address, buffer) {
+  memoryWrite(startAddress, buffer) {
     return new Promise((resolve, reject) => {
       if ((buffer.length > 256)) {
-        return reject('Bad length max 256 ');
+        return reject(new Error('Bad length max 256 '));
       }
 
-      if ((buffer.length % 4 != 0)) {
-        return reject('Bad length must by mod 4');
+      if ((buffer.length % 4 !== 0)) {
+        return reject(new Error('Bad length must by mod 4'));
       }
 
       const readBuffer = Buffer.alloc(2);
 
-      const address_buf = this._get_address_buffer_with_xor(start_address);
+      const addressBuf = getAddressBufferWithXor(startAddress);
 
       const n = buffer.length - 1;
 
       const wbuff = Buffer.from([n]);
 
-      const buffer_xor = this._calculate_xor(buffer);
+      const bufferXor = calculateXor(buffer);
 
-      this._ser.write(COMMAND_MEMORY_WRITE)
-        .then(() => this._ser.write(address_buf))
-        .then(() => this._ser.read(readBuffer, 0, 2))
+      this.port.write(COMMAND_MEMORY_WRITE)
+        .then(() => this.port.write(addressBuf))
+        .then(() => this.port.read(readBuffer, 0, 2))
         .then((ret) => {
-          if ((readBuffer[0] & readBuffer[1]) != ACK) {
-            if ((ret.bytesRead == 1) && (readBuffer[0] == ACK)) {
-              return this._wait_for_ack();
+          if ((readBuffer[0] & readBuffer[1]) !== ACK) {
+            if ((ret.bytesRead === 1) && (readBuffer[0] === ACK)) {
+              return this.waitForAck();
             }
 
-            throw 'Expect ACK';
+            throw new Error('Expect ACK');
           }
         })
-        .then(() => this._ser.write(wbuff))
-        .then(() => this._ser.write(buffer))
+        .then(() => this.port.write(wbuff))
+        .then(() => this.port.write(buffer))
         .then(() => {
-          wbuff[0] = n ^ buffer_xor;
-          return this._ser.write(wbuff);
+          wbuff[0] = n ^ bufferXor;
+          return this.port.write(wbuff);
         })
-        .then(this._wait_for_ack)
+        .then(this.waitForAck)
         .then(resolve)
         .catch(reject);
     });
   }
 
-  extended_erase_memory(pages) {
+  extendedEraseMemory(pages) {
     return new Promise((resolve, reject) => {
-      if (!pages || (pages.length == 0) || (pages.length > 80)) {
-        return reject('Bad number of pages');
+      if (!pages || (pages.length === 0) || (pages.length > 80)) {
+        return reject(new Error('Bad number of pages'));
       }
 
       const buffer = Buffer.allocUnsafe(3 + (pages.length * 2));
@@ -303,63 +290,62 @@ export class Flash_Serial {
 
       let offset = 2;
 
-      for (let i = 0, l = pages.length; i < l; i++) {
+      for (let i = 0, l = pages.length; i < l; i += 1) {
         buffer.writeUInt16BE(pages[i], offset);
         offset += 2;
       }
 
-      buffer[offset] = this._calculate_xor(buffer, offset);
+      buffer[offset] = calculateXor(buffer, offset);
 
-      this._ser.write(COMMAND_EX_ERASE_MEMORY)
-        .then(this._wait_for_ack)
-        .then(() => this._ser.write(buffer))
-        .then(this._wait_for_ack)
+      this.port.write(COMMAND_EX_ERASE_MEMORY)
+        .then(this.waitForAck)
+        .then(() => this.port.write(buffer))
+        .then(this.waitForAck)
         .then(resolve)
         .catch(reject);
     });
   }
 
-  go(start_address = START_ADDRESS) {
+  go(startAddress = START_ADDRESS) {
     return new Promise((resolve, reject) => {
-      const address_buf = this._get_address_buffer_with_xor(start_address);
-      const outBuffer = Buffer.alloc(5);
+      const addressBuf = getAddressBufferWithXor(startAddress);
 
-      this._ser.write(COMMAND_GO)
-        .then(this._wait_for_ack)
-        .then(() => this._ser.write(address_buf))
-        .then(this._wait_for_ack)
+      this.port.write(COMMAND_GO)
+        .then(this.waitForAck)
+        .then(() => this.port.write(addressBuf))
+        .then(this.waitForAck)
         .then(resolve)
         .catch(reject);
     });
   }
 
   erase(length = 196608, reporthook = null) {
-    return new Promise((resolve, reject) => {
-      let max_page = Math.ceil(length / 128) + 1;
+    return new Promise<void>((resolve, reject) => {
+      let maxPage = Math.ceil(length / 128) + 1;
 
-      if (max_page > 1536) {
-        max_page = 1536;
+      if (maxPage > 1536) {
+        maxPage = 1536;
       }
 
-      if (reporthook) reporthook(0, max_page);
+      if (reporthook) reporthook(0, maxPage);
 
       (async function loop() {
-        for (let page_start = 0; page_start < max_page; page_start += 80) {
-          let page_stop = page_start + 80;
+        for (let pageStart = 0; pageStart < maxPage; pageStart += 80) {
+          let pageStop = pageStart + 80;
 
-          if (page_stop > max_page) {
-            page_stop = max_page;
+          if (pageStop > maxPage) {
+            pageStop = maxPage;
           }
 
-          const pages = Array.from({ length: page_stop - page_start }, (v, i) => i + page_start);
+          const pages = Array.from({ length: pageStop - pageStart }, (v, i) => i + pageStart);
 
           try {
-            await this.extended_erase_memory(pages);
+            await this.extendedEraseMemory(pages);
           } catch (error) {
             return reject(error);
           }
 
-          if (reporthook) reporthook(page_stop, max_page);
+          if (reporthook) reporthook(pageStop, maxPage);
         }
 
         resolve();
@@ -367,8 +353,8 @@ export class Flash_Serial {
     });
   }
 
-  write(firmware, reporthook = null, start_address = START_ADDRESS) {
-    return new Promise((resolve, reject) => {
+  write(firmware, reporthook = null, startAddress = START_ADDRESS) {
+    return new Promise<void>((resolve, reject) => {
       const { length } = firmware;
       const step = 128;
 
@@ -376,21 +362,21 @@ export class Flash_Serial {
 
       (async function loop() {
         for (let offset = 0; offset < length; offset += step) {
-          let offset_end = offset + step;
+          let offsetEnd = offset + step;
 
-          if (offset_end > length) {
-            offset_end = length;
+          if (offsetEnd > length) {
+            offsetEnd = length;
           }
 
-          const buffer = firmware.slice(offset, offset_end);
+          const buffer = firmware.slice(offset, offsetEnd);
 
           try {
-            await this.memory_write(start_address + offset, buffer);
+            await this.memoryWrite(startAddress + offset, buffer);
           } catch (error) {
             return reject(error);
           }
 
-          if (reporthook) reporthook(offset_end, length);
+          if (reporthook) reporthook(offsetEnd, length);
         }
 
         resolve();
@@ -398,8 +384,8 @@ export class Flash_Serial {
     });
   }
 
-  verify(firmware, reporthook = null, start_address = START_ADDRESS) {
-    return new Promise((resolve, reject) => {
+  verify(firmware, reporthook = null, startAddress = START_ADDRESS) {
+    return new Promise<void>((resolve, reject) => {
       const { length } = firmware;
       const step = 128;
 
@@ -407,37 +393,37 @@ export class Flash_Serial {
 
       (async function loop() {
         for (let offset = 0; offset < length; offset += step) {
-          let offset_end = offset + step;
-          let read_length = step;
+          let offsetEnd = offset + step;
+          let readLength = step;
 
-          if (offset_end > length) {
-            offset_end = length;
-            read_length = offset_end - offset;
+          if (offsetEnd > length) {
+            offsetEnd = length;
+            readLength = offsetEnd - offset;
           }
 
-          const orig_buffer = firmware.slice(offset, offset_end);
+          const origBuffer = firmware.slice(offset, offsetEnd);
 
           let i;
 
-          for (i = 0; i < 2; i++) {
+          for (i = 0; i < 2; i += 1) {
             let buffer;
 
             try {
-              buffer = await this.memory_read(start_address + offset, read_length);
+              buffer = await this.memory_read(startAddress + offset, readLength);
             } catch (error) {
               return reject(error);
             }
 
-            if (orig_buffer.equals(buffer)) {
+            if (origBuffer.equals(buffer)) {
               break;
             }
           }
 
-          if (i == 2) {
-            return reject('Not Match');
+          if (i === 2) {
+            return reject(new Error('Not Match'));
           }
 
-          if (reporthook) reporthook(offset_end, length);
+          if (reporthook) reporthook(offsetEnd, length);
         }
 
         resolve();
@@ -446,13 +432,13 @@ export class Flash_Serial {
   }
 }
 
-export function flash(device, firmware_path, reporthook = null) {
+export function flash(device, firmwarePath, reporthook = null) {
   return new Promise((resolve, reject) => {
-    const firmware = fs.readFileSync(firmware_path);
+    const firmware = fs.readFileSync(firmwarePath);
 
     console.log(firmware.length);
 
-    const s = new Flash_Serial(device);
+    const s = new FlashSerial(device);
 
     s.connect()
       .then(() => s.erase(firmware.length, (a, b) => { reporthook('erase', a, b); }))

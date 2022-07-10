@@ -11,9 +11,8 @@ import * as helpers from './helpers';
 
 import PaletteProvider from './palette';
 
-const { flash, port_list } = require("./flasher/flasherSerial");
-
 const commandExistsSync = require('command-exists').sync;
+const { flash } = require('./flasher/flasherSerial');
 
 /**
  * Instances of all the available terminals
@@ -41,7 +40,6 @@ let portSelection : vscode.StatusBarItem = null;
 
 /* Actual name of currently selected serial port */
 let selectedPort = '';
-let selectedPortPath '';
 
 /* Index of currently selected device on serial port */
 let deviceIndex = 0;
@@ -265,8 +263,41 @@ function pushHardwarioCommands() {
     const workspaceFolder = vscode.workspace.workspaceFolders[0];
     const firmwarePath = path.join(workspaceFolder.uri.fsPath.toString(), 'firmware.bin');
 
-    flash(selectedPort, firmwarePath, (type, progress, progress_max) => {
-      console.log(type, progress, progress_max);
+    let lastPercent = 0;
+
+    const progressBar = vscode.window.withProgress({
+      location: vscode.ProgressLocation.Notification,
+      title: 'HARDWARIO TOWER Flasher',
+      cancellable: true,
+    }, (progress, token) => {
+      flash(selectedPort, firmwarePath, (type, flashProgress, progressMax) => {
+        console.log(type, progress, progressMax);
+
+        const percent = Math.round((flashProgress / progressMax) * 100);
+
+        if (type === 'erase') {
+          progress.report({ increment: percent - lastPercent, message: 'Erasing' });
+        }
+        if (type === 'write') {
+          progress.report({ increment: percent - lastPercent, message: 'Writing' });
+        }
+        if (type === 'verify') {
+          progress.report({ increment: percent - lastPercent, message: 'Verifying' });
+        }
+        lastPercent = percent;
+      })
+        .then(() => {
+          console.log('Done');
+        })
+        .catch((e) => {
+          const msg = e.toString();
+
+          console.log('catch', JSON.stringify(msg));
+        });
+    });
+
+    /* flash(selectedPort, firmwarePath, (type, progress, progressMax) => {
+      console.log(type, progress, progressMax);
 
       const percent = Math.round((progress / 100) * 100);
 
@@ -274,16 +305,14 @@ function pushHardwarioCommands() {
     })
       .then(() => {
         console.log('Done');
-        /* event.sender.send('firmware:done');
-        flash_lock = false; */
       })
       .catch((e) => {
         const msg = e.toString();
 
         console.log('catch', JSON.stringify(msg));
-      });
+      }); */
 
-    /*if (consoleTerminal.instance !== null) {
+    /* if (consoleTerminal.instance !== null) {
       consoleTerminal.get().dispose();
       consoleTerminal.instance = null;
     }
@@ -300,8 +329,8 @@ function pushHardwarioCommands() {
       command += ' && bcf flash';
     }
     flashTerminal.get().sendText(command);
-    flashTerminal.get().show();*/
-    console.log("DONE");
+    flashTerminal.get().show(); */
+    console.log('DONE');
   });
 
   contextGlobal.subscriptions.push(uploadcommand);
