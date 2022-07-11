@@ -1,3 +1,5 @@
+/* eslint-disable no-await-in-loop */
+/* eslint-disable no-restricted-syntax */
 /* eslint-disable import/extensions */
 /* eslint-disable consistent-return */
 /* eslint-disable import/no-unresolved */
@@ -192,54 +194,39 @@ export function addSetting() {
  * Updates the project to latest supported project structure
  * @param workspacePath path to the current workspace
  */
-export function updateToSupportedFirmwareStructure(workspacePath) {
+export function updateToSupportedFirmwareStructure(workspacePath, context) {
   const updateFirmwareTerminal = new Terminal('HARDWARIO TOWER Update firmware');
 
   if (!fs.existsSync(path.join(workspacePath, 'sdk'))) {
     updateFirmwareTerminal.get().sendText('git submodule add https://github.com/hardwario/twr-sdk.git sdk && exit');
     updateFirmwareTerminal.get().show();
   } else {
-    updateFirmwareTerminal.get().sendText('make update');
+    updateFirmwareTerminal.get().sendText('git submodule update --remote --merge');
     updateFirmwareTerminal.get().show();
   }
 
-  vscode.window.onDidCloseTerminal((terminal) => {
+  /* vscode.window.onDidCloseTerminal((terminal) => {
     if (updateFirmwareTerminal.instance !== null && terminal === updateFirmwareTerminal.get()) {
-      fs.readFile(path.join(workspacePath, 'sdk', 'Makefile.mk'), 'utf8', (err, data) => {
-        if (err) {
-          return err;
-        }
-        const result = data.replace(/app/g, 'src');
-
-        fs.writeFile(path.join(workspacePath, 'sdk', 'Makefile.mk'), result, 'utf8', (err2) => {
-          if (err2) {
-            return err2;
-          }
-        });
-      });
-      fs.readFile(path.join(workspacePath, 'Makefile'), 'utf8', (err3, data) => {
-        if (err3) {
-          return err3;
-        }
-        let result = data.replace(/app/g, 'src');
-        result = result.replace('lib/twr-sdk', 'sdk');
-        result = result.replace('lib/twr-sdk', 'sdk');
-        result = result.replace('INC_DIR += include', '');
-        result = result.replace('# @git submodule update --remote --merge .vscode', '');
-        result = result.replace('# @git submodule update --init .vscode', '');
-
-        fs.writeFile(path.join(workspacePath, 'Makefile'), result, 'utf8', (err) => {
-          if (err) {
-            return err;
-          }
-        });
-      });
     }
-  });
+  }); */
 
   if (!fs.existsSync(path.join(workspacePath, 'src'))) {
     fs.mkdirSync(path.join(workspacePath, 'src'));
   }
+
+  const mediaCmakeRoot = path.join(context.extensionPath, 'media', 'cmake', 'root', 'cmake.txt');
+  const sourceCmakeRoot = path.join(workspacePath, 'CMakeLists.txt');
+  const mediaCmakeSrc = path.join(context.extensionPath, 'media', 'cmake', 'src', 'cmake.txt');
+  const sourceCmakeSrc = path.join(workspacePath, 'src', 'CMakeLists.txt');
+
+  (async () => {
+    try {
+      await fs.promises.rename(mediaCmakeRoot, sourceCmakeRoot);
+      await fs.promises.rename(mediaCmakeSrc, sourceCmakeSrc);
+    } catch (e) {
+      return e;
+    }
+  })();
 
   if (fs.existsSync(path.join(workspacePath, 'app', 'application.c'))) {
     const moveFrom = path.join(workspacePath, 'app');
@@ -293,7 +280,7 @@ export function updateToSupportedFirmwareStructure(workspacePath) {
  * Checks for correct project structure
  * If there is anything wrong with the project structure it will give an option to fix it
  */
-export function checkProjectStructure() {
+export function checkProjectStructure(context) {
   const workspaceFolder = vscode.workspace.workspaceFolders[0];
   const workspacePath = workspaceFolder.uri.fsPath.toString();
 
@@ -308,7 +295,7 @@ export function checkProjectStructure() {
     )
       .then((answer) => {
         if (answer === 'Update to currently supported firmware version') {
-          updateToSupportedFirmwareStructure(workspacePath);
+          updateToSupportedFirmwareStructure(workspacePath, context);
         }
       });
   }

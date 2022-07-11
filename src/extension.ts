@@ -442,7 +442,7 @@ function pushHardwarioCommands() {
     const workspaceFolder = vscode.workspace.workspaceFolders[0];
     const workspacePath = workspaceFolder.uri.fsPath.toString();
 
-    helpers.updateToSupportedFirmwareStructure(workspacePath);
+    helpers.updateToSupportedFirmwareStructure(workspacePath, contextGlobal);
   }));
 }
 
@@ -542,6 +542,8 @@ function setupNormal() {
     helpers.checkCommand('arm-none-eabi-gcc', 'Please install arm-none-eabi-gcc, add it to PATH and restart VSCode', 'How to install arm-none-eabi-gcc', 'Cancel', 'https://mynewt.apache.org/latest/get_started/native_install/cross_tools.html#installing-the-arm-toolchain-for-windows');
     helpers.checkCommand('rm', 'Please install linux commands, add them to PATH and restart VSCode', 'How to install linux tools', 'Cancel', 'https://github.com/git-guides/install-git#install-git-on-linux');
     helpers.checkCommand('bcf', 'Please install bcf, add if to PATH and restart VSCode', 'How to install bcf', 'Cancel', 'https://tower.hardwario.com/en/latest/tools/hardwario-firmware-flashing-tool/#install-upgrade');
+    helpers.checkCommand('cmake', 'Please install CMake, add if to PATH and restart VSCode', 'How to install CMake', 'Cancel', 'https://cmake.org/install/');
+    helpers.checkCommand('ninja', 'Please install Ninja, add if to PATH and restart VSCode', 'How to install Ninja', 'Cancel', 'https://github.com/ninja-build/ninja/releases');
 
     if (!commandExistsSync('python') && !commandExistsSync('python3')) {
       vscode.window.showWarningMessage(
@@ -564,6 +566,8 @@ function setupNormal() {
     helpers.checkCommand('make', 'Please install make and restart VSCode', 'How to install make', 'Cancel', 'https://linuxhint.com/install-make-ubuntu/');
     helpers.checkCommand('arm-none-eabi-gcc', 'Please install arm-none-eabi-gcc and restart VSCode', 'How to install arm-none-eabi-gcc', 'Cancel', 'https://mynewt.apache.org/latest/get_started/native_install/cross_tools.html#installing-the-arm-toolchain-for-linux');
     helpers.checkCommand('bcf', 'Please install bcf and restart VSCode', 'How to install bcf', 'Cancel', 'https://tower.hardwario.com/en/latest/tools/hardwario-firmware-flashing-tool/#install-upgrade');
+    helpers.checkCommand('cmake', 'Please install CMake, add if to PATH and restart VSCode', 'How to install CMake', 'Cancel', 'https://cmake.org/install/');
+    helpers.checkCommand('ninja', 'Please install Ninja, add if to PATH and restart VSCode', 'How to install Ninja', 'Cancel', 'https://github.com/ninja-build/ninja/releases');
 
     if (!commandExistsSync('python') && !commandExistsSync('python3')) {
       vscode.window.showWarningMessage(
@@ -586,6 +590,8 @@ function setupNormal() {
     helpers.checkCommand('make', 'Please install make and restart VSCode', 'How to install make', 'Cancel', 'https://formulae.brew.sh/formula/make');
     helpers.checkCommand('arm-none-eabi-gcc', 'Please install arm-none-eabi-gcc and restart VSCode', 'How to install arm-none-eabi-gcc', 'Cancel', 'https://mynewt.apache.org/latest/get_started/native_install/cross_tools.html#installing-the-arm-toolchain-for-mac-os-x');
     helpers.checkCommand('bcf', 'Please install bcf and restart VSCode', 'How to install bcf', 'Cancel', 'https://tower.hardwario.com/en/latest/tools/hardwario-firmware-flashing-tool/#install-upgrade');
+    helpers.checkCommand('cmake', 'Please install CMake, add if to PATH and restart VSCode', 'How to install CMake', 'Cancel', 'https://cmake.org/install/');
+    helpers.checkCommand('ninja', 'Please install Ninja, add if to PATH and restart VSCode', 'How to install Ninja', 'Cancel', 'https://github.com/ninja-build/ninja/releases');
 
     if (!commandExistsSync('python') && !commandExistsSync('python3')) {
       vscode.window.showWarningMessage(
@@ -728,7 +734,7 @@ export function activate(context: vscode.ExtensionContext) {
     } else {
       setupNormal();
     }
-    helpers.checkProjectStructure();
+    helpers.checkProjectStructure(contextGlobal);
 
     const provider = new HardwarioTowerDebugConfigurationProvider();
     context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('hardwario-debugger', provider));
