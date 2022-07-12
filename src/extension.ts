@@ -442,7 +442,7 @@ function pushHardwarioCommands() {
     const workspaceFolder = vscode.workspace.workspaceFolders[0];
     const workspacePath = workspaceFolder.uri.fsPath.toString();
 
-    helpers.updateToSupportedFirmwareStructure(workspacePath, contextGlobal);
+    helpers.updateToSupportedFirmwareStructure(workspacePath);
   }));
 }
 
@@ -734,7 +734,7 @@ export function activate(context: vscode.ExtensionContext) {
     } else {
       setupNormal();
     }
-    helpers.checkProjectStructure(contextGlobal);
+    helpers.checkProjectStructure();
 
     const provider = new HardwarioTowerDebugConfigurationProvider();
     context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('hardwario-debugger', provider));

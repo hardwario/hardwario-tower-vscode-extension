@@ -194,39 +194,47 @@ export function addSetting() {
  * Updates the project to latest supported project structure
  * @param workspacePath path to the current workspace
  */
-export function updateToSupportedFirmwareStructure(workspacePath, context) {
+export function updateToSupportedFirmwareStructure(workspacePath) {
   const updateFirmwareTerminal = new Terminal('HARDWARIO TOWER Update firmware');
 
+  updateFirmwareTerminal.get().sendText('git rm .vscode -f');
+
   if (!fs.existsSync(path.join(workspacePath, 'sdk'))) {
-    updateFirmwareTerminal.get().sendText('git submodule add https://github.com/hardwario/twr-sdk.git sdk && exit');
+    updateFirmwareTerminal.get().sendText('git submodule add https://github.com/hardwario/twr-sdk.git sdk');
     updateFirmwareTerminal.get().show();
   } else {
     updateFirmwareTerminal.get().sendText('git submodule update --remote --merge');
     updateFirmwareTerminal.get().show();
   }
 
-  /* vscode.window.onDidCloseTerminal((terminal) => {
-    if (updateFirmwareTerminal.instance !== null && terminal === updateFirmwareTerminal.get()) {
-    }
-  }); */
+  if (!fs.existsSync(path.join(workspacePath, 'CMakeLists.txt'))) {
+    updateFirmwareTerminal.get().sendText('git clone https://github.com/SmejkalJakub/cmake-files.git && exit');
+    updateFirmwareTerminal.get().show();
+    vscode.window.onDidCloseTerminal((terminal) => {
+      if (updateFirmwareTerminal.instance !== null && terminal === updateFirmwareTerminal.get()) {
+        const mediaCmakeRoot = path.join(workspacePath, 'cmake-files', 'root', 'cmake.txt');
+        const sourceCmakeRoot = path.join(workspacePath, 'CMakeLists.txt');
+        const mediaCmakeSrc = path.join(workspacePath, 'cmake-files', 'src', 'cmake.txt');
+        const sourceCmakeSrc = path.join(workspacePath, 'src', 'CMakeLists.txt');
+
+        (async () => {
+          try {
+            await fs.promises.rename(mediaCmakeRoot, sourceCmakeRoot);
+            await fs.promises.rename(mediaCmakeSrc, sourceCmakeSrc);
+            fs.rmSync(path.join(workspacePath, 'cmake-files'), { recursive: true, force: true });
+          } catch (e) {
+            return e;
+          }
+        })();
+      }
+    });
+  } else {
+    updateFirmwareTerminal.get().sendText('exit');
+  }
 
   if (!fs.existsSync(path.join(workspacePath, 'src'))) {
     fs.mkdirSync(path.join(workspacePath, 'src'));
   }
-
-  const mediaCmakeRoot = path.join(context.extensionPath, 'media', 'cmake', 'root', 'cmake.txt');
-  const sourceCmakeRoot = path.join(workspacePath, 'CMakeLists.txt');
-  const mediaCmakeSrc = path.join(context.extensionPath, 'media', 'cmake', 'src', 'cmake.txt');
-  const sourceCmakeSrc = path.join(workspacePath, 'src', 'CMakeLists.txt');
-
-  (async () => {
-    try {
-      await fs.promises.rename(mediaCmakeRoot, sourceCmakeRoot);
-      await fs.promises.rename(mediaCmakeSrc, sourceCmakeSrc);
-    } catch (e) {
-      return e;
-    }
-  })();
 
   if (fs.existsSync(path.join(workspacePath, 'app', 'application.c'))) {
     const moveFrom = path.join(workspacePath, 'app');
@@ -255,6 +263,13 @@ export function updateToSupportedFirmwareStructure(workspacePath, context) {
       fs.rmSync(path.join(workspacePath, '.pio'), { recursive: true, force: true });
     }
 
+    if (fs.existsSync(path.join(workspacePath, 'Makefile'))) {
+      fs.rmSync(path.join(workspacePath, 'Makefile'), { recursive: true, force: true });
+    }
+    if (fs.existsSync(path.join(workspacePath, 'travis.yml'))) {
+      fs.rmSync(path.join(workspacePath, 'travis.yml'), { recursive: true, force: true });
+    }
+
     const moveFrom = path.join(workspacePath, 'include');
     const moveTo = path.join(workspacePath, 'src');
 
@@ -280,7 +295,7 @@ export function updateToSupportedFirmwareStructure(workspacePath, context) {
  * Checks for correct project structure
  * If there is anything wrong with the project structure it will give an option to fix it
  */
-export function checkProjectStructure(context) {
+export function checkProjectStructure() {
   const workspaceFolder = vscode.workspace.workspaceFolders[0];
   const workspacePath = workspaceFolder.uri.fsPath.toString();
 
@@ -295,7 +310,7 @@ export function checkProjectStructure(context) {
     )
       .then((answer) => {
         if (answer === 'Update to currently supported firmware version') {
-          updateToSupportedFirmwareStructure(workspacePath, context);
+          updateToSupportedFirmwareStructure(workspacePath);
         }
       });
   }
