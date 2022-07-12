@@ -18,12 +18,12 @@ export default class SerialPortFtdi {
 
   flush: any;
 
-  constructor(device) {
+  constructor(device, baudRate, parity) {
     this.serial = new SerialPort({
       path: device,
       autoOpen: false,
-      baudRate: 921600,
-      parity: 'even',
+      baudRate,
+      parity,
       stopBits: 1,
       dataBits: 8,
     });

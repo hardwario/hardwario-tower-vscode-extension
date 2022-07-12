@@ -94,6 +94,7 @@ class Terminal {
       this.instance = vscode.window.createTerminal({
         name: this.name,
         env: envClone,
+        isTransient: false,
       });
       return this.instance;
     }

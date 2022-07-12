@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 /* eslint-disable import/extensions */
 /* eslint-disable import/no-unresolved */
 // The module 'vscode' contains the VS Code extensibility API
@@ -10,9 +11,12 @@ import Terminal from './terminal';
 import * as helpers from './helpers';
 
 import PaletteProvider from './palette';
+import { flash } from './flasher/flasherSerial';
+
+import { attachConsole } from './console/serialReader';
+import ConsoleWebViewProvider from './console/consoleWebView';
 
 const commandExistsSync = require('command-exists').sync;
-const { flash } = require('./flasher/flasherSerial');
 
 /**
  * Instances of all the available terminals
@@ -40,6 +44,7 @@ let portSelection : vscode.StatusBarItem = null;
 
 /* Actual name of currently selected serial port */
 let selectedPort = '';
+let selectedPortNumber = '';
 
 /* Index of currently selected device on serial port */
 let deviceIndex = 0;
@@ -265,36 +270,40 @@ function pushHardwarioCommands() {
 
     let lastPercent = 0;
 
-    const progressBar = vscode.window.withProgress({
+    vscode.window.withProgress({
       location: vscode.ProgressLocation.Notification,
-      title: 'HARDWARIO TOWER Flasher',
+      title: 'HARDWARIO TOWER Flash',
       cancellable: true,
-    }, (progress, token) => {
-      flash(selectedPort, firmwarePath, (type, flashProgress, progressMax) => {
-        console.log(type, progress, progressMax);
+    }, (progress, token) => flash(selectedPort, firmwarePath, (type, flashProgress, progressMax) => {
+      console.log(type, progress, progressMax);
 
-        const percent = Math.round((flashProgress / progressMax) * 100);
+      const percent = Math.round((flashProgress / progressMax) * 100);
 
-        if (type === 'erase') {
-          progress.report({ increment: percent - lastPercent, message: 'Erasing' });
-        }
-        if (type === 'write') {
-          progress.report({ increment: percent - lastPercent, message: 'Writing' });
-        }
-        if (type === 'verify') {
-          progress.report({ increment: percent - lastPercent, message: 'Verifying' });
-        }
-        lastPercent = percent;
+      if (type === 'erase') {
+        progress.report({ increment: percent - lastPercent, message: 'Erasing' });
+      }
+      if (type === 'write') {
+        progress.report({ increment: percent - lastPercent, message: 'Writing' });
+      }
+      if (type === 'verify') {
+        progress.report({ increment: percent - lastPercent, message: 'Verifying' });
+      }
+      lastPercent = percent;
+    })
+      .then(() => {
+        vscode.window.showInformationMessage(`Flashing to ${selectedPort} - ${selectedPortNumber} successful`);
+        console.log('Done');
       })
-        .then(() => {
-          console.log('Done');
-        })
-        .catch((e) => {
-          const msg = e.toString();
+      .catch((e) => {
+        vscode.window.showWarningMessage(`Flashing to ${selectedPort} - ${selectedPortNumber} failed`);
+        vscode.window.showWarningMessage(
+          e.toString(),
+        );
 
-          console.log('catch', JSON.stringify(msg));
-        });
-    });
+        const msg = e.toString();
+
+        console.log('catch', JSON.stringify(msg));
+      }));
 
     /* flash(selectedPort, firmwarePath, (type, progress, progressMax) => {
       console.log(type, progress, progressMax);
@@ -354,6 +363,7 @@ function pushHardwarioCommands() {
     }
     if (portSelection === null) {
       selectedPort = serialPorts[deviceIndex].path;
+      selectedPortNumber = serialPorts[deviceIndex].serialNumber;
       portSelection = vscode.window.createStatusBarItem(
         'toolbar',
         vscode.StatusBarAlignment.Left,
@@ -517,7 +527,11 @@ function pushHardwarioCommands() {
    * Update firmware SDK
    */
   const updateSDKCommand = vscode.commands.registerCommand('hardwario-tower.update_sdk', () => {
-    buildTerminal.get().sendText('git submodule update --remote --merge sdk');
+    const provider = new ConsoleWebViewProvider(contextGlobal.extensionUri);
+    vscode.window.registerWebviewViewProvider(ConsoleWebViewProvider.viewType, provider);
+
+    attachConsole(selectedPort, provider.addSerialData);
+    buildTerminal.get().sendText('git submodule update --remote --merge && exit');
   });
 
   contextGlobal.subscriptions.push(updateSDKCommand);
@@ -617,8 +631,7 @@ function setup() {
 
   helpers.addSetting();
 
-  vscode.window.registerTreeDataProvider('palette', new PaletteProvider());
-  // vscode.window.showInformationMessage('Setup done, you can use HARDWARIO Extension');
+  vscode.window.registerTreeDataProvider('hardwario.tower.views.palette', new PaletteProvider());
 }
 
 /**
@@ -647,6 +660,7 @@ function setupNormal() {
     }
     buildTerminal.get().sendText('python -m pip install --upgrade --force-reinstall --user bcf');
     buildTerminal.get().sendText('python3 -m pip install --upgrade --force-reinstall --user bcf');
+    buildTerminal.get().sendText('exit 0');
   } else if (helpers.LINUX) {
     helpers.checkCommand('git', 'Please install git and restart VSCode', 'How to install git', 'Cancel', 'https://git-scm.com/book/en/v2/Getting-Started-Installing-Git');
     helpers.checkCommand('make', 'Please install make and restart VSCode', 'How to install make', 'Cancel', 'https://linuxhint.com/install-make-ubuntu/');
@@ -668,6 +682,7 @@ function setupNormal() {
     }
     buildTerminal.get().sendText('python -m pip install --upgrade --force-reinstall --user bcf');
     buildTerminal.get().sendText('python3 -m pip install --upgrade --force-reinstall --user bcf');
+    buildTerminal.get().sendText('exit 0');
   } else if (helpers.MACOS) {
     helpers.checkCommand('git', 'Please install git and restart VSCode', 'How to install git', 'Cancel', 'https://git-scm.com/book/en/v2/Getting-Started-Installing-Git');
     helpers.checkCommand('make', 'Please install make and restart VSCode', 'How to install make', 'Cancel', 'https://formulae.brew.sh/formula/make');
@@ -689,6 +704,7 @@ function setupNormal() {
     }
     buildTerminal.get().sendText('python -m pip install --upgrade --force-reinstall --user bcf');
     buildTerminal.get().sendText('python3 -m pip install --upgrade --force-reinstall --user bcf');
+    buildTerminal.get().sendText('exit 0');
   }
   setup();
 }
@@ -700,13 +716,16 @@ function setupPortable() {
   if (helpers.WINDOWS) {
     buildTerminal.get().sendText('python -m pip install --upgrade --force-reinstall --user bcf');
     buildTerminal.get().sendText('python3 -m pip install --upgrade --force-reinstall --user bcf');
+    buildTerminal.get().sendText('exit 0');
   } else if (helpers.MACOS) {
     buildTerminal.get().sendText('python -m pip install --upgrade --force-reinstall --user bcf');
     buildTerminal.get().sendText('python3 -m pip install --upgrade --force-reinstall --user bcf');
+    buildTerminal.get().sendText('exit 0');
   } else if (helpers.LINUX) {
     helpers.checkCommand('git', "Please install git with 'sudo apt install git' and restart VSCode", 'How to install git', 'Cancel', 'https://github.com/git-guides/install-git#install-git-on-linux');
     buildTerminal.get().sendText('python -m pip install --upgrade --force-reinstall --user bcf');
     buildTerminal.get().sendText('python3 -m pip install --upgrade --force-reinstall --user bcf');
+    buildTerminal.get().sendText('exit 0');
   }
 
   setup();
@@ -778,8 +797,10 @@ export function activate(context: vscode.ExtensionContext) {
 
           if (ports.length !== 0) {
             selectedPort = ports[deviceIndex].path;
+            selectedPortNumber = ports[deviceIndex].serialNumber;
           } else {
             selectedPort = '';
+            selectedPortNumber = '';
             deviceIndex = 0;
           }
           portSelection = vscode.window.createStatusBarItem(
@@ -823,7 +844,7 @@ export function activate(context: vscode.ExtensionContext) {
    */
   else {
     pushGeneralCommands();
-    vscode.window.registerTreeDataProvider('palette', new PaletteProvider());
+    vscode.window.registerTreeDataProvider('hardwario.tower.views.palette', new PaletteProvider());
   }
 }
 

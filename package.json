@@ -146,21 +146,38 @@
     "viewsContainers": {
       "activitybar": [
         {
-          "id": "hardwario-tower",
+          "id": "hardwarioTowerActivityBar",
           "title": "HARDWARIO Tower",
           "icon": "media/logo.svg"
         }
-      ]
+      ],
+      "panel": [
+				{
+					"id": "hardwarioTowerPanel",
+					"title": "HARDWARIO TOWER",
+					"icon": "media/logo.svg"
+				}
+			]
     },
     "views": {
-      "hardwario-tower": [
+      "hardwarioTowerActivityBar": [
         {
-          "id": "palette",
+          "id": "hardwario.tower.views.palette",
           "name": "Palette",
           "icon": "media/logo.svg",
           "contextualTitle": "HARDWARIO Tower"
         }
-      ]
+      ],
+      "hardwarioTowerPanel": [
+				{
+					"type": "webview",
+					"id": "harwdario.tower.views.console",
+					"name": "Console",
+					"contextualTitle": "Console",
+					"icon": "media/logo.svg",
+					"visibility": "visible"
+				}
+			]
     }
   },
   "scripts": {
