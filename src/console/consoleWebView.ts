@@ -26,7 +26,7 @@ export default class ConsoleWebViewProvider implements vscode.WebviewViewProvide
   ) {
     this.view = webviewView;
 
-    webviewView.webview.options = {
+    this.view.webview.options = {
       // Allow scripts in the webview
       enableScripts: true,
 
@@ -35,18 +35,12 @@ export default class ConsoleWebViewProvider implements vscode.WebviewViewProvide
       ],
     };
 
-    webviewView.webview.html = this.getHtmlForWebview(webviewView.webview);
+    this.view.webview.html = this.getHtmlForWebview(webviewView.webview);
 
-    webviewView.webview.onDidReceiveMessage((data) => {
+    this.view.webview.onDidReceiveMessage((data) => {
       switch (data.type) {
-        case 'colorSelected':
+        case 'saveLog':
         {
-          vscode.window.activeTextEditor?.insertSnippet(new vscode.SnippetString(`#${data.value}`));
-          break;
-        }
-        case 'serialData':
-        {
-          vscode.window.activeTextEditor?.insertSnippet(new vscode.SnippetString(`${data.message}`));
           break;
         }
         default:
@@ -59,22 +53,25 @@ export default class ConsoleWebViewProvider implements vscode.WebviewViewProvide
 
   public addSerialData(data) {
     if (this.view) {
-      this.view.show?.(true); // `show` is not implemented in 1.49 but is for 1.50 insiders
+      // this.view.show?.(true); // `show` is not implemented in 1.49 but is for 1.50 insiders
       this.view.webview.postMessage({ type: 'serialData', message: data });
     }
   }
 
-  public addColor() {
+  public clearData() {
     if (this.view) {
-      this.view.show?.(true); // `show` is not implemented in 1.49 but is for 1.50 insiders
-      this.view.webview.postMessage({ type: 'addColor' });
+      this.view.webview.postMessage({ type: 'clearData' });
     }
   }
 
-  public clearColors() {
+  public showWebView() {
     if (this.view) {
-      this.view.webview.postMessage({ type: 'clearColors' });
+      this.view.show?.(false);
     }
+  }
+
+  public saveLog(path) {
+    this.view.webview.postMessage({ type: 'saveLog', path });
   }
 
   private getHtmlForWebview(webview: vscode.Webview) {
@@ -91,27 +88,28 @@ export default class ConsoleWebViewProvider implements vscode.WebviewViewProvide
     const nonce = getNonce();
 
     return `<!DOCTYPE html>
-              <html lang="en">
-              <head>
-                  <meta charset="UTF-8">
-                  <!--
-                      Use a content security policy to only allow loading images from https or from our extension directory,
-                      and only allow scripts that have a specific nonce.
-                  -->
-                  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource}; script-src 'nonce-${nonce}';">
-                  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                  <link href="${styleResetUri}" rel="stylesheet">
-                  <link href="${styleVSCodeUri}" rel="stylesheet">
-                  <link href="${styleMainUri}" rel="stylesheet">
-                  
-                  <title>Cat Colors</title>
-              </head>
-              <body>
-                  <ul class="color-list">
-                  </ul>
-                  <button class="add-color-button">Add Color</button>
-                  <script nonce="${nonce}" src="${scriptUri}"></script>
-              </body>
-              </html>`;
+                <html lang="en">
+                <head>
+                    <meta charset="UTF-8">
+
+                    <!--
+                        Use a content security policy to only allow loading images from https or from our extension directory,
+                        and only allow scripts that have a specific nonce.
+                    -->
+                    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource}; script-src 'nonce-${nonce}';">
+
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+                    <link href="${styleResetUri}" rel="stylesheet">
+                    <link href="${styleVSCodeUri}" rel="stylesheet">
+                    <link href="${styleMainUri}" rel="stylesheet">
+                </head>
+                <body>
+                    <ul class="data-list">
+                    </ul>
+
+                    <script nonce="${nonce}" src="${scriptUri}"></script>
+                </body>
+                </html>`;
   }
 }

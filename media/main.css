@@ -2,7 +2,7 @@ body {
 	background-color: transparent;
 }
 
-.color-list {
+.data-list {
 	list-style: none;
 	padding: 0;
 }
@@ -23,17 +23,32 @@ body {
 	outline: inset white;
 }
 
+.debug-log {
+	color: purple;
+}
+
+.debug-warning {
+	color: orange;
+}
+
+.debug-error {
+	color: red;
+}
+
+.debug-info {
+	color: green;
+}
+
 .color-input {
 	display: block;
 	flex: 1;
 	width: 100%;
 	color: var(--vscode-input-foreground);
-	background-color: var(--vscode-input-background);
 	border: none;
 	padding: 0 0.6em;
 }
 
-.add-color-button {
+.clear-log-button {
 	display: block;
 	border: none;
 	margin: 0 auto;

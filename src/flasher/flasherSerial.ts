@@ -51,14 +51,14 @@ export class FlashSerial {
       this.startBootloader()
         .then(this.port.clearBuffer())
         .then(() => this.getVersion())
-        .then((version) => {
+        .then((version: Uint8Array) => {
           if (!BOOTLOADER_VERSION.equals(version)) {
             throw new Error('Bad version');
           }
 
           return this.getID();
         })
-        .then((id) => {
+        .then((id: Uint8Array) => {
           if (!BOOTLOADER_ID.equals(id)) {
             throw new Error('Bad id');
           }

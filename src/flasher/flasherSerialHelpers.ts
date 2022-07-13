@@ -9,7 +9,7 @@ export function getAddressBufferWithXor(address) {
   return buff;
 }
 
-export function calculateXor(buffer, length) {
+export function calculateXor(buffer, length?) {
   let xor = 0;
   for (let i = 0, l = length || buffer.length; i < l; i += 1) {
     xor ^= buffer[i];

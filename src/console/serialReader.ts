@@ -51,8 +51,3 @@ export default class SerialPortConsole {
     return this.port.close();
   }
 }
-
-export function attachConsole(device, func) {
-  const s = new SerialPortConsole(device);
-  s.connect(func);
-}

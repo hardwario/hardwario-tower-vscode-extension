@@ -141,6 +141,26 @@
       {
         "command": "hardwario-tower.upgrade_firmware",
         "title": "HARDWARIO Tower Upgrade Firmware"
+      },
+      {
+        "command": "hardwario-tower.clear_console",
+        "title": "Clear HARDWARIO Console",
+        "icon": "$(clear-all)"
+      },
+      {
+        "command": "hardwario-tower.disconect_console",
+        "title": "Disconnect Console",
+        "icon": "$(debug-disconnect)"
+      },
+      {
+        "command": "hardwario-tower.connect_console",
+        "title": "Connect Console",
+        "icon": "$(debug-continue)"
+      },
+      {
+        "command": "hardwario-tower.save_log",
+        "title": "Save Console Log",
+        "icon": "$(save-as)"
       }
     ],
     "viewsContainers": {
@@ -175,10 +195,34 @@
 					"name": "Console",
 					"contextualTitle": "Console",
 					"icon": "media/logo.svg",
-					"visibility": "visible"
+					"visibility": "hidden"
 				}
 			]
-    }
+    },
+    "menus": {
+			"view/title": [
+				{
+					"command": "hardwario-tower.clear_console",
+					"group": "navigation",
+					"when": "view == harwdario.tower.views.console"
+				},
+        {
+					"command": "hardwario-tower.disconect_console",
+					"group": "navigation",
+					"when": "view == harwdario.tower.views.console && hardwario-tower.console_connected"
+				},
+        {
+					"command": "hardwario-tower.connect_console",
+					"group": "navigation",
+					"when": "view == harwdario.tower.views.console && !hardwario-tower.console_connected"
+				},
+        {
+					"command": "hardwario-tower.save_log",
+					"group": "navigation",
+					"when": "view == harwdario.tower.views.console"
+				}
+			]
+		}
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",
