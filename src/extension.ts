@@ -271,6 +271,10 @@ function pushHardwarioCommands() {
   const uploadcommand = vscode.commands.registerCommand('hardwario-tower.flash', async () => {
     vscode.workspace.saveAll();
 
+    if (serialConsole !== undefined) {
+      vscode.commands.executeCommand('hardwario-tower.disconect_console');
+    }
+
     const workspaceFolder = vscode.workspace.workspaceFolders[0];
     const firmwarePath = path.join(workspaceFolder.uri.fsPath.toString(), 'firmware.bin');
 

@@ -195,7 +195,7 @@
 					"name": "Console",
 					"contextualTitle": "Console",
 					"icon": "media/logo.svg",
-					"visibility": "hidden"
+					"visibility": "visible"
 				}
 			]
     },
