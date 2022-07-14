@@ -54,6 +54,9 @@ let deviceIndex = 0;
 
 let preDebugBuildActive = false;
 
+let flashAfterBuild = false;
+let logAfterFlash = false;
+
 /**
  * Builds the project before the start of the debug session with Jlink
  */
@@ -249,9 +252,6 @@ function pushGeneralCommands() {
  * when HARDWARIO TOWER firmware is opened
  */
 function pushHardwarioCommands() {
-  webViewProvider = new ConsoleWebViewProvider(contextGlobal.extensionUri);
-  vscode.window.registerWebviewViewProvider(ConsoleWebViewProvider.viewType, webViewProvider);
-
   /**
    * Build code with make and create final binary
    */
@@ -285,8 +285,6 @@ function pushHardwarioCommands() {
       title: 'HARDWARIO TOWER Flash',
       cancellable: true,
     }, (progress, token) => flash(selectedPort, firmwarePath, (type, flashProgress, progressMax) => {
-      console.log(type, progress, progressMax);
-
       const percent = Math.round((flashProgress / progressMax) * 100);
 
       if (type === 'erase') {
@@ -302,6 +300,10 @@ function pushHardwarioCommands() {
     })
       .then(() => {
         vscode.window.showInformationMessage(`Flashing to ${selectedPort} - ${selectedPortNumber} successful`);
+        if (logAfterFlash) {
+          vscode.commands.executeCommand('hardwario-tower.console');
+          logAfterFlash = false;
+        }
         console.log('Done');
       })
       .catch((e) => {
@@ -349,7 +351,6 @@ function pushHardwarioCommands() {
     }
     flashTerminal.get().sendText(command);
     flashTerminal.get().show(); */
-    console.log('DONE');
   });
 
   contextGlobal.subscriptions.push(uploadcommand);
@@ -457,6 +458,12 @@ function pushHardwarioCommands() {
 
   contextGlobal.subscriptions.push(conectConsoleCommand);
 
+  const scroolToConsoleBottom = vscode.commands.registerCommand('hardwario-tower.console.scroll_to_bottom', () => {
+    webViewProvider.turnOnAutoscrool();
+  });
+
+  contextGlobal.subscriptions.push(scroolToConsoleBottom);
+
   /**
    * Clear all builded binaries
    */
@@ -521,14 +528,19 @@ function pushHardwarioCommands() {
       flashAndLogTerminal.instance = null;
     }
 
-    let command = helpers.buildMakeCommand(releaseType);
-    if (selectedPort !== '') {
+    const command = helpers.buildMakeCommand(releaseType, true);
+
+    buildTerminal.get().sendText(command);
+    buildTerminal.get().show();
+    flashAfterBuild = true;
+    logAfterFlash = true;
+    /* if (selectedPort !== '') {
       command += ` && bcf flash --log --device ${selectedPort} `;
     } else {
       command += ' && bcf flash --log';
     }
     flashAndLogTerminal.get().sendText(command);
-    flashAndLogTerminal.get().show();
+    flashAndLogTerminal.get().show(); */
   });
 
   contextGlobal.subscriptions.push(flashAndLog);
@@ -708,6 +720,9 @@ function setup() {
   helpers.addSetting();
 
   vscode.window.registerTreeDataProvider('hardwario.tower.views.palette', new PaletteProvider());
+
+  webViewProvider = new ConsoleWebViewProvider(contextGlobal.extensionUri);
+  vscode.window.registerWebviewViewProvider(ConsoleWebViewProvider.viewType, webViewProvider);
 }
 
 /**
@@ -824,6 +839,9 @@ export function activate(context: vscode.ExtensionContext) {
       if (preDebugBuildActive) {
         preDebugBuildActive = false;
         helpers.startDebug();
+      } else if (flashAfterBuild) {
+        flashAfterBuild = false;
+        vscode.commands.executeCommand('hardwario-tower.flash');
       }
       buildTerminal.instance = null;
     } else if (flashTerminal.instance !== null && terminal === flashTerminal.get()) {

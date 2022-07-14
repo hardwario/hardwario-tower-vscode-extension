@@ -1,5 +1,6 @@
 /* eslint-disable import/no-unresolved */
 import * as vscode from 'vscode';
+import * as fs from 'fs';
 
 function getNonce() {
   let text = '';
@@ -41,6 +42,14 @@ export default class ConsoleWebViewProvider implements vscode.WebviewViewProvide
       switch (data.type) {
         case 'saveLog':
         {
+          const file = fs.createWriteStream(data.path);
+          file.on('error', (err) => {
+            vscode.window.showWarningMessage(err.toString());
+          });
+          data.message.forEach((v) => {
+            file.write(`${v.value}\n`);
+          });
+          file.end();
           break;
         }
         default:
@@ -74,15 +83,19 @@ export default class ConsoleWebViewProvider implements vscode.WebviewViewProvide
     this.view.webview.postMessage({ type: 'saveLog', path });
   }
 
+  public turnOnAutoscrool() {
+    this.view.webview.postMessage({ type: 'autoScrool' });
+  }
+
   private getHtmlForWebview(webview: vscode.Webview) {
     // Get the local path to main script run in the webview,
     // then convert it to a uri we can use in the webview.
-    const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(this.extensionUri, 'media', 'main.js'));
+    const scriptUri = webview.asWebviewUri(vscode.Uri.joinPath(this.extensionUri, 'media', 'consoleWebView', 'main.js'));
 
     // Do the same for the stylesheet.
-    const styleResetUri = webview.asWebviewUri(vscode.Uri.joinPath(this.extensionUri, 'media', 'reset.css'));
-    const styleVSCodeUri = webview.asWebviewUri(vscode.Uri.joinPath(this.extensionUri, 'media', 'vscode.css'));
-    const styleMainUri = webview.asWebviewUri(vscode.Uri.joinPath(this.extensionUri, 'media', 'main.css'));
+    const styleResetUri = webview.asWebviewUri(vscode.Uri.joinPath(this.extensionUri, 'media', 'consoleWebView', 'reset.css'));
+    const styleVSCodeUri = webview.asWebviewUri(vscode.Uri.joinPath(this.extensionUri, 'media', 'consoleWebView', 'vscode.css'));
+    const styleMainUri = webview.asWebviewUri(vscode.Uri.joinPath(this.extensionUri, 'media', 'consoleWebView', 'main.css'));
 
     // Use a nonce to only allow a specific script to be run.
     const nonce = getNonce();

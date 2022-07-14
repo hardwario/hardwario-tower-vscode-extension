@@ -161,6 +161,11 @@
         "command": "hardwario-tower.save_log",
         "title": "Save Console Log",
         "icon": "$(save-as)"
+      },
+      {
+        "command": "hardwario-tower.console.scroll_to_bottom",
+        "title": "Scrool to bottom",
+        "icon": "$(arrow-down)"
       }
     ],
     "viewsContainers": {
@@ -218,6 +223,11 @@
 				},
         {
 					"command": "hardwario-tower.save_log",
+					"group": "navigation",
+					"when": "view == harwdario.tower.views.console"
+				},
+        {
+					"command": "hardwario-tower.console.scroll_to_bottom",
 					"group": "navigation",
 					"when": "view == harwdario.tower.views.console"
 				}
