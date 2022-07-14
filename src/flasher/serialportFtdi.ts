@@ -1,7 +1,7 @@
 /* eslint-disable consistent-return */
 /* eslint-disable import/extensions */
 /* eslint-disable import/no-unresolved */
-import { SerialPort } from 'serialPort';
+import { SerialPort } from 'serialport';
 
 import { sleep } from '../helpers';
 
