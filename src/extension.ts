@@ -58,6 +58,8 @@ let preDebugBuildActive = false;
 let flashAfterBuild = false;
 let logAfterFlash = false;
 
+let flashing = false;
+
 /**
  * Builds the project before the start of the debug session with Jlink
  */
@@ -263,6 +265,11 @@ function pushHardwarioCommands() {
   contextGlobal.subscriptions.push(vscode.commands.registerCommand('hardwario-tower.flash', async () => {
     vscode.workspace.saveAll();
 
+    if (flashing) {
+      vscode.window.showWarningMessage('Wait for the previous flashing to finish');
+      return;
+    }
+
     if (serialConsole !== undefined) {
       vscode.commands.executeCommand('hardwario-tower.disconect_console');
     }
@@ -272,11 +279,13 @@ function pushHardwarioCommands() {
 
     let lastPercent = 0;
 
+    flashing = true;
+
     vscode.window.withProgress({
       location: vscode.ProgressLocation.Notification,
       title: 'HARDWARIO TOWER Flash',
-      cancellable: true,
-    }, (progress, _token) => flash(selectedPort, firmwarePath, (type, flashProgress, progressMax) => {
+      cancellable: false,
+    }, (progress, token) => flash(selectedPort, firmwarePath, (type, flashProgress, progressMax) => {
       const percent = Math.round((flashProgress / progressMax) * 100);
 
       if (type === 'erase') {
@@ -291,14 +300,15 @@ function pushHardwarioCommands() {
       lastPercent = percent;
     })
       .then(() => {
+        flashing = false;
         vscode.window.showInformationMessage(`Flashing to ${selectedPort} - ${selectedPortNumber} successful`);
         if (logAfterFlash) {
           vscode.commands.executeCommand('hardwario-tower.console');
           logAfterFlash = false;
         }
-        console.log('Done');
       })
       .catch((e) => {
+        flashing = false;
         vscode.window.showWarningMessage(`Flashing to ${selectedPort} - ${selectedPortNumber} failed`);
         vscode.window.showWarningMessage(
           e.toString(),
@@ -329,6 +339,7 @@ function pushHardwarioCommands() {
     }
     if (portSelection === null) {
       selectedPort = serialPorts[deviceIndex].path;
+      selectedPortNumber = serialPorts[deviceIndex].serialNumber;
       portSelection = vscode.window.createStatusBarItem(
         'toolbar',
         vscode.StatusBarAlignment.Left,
@@ -711,7 +722,7 @@ function setupNormal() {
  * Sets up the extension in full if the VSCode is portable
  */
 function setupPortable() {
-  if (helpers.WINDOWS) {
+  /* if (helpers.WINDOWS) {
     buildTerminal.get().sendText('python -m pip install --upgrade --force-reinstall --user bcf');
     buildTerminal.get().sendText('python3 -m pip install --upgrade --force-reinstall --user bcf');
     buildTerminal.get().sendText('exit 0');
@@ -724,7 +735,7 @@ function setupPortable() {
     buildTerminal.get().sendText('python -m pip install --upgrade --force-reinstall --user bcf');
     buildTerminal.get().sendText('python3 -m pip install --upgrade --force-reinstall --user bcf');
     buildTerminal.get().sendText('exit 0');
-  }
+  } */
 
   setup();
 }

@@ -162,7 +162,6 @@ export class FlashSerial {
           if (readBuffer[0] === ACK) {
             resolve();
           } else {
-            console.log(ret.bytesRead, readBuffer);
             reject(new Error('Expect ACK'));
           }
         })
@@ -225,7 +224,6 @@ export class FlashSerial {
           if (l === length) {
             resolve(readBuffer);
           } else {
-            console.log(l, length);
             reject(new Error('Bad receive length'));
           }
         })
@@ -435,8 +433,6 @@ export class FlashSerial {
 export function flash(device, firmwarePath, reporthook = null) {
   return new Promise((resolve, reject) => {
     const firmware = fs.readFileSync(firmwarePath);
-
-    console.log(firmware.length);
 
     const s = new FlashSerial(device);
 
