@@ -365,6 +365,14 @@ export function buildMakeCommand(type: string, includeExit: boolean = false) {
   return command;
 }
 
+export function sleep(milliseconds) {
+  const date = Date.now();
+  let currentDate = null;
+  do {
+    currentDate = Date.now();
+  } while (currentDate - date < milliseconds);
+}
+
 /**
  * Starts the debug session with JLink and given configuration
  */

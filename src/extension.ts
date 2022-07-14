@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 /* eslint-disable import/extensions */
 /* eslint-disable import/no-unresolved */
 // The module 'vscode' contains the VS Code extensibility API
@@ -10,6 +11,11 @@ import Terminal from './terminal';
 import * as helpers from './helpers';
 
 import PaletteProvider from './palette';
+import { flash } from './flasher/flasherSerial';
+
+import SerialPortConsole from './console/serialReader';
+
+import ConsoleWebViewProvider from './console/consoleWebView';
 
 const commandExistsSync = require('command-exists').sync;
 
@@ -31,6 +37,9 @@ let releaseBar: vscode.StatusBarItem;
 
 let contextGlobal: vscode.ExtensionContext;
 
+let webViewProvider;
+let serialConsole;
+
 /* List of serial ports available for flashing */
 let serialPorts;
 
@@ -39,11 +48,15 @@ let portSelection : vscode.StatusBarItem = null;
 
 /* Actual name of currently selected serial port */
 let selectedPort = '';
+let selectedPortNumber = '';
 
 /* Index of currently selected device on serial port */
 let deviceIndex = 0;
 
 let preDebugBuildActive = false;
+
+let flashAfterBuild = false;
+let logAfterFlash = false;
 
 /**
  * Builds the project before the start of the debug session with Jlink
@@ -53,6 +66,10 @@ function preDebugBuild() {
   const command = helpers.buildMakeCommand('debug', true);
   buildTerminal.get().sendText(command);
   buildTerminal.get().show();
+}
+
+function addSerialData(data) {
+  webViewProvider.addSerialData(data);
 }
 
 /**
@@ -246,24 +263,51 @@ function pushHardwarioCommands() {
   contextGlobal.subscriptions.push(vscode.commands.registerCommand('hardwario-tower.flash', async () => {
     vscode.workspace.saveAll();
 
-    if (consoleTerminal.instance !== null) {
-      consoleTerminal.get().dispose();
-      consoleTerminal.instance = null;
+    if (serialConsole !== undefined) {
+      vscode.commands.executeCommand('hardwario-tower.disconect_console');
     }
 
-    if (flashAndLogTerminal.instance !== null) {
-      flashAndLogTerminal.get().dispose();
-      flashAndLogTerminal.instance = null;
-    }
+    const workspaceFolder = vscode.workspace.workspaceFolders[0];
+    const firmwarePath = path.join(workspaceFolder.uri.fsPath.toString(), 'firmware.bin');
 
-    let command = helpers.buildMakeCommand(releaseType);
-    if (selectedPort !== '') {
-      command += ` && bcf flash --device ${selectedPort}`;
-    } else {
-      command += ' && bcf flash';
-    }
-    flashTerminal.get().sendText(command);
-    flashTerminal.get().show();
+    let lastPercent = 0;
+
+    vscode.window.withProgress({
+      location: vscode.ProgressLocation.Notification,
+      title: 'HARDWARIO TOWER Flash',
+      cancellable: true,
+    }, (progress, _token) => flash(selectedPort, firmwarePath, (type, flashProgress, progressMax) => {
+      const percent = Math.round((flashProgress / progressMax) * 100);
+
+      if (type === 'erase') {
+        progress.report({ increment: percent - lastPercent, message: 'Erasing' });
+      }
+      if (type === 'write') {
+        progress.report({ increment: percent - lastPercent, message: 'Writing' });
+      }
+      if (type === 'verify') {
+        progress.report({ increment: percent - lastPercent, message: 'Verifying' });
+      }
+      lastPercent = percent;
+    })
+      .then(() => {
+        vscode.window.showInformationMessage(`Flashing to ${selectedPort} - ${selectedPortNumber} successful`);
+        if (logAfterFlash) {
+          vscode.commands.executeCommand('hardwario-tower.console');
+          logAfterFlash = false;
+        }
+        console.log('Done');
+      })
+      .catch((e) => {
+        vscode.window.showWarningMessage(`Flashing to ${selectedPort} - ${selectedPortNumber} failed`);
+        vscode.window.showWarningMessage(
+          e.toString(),
+        );
+
+        const msg = e.toString();
+
+        console.log('catch', JSON.stringify(msg));
+      }));
   }));
 
   /**
@@ -302,6 +346,66 @@ function pushHardwarioCommands() {
     }
   }));
 
+  contextGlobal.subscriptions.push(vscode.commands.registerCommand('hardwario-tower.clear_console', () => {
+    webViewProvider.clearData();
+  }));
+
+  contextGlobal.subscriptions.push(vscode.commands.registerCommand('hardwario-tower.disconect_console', () => {
+    if (serialConsole !== undefined) {
+      serialConsole.disconect();
+      serialConsole = undefined;
+      vscode.commands.executeCommand('setContext', 'hardwario-tower.console_connected', false);
+    }
+  }));
+
+  contextGlobal.subscriptions.push(vscode.commands.registerCommand('hardwario-tower.save_log', () => {
+    if (serialConsole !== undefined) {
+      const options: vscode.OpenDialogOptions = {
+        canSelectMany: false,
+        canSelectFiles: false,
+        canSelectFolders: true,
+        title: 'Select parent folder for log file',
+        openLabel: 'Select folder',
+      };
+      vscode.window.showOpenDialog(options).then((folderUri) => {
+        if (folderUri) {
+          let folderUriString = '';
+          if (helpers.WINDOWS) {
+            folderUriString = `${folderUri[0].path.substring(1)}/`;
+          } else if (helpers.LINUX || helpers.MACOS) {
+            folderUriString = `${folderUri[0].path}/`;
+          }
+
+          const inputOptions = {
+            value: 'logFile.txt',
+            title: 'Final Log File Name',
+          };
+
+          vscode.window.showInputBox(inputOptions).then((text) => {
+            if (text === undefined || text === '') {
+              folderUriString += 'logFile.txt';
+            } else {
+              folderUriString += text;
+            }
+            webViewProvider.saveLog(folderUriString);
+          });
+        }
+      });
+    }
+  }));
+
+  contextGlobal.subscriptions.push(vscode.commands.registerCommand('hardwario-tower.connect_console', () => {
+    if (serialConsole === undefined) {
+      serialConsole = new SerialPortConsole(selectedPort);
+      serialConsole.connect(addSerialData);
+      vscode.commands.executeCommand('setContext', 'hardwario-tower.console_connected', true);
+    }
+  }));
+
+  contextGlobal.subscriptions.push(vscode.commands.registerCommand('hardwario-tower.console.scroll_to_bottom', () => {
+    webViewProvider.turnOnAutoscrool();
+  }));
+
   /**
    * Clear all builded binaries
    */
@@ -322,22 +426,8 @@ function pushHardwarioCommands() {
    * Attach the console to the selected device for the logging messages
    */
   contextGlobal.subscriptions.push(vscode.commands.registerCommand('hardwario-tower.console', () => {
-    if (consoleTerminal.instance !== null) {
-      consoleTerminal.get().dispose();
-      consoleTerminal.instance = null;
-    }
-
-    if (flashAndLogTerminal.instance !== null) {
-      flashAndLogTerminal.get().dispose();
-      flashAndLogTerminal.instance = null;
-    }
-
-    if (selectedPort !== '') {
-      consoleTerminal.get().sendText(`bcf log --device ${selectedPort}`);
-    } else {
-      consoleTerminal.get().sendText('bcf log');
-    }
-    consoleTerminal.get().show();
+    webViewProvider.showWebView();
+    vscode.commands.executeCommand('hardwario-tower.connect_console');
   }));
 
   /**
@@ -347,6 +437,10 @@ function pushHardwarioCommands() {
   contextGlobal.subscriptions.push(vscode.commands.registerCommand('hardwario-tower.flash_and_log', () => {
     vscode.workspace.saveAll();
 
+    if (serialConsole !== undefined) {
+      vscode.commands.executeCommand('hardwario-tower.disconect_console');
+    }
+
     if (consoleTerminal.instance !== null) {
       consoleTerminal.get().dispose();
       consoleTerminal.instance = null;
@@ -357,14 +451,12 @@ function pushHardwarioCommands() {
       flashAndLogTerminal.instance = null;
     }
 
-    let command = helpers.buildMakeCommand(releaseType);
-    if (selectedPort !== '') {
-      command += ` && bcf flash --log --device ${selectedPort} `;
-    } else {
-      command += ' && bcf flash --log';
-    }
-    flashAndLogTerminal.get().sendText(command);
-    flashAndLogTerminal.get().show();
+    const command = helpers.buildMakeCommand(releaseType, true);
+
+    buildTerminal.get().sendText(command);
+    buildTerminal.get().show();
+    flashAfterBuild = true;
+    logAfterFlash = true;
   }));
 
   contextGlobal.subscriptions.push(vscode.commands.registerCommand('hardwario-tower.flash_and_debug', async () => {
@@ -432,7 +524,7 @@ function pushHardwarioCommands() {
    * Update firmware SDK
    */
   contextGlobal.subscriptions.push(vscode.commands.registerCommand('hardwario-tower.update_sdk', () => {
-    buildTerminal.get().sendText('git submodule update --remote --merge sdk');
+    buildTerminal.get().sendText('git submodule update --remote --merge && exit');
   }));
 
   /**
@@ -464,18 +556,18 @@ function createToolbar(context: vscode.ExtensionContext) {
   build.show();
   context.subscriptions.push(build);
 
-  const flash = vscode.window.createStatusBarItem(
+  const flashCommand = vscode.window.createStatusBarItem(
     'toolbar',
     vscode.StatusBarAlignment.Left,
     1,
   );
 
-  flash.name = 'HARDWARIO: Toolbar';
-  flash.text = '$(arrow-up)';
-  flash.tooltip = 'HARDWARIO: Flash Firmware';
-  flash.command = 'hardwario-tower.flash';
-  flash.show();
-  context.subscriptions.push(flash);
+  flashCommand.name = 'HARDWARIO: Toolbar';
+  flashCommand.text = '$(arrow-up)';
+  flashCommand.tooltip = 'HARDWARIO: Flash Firmware';
+  flashCommand.command = 'hardwario-tower.flash';
+  flashCommand.show();
+  context.subscriptions.push(flashCommand);
 
   const console = vscode.window.createStatusBarItem(
     'toolbar',
@@ -528,8 +620,10 @@ function setup() {
 
   helpers.addSetting();
 
-  vscode.window.registerTreeDataProvider('palette', new PaletteProvider());
-  // vscode.window.showInformationMessage('Setup done, you can use HARDWARIO Extension');
+  vscode.window.registerTreeDataProvider('hardwario.tower.views.palette', new PaletteProvider());
+
+  webViewProvider = new ConsoleWebViewProvider(contextGlobal.extensionUri);
+  vscode.window.registerWebviewViewProvider(ConsoleWebViewProvider.viewType, webViewProvider);
 }
 
 /**
@@ -648,6 +742,9 @@ export function activate(context: vscode.ExtensionContext) {
       if (preDebugBuildActive) {
         preDebugBuildActive = false;
         helpers.startDebug();
+      } else if (flashAfterBuild) {
+        flashAfterBuild = false;
+        vscode.commands.executeCommand('hardwario-tower.flash');
       }
       buildTerminal.instance = null;
     } else if (flashTerminal.instance !== null && terminal === flashTerminal.get()) {
@@ -701,8 +798,10 @@ export function activate(context: vscode.ExtensionContext) {
 
           if (ports.length !== 0) {
             selectedPort = ports[deviceIndex].path;
+            selectedPortNumber = ports[deviceIndex].serialNumber;
           } else {
             selectedPort = '';
+            selectedPortNumber = '';
             deviceIndex = 0;
           }
           portSelection = vscode.window.createStatusBarItem(
@@ -738,15 +837,9 @@ export function activate(context: vscode.ExtensionContext) {
 
     const provider = new HardwarioTowerDebugConfigurationProvider();
     context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('hardwario-debugger', provider));
-  }
-
-  /**
-   * If the open folder is not HARDWARIO TOWER firmware
-   * the extension will be initialized in a limited mode
-   */
-  else {
+  } else {
     pushGeneralCommands();
-    vscode.window.registerTreeDataProvider('palette', new PaletteProvider());
+    vscode.window.registerTreeDataProvider('hardwario.tower.views.palette', new PaletteProvider());
   }
 }
 

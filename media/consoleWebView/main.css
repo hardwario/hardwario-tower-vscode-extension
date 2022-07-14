@@ -1,0 +1,55 @@
+body {
+	background-color: transparent;
+}
+
+.data-list {
+	list-style: none;
+	padding: 0;
+}
+
+.color-entry {
+	width: 100%;
+	display: flex;
+	margin-bottom: 0.4em;
+	border: 1px solid var(--vscode-input-border);
+}
+
+.color-preview {
+	width: 2em;
+	height: 2em;
+}
+
+.color-preview:hover {
+	outline: inset white;
+}
+
+.debug-log {
+	color: purple;
+}
+
+.debug-warning {
+	color: orange;
+}
+
+.debug-error {
+	color: red;
+}
+
+.debug-info {
+	color: green;
+}
+
+.color-input {
+	display: block;
+	flex: 1;
+	width: 100%;
+	color: var(--vscode-input-foreground);
+	border: none;
+	padding: 0 0.6em;
+}
+
+.clear-log-button {
+	display: block;
+	border: none;
+	margin: 0 auto;
+}
