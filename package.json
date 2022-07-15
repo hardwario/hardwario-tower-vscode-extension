@@ -144,27 +144,27 @@
       },
       {
         "command": "hardwario.tower.clearConsole",
-        "title": "Clear HARDWARIO Console",
+        "title": "HARDWARIO Clear Console",
         "icon": "$(clear-all)"
       },
       {
         "command": "hardwario.tower.disconnectConsole",
-        "title": "Disconnect HARDWARIO Console",
+        "title": "HARDWARIO Disconnect Console",
         "icon": "$(debug-disconnect)"
       },
       {
         "command": "hardwario.tower.connectConsole",
-        "title": "Connect HARDWARIO Console",
+        "title": "HARDWARIO Connect Console",
         "icon": "$(debug-continue)"
       },
       {
         "command": "hardwario.tower.saveLog",
-        "title": "Save HARDWARIO Console Log",
+        "title": "HARDWARIO Save Console Log",
         "icon": "$(save-as)"
       },
       {
         "command": "hardwario.tower.scrollToBottom",
-        "title": "Scroll to bottom",
+        "title": "HARDWARIO Console Scroll to bottom",
         "icon": "$(arrow-down)"
       }
     ],
