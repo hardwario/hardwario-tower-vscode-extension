@@ -18,52 +18,52 @@ class PaletteProvider implements vscode.TreeDataProvider<PaletteCommand> {
     if (helpers.isHardwarioProject()) {
       this.data = [
         new PaletteCommand('Start New TOWER Firmware', [
-          new PaletteCommand('From Skeleton Project...', undefined, 'hardwario-tower.clone_skeleton'),
-          new PaletteCommand('From Existing Project...', undefined, 'hardwario-tower.clone_firmware'),
+          new PaletteCommand('From Skeleton Project...', undefined, 'hardwario.tower.cloneSkeleton'),
+          new PaletteCommand('From Existing Project...', undefined, 'hardwario.tower.cloneFirmware'),
         ]),
         new PaletteCommand('TOWER Firmware Commands', [
-          new PaletteCommand('Build + Flash (Console)', undefined, 'hardwario-tower.flash_and_log'),
-          new PaletteCommand('Build + Flash (Debugger)', undefined, 'hardwario-tower.flash_and_debug'),
+          new PaletteCommand('Build + Flash (Console)', undefined, 'hardwario.tower.flashAndLog'),
+          new PaletteCommand('Build + Flash (Debugger)', undefined, 'hardwario.tower.flashAndDebug'),
 
-          new PaletteCommand('Clean All Outputs', undefined, 'hardwario-tower.clean'),
-          new PaletteCommand('Build Firmware', undefined, 'hardwario-tower.build'),
-          new PaletteCommand('Flash Firmware', undefined, 'hardwario-tower.flash'),
+          new PaletteCommand('Clean All Outputs', undefined, 'hardwario.tower.clean'),
+          new PaletteCommand('Build Firmware', undefined, 'hardwario.tower.build'),
+          new PaletteCommand('Flash Firmware', undefined, 'hardwario.tower.flash'),
 
-          new PaletteCommand('Attach Console', undefined, 'hardwario-tower.console'),
-          new PaletteCommand('Attach Debugger', undefined, 'hardwario-tower.debug'),
+          new PaletteCommand('Attach Console', undefined, 'hardwario.tower.console'),
+          new PaletteCommand('Attach Debugger', undefined, 'hardwario.tower.debug'),
         ]),
         new PaletteCommand('TOWER Firmware Advanced Commands', [
-          new PaletteCommand('Update SDK', undefined, 'hardwario-tower.update_sdk'),
-          new PaletteCommand('Upgrade Firmware Project', undefined, 'hardwario-tower.upgrade_firmware'),
+          new PaletteCommand('Update SDK', undefined, 'hardwario.tower.updateSdk'),
+          new PaletteCommand('Upgrade Firmware Project', undefined, 'hardwario.tower.upgradeFirmware'),
         ]),
         new PaletteCommand('TOWER Resources', [
-          new PaletteCommand('Technical Documentation', undefined, 'hardwario-tower.open_documentation'),
-          new PaletteCommand('Software Development Kit', undefined, 'hardwario-tower.open_sdk'),
-          new PaletteCommand('Projects on Hackster.io', undefined, 'hardwario-tower.open_projects'),
-          new PaletteCommand('GitHub Repositories', undefined, 'hardwario-tower.open_github'),
-          new PaletteCommand('Discussion Forum', undefined, 'hardwario-tower.open_forum'),
+          new PaletteCommand('Technical Documentation', undefined, 'hardwario.tower.openDocumentation'),
+          new PaletteCommand('Software Development Kit', undefined, 'hardwario.tower.openSdk'),
+          new PaletteCommand('Projects on Hackster.io', undefined, 'hardwario.tower.openProjects'),
+          new PaletteCommand('GitHub Repositories', undefined, 'hardwario.tower.openGithub'),
+          new PaletteCommand('Discussion Forum', undefined, 'hardwario.tower.openForum'),
         ]),
         new PaletteCommand('Other Resources', [
-          new PaletteCommand('HARDWARIO Website', undefined, 'hardwario-tower.open_website'),
-          new PaletteCommand('HARDWARIO E-shop', undefined, 'hardwario-tower.open_shop'),
+          new PaletteCommand('HARDWARIO Website', undefined, 'hardwario.tower.openWebsite'),
+          new PaletteCommand('HARDWARIO E-shop', undefined, 'hardwario.tower.openShop'),
         ]),
       ];
     } else {
       this.data = [
         new PaletteCommand('Start New TOWER Firmware', [
-          new PaletteCommand('From Skeleton Project...', undefined, 'hardwario-tower.clone_skeleton'),
-          new PaletteCommand('From Existing Project...', undefined, 'hardwario-tower.clone_firmware'),
+          new PaletteCommand('From Skeleton Project...', undefined, 'hardwario.tower.cloneSkeleton'),
+          new PaletteCommand('From Existing Project...', undefined, 'hardwario.tower.cloneFirmware'),
         ]),
         new PaletteCommand('TOWER Resources', [
-          new PaletteCommand('Technical Documentation', undefined, 'hardwario-tower.open_documentation'),
-          new PaletteCommand('Software Development Kit', undefined, 'hardwario-tower.open_sdk'),
-          new PaletteCommand('Projects on Hackster.io', undefined, 'hardwario-tower.open_projects'),
-          new PaletteCommand('GitHub Repositories', undefined, 'hardwario-tower.open_github'),
-          new PaletteCommand('Discussion Forum', undefined, 'hardwario-tower.open_forum'),
+          new PaletteCommand('Technical Documentation', undefined, 'hardwario.tower.openDocumentation'),
+          new PaletteCommand('Software Development Kit', undefined, 'hardwario.tower.openSdk'),
+          new PaletteCommand('Projects on Hackster.io', undefined, 'hardwario.tower.openProjects'),
+          new PaletteCommand('GitHub Repositories', undefined, 'hardwario.tower.openGithub'),
+          new PaletteCommand('Discussion Forum', undefined, 'hardwario.tower.openForum'),
         ]),
         new PaletteCommand('Other Resources', [
-          new PaletteCommand('HARDWARIO Website', undefined, 'hardwario-tower.open_website'),
-          new PaletteCommand('HARDWARIO E-shop', undefined, 'hardwario-tower.open_shop'),
+          new PaletteCommand('HARDWARIO Website', undefined, 'hardwario.tower.openWebsite'),
+          new PaletteCommand('HARDWARIO E-shop', undefined, 'hardwario.tower.openShop'),
         ]),
       ];
     }

@@ -43,14 +43,14 @@
             "servertype": "jlink",
             "jlinkscript": "./sdk/tools/jlink/flash.jlink",
             "interface": "swd",
-            "serverpath": "${command:hardwario-tower.locate_jlink}",
+            "serverpath": "${command:hardwario.tower.locateJlink}",
             "svdFile": "./sdk/sys/svd/stm32l0x3.svd",
-            "gdbPath": "${command:hardwario-tower.locate_toolchain}",
+            "gdbPath": "${command:hardwario.tower.locateToolchain}",
             "runToEntryPoint": "application_init",
             "executable": "${workspaceFolder}/out/debug/firmware.elf",
             "windows": {
-              "gdbPath": "${command:hardwario-tower.locate_toolchain}.exe",
-              "serverpath": "${command:hardwario-tower.locate_jlink}.exe"
+              "gdbPath": "${command:hardwario.tower.locateToolchain}.exe",
+              "serverpath": "${command:hardwario.tower.locateJlink}.exe"
             }
           }
         ],
@@ -63,108 +63,108 @@
     ],
     "commands": [
       {
-        "command": "hardwario-tower.build",
+        "command": "hardwario.tower.build",
         "title": "HARDWARIO Tower Flash"
       },
       {
-        "command": "hardwario-tower.flash",
+        "command": "hardwario.tower.flash",
         "title": "HARDWARIO Tower Build"
       },
       {
-        "command": "hardwario-tower.clean",
+        "command": "hardwario.tower.clean",
         "title": "HARDWARIO Tower Clean"
       },
       {
-        "command": "hardwario-tower.console",
+        "command": "hardwario.tower.console",
         "title": "HARDWARIO Tower Console"
       },
       {
-        "command": "hardwario-tower.flash_and_log",
+        "command": "hardwario.tower.flashAndLog",
         "title": "HARDWARIO Tower Flash and Attach"
       },
       {
-        "command": "hardwario-tower.flash_and_debug",
+        "command": "hardwario.tower.flashAndDebug",
         "title": "HARDWARIO Tower Flash and Debug"
       },
       {
-        "command": "hardwario-tower.change_device",
+        "command": "hardwario.tower.changeDevice",
         "title": "HARDWARIO Tower Change Device"
       },
       {
-        "command": "hardwario-tower.debug",
+        "command": "hardwario.tower.debug",
         "title": "HARDWARIO Tower Start Debugging"
       },
       {
-        "command": "hardwario-tower.clone_skeleton",
+        "command": "hardwario.tower.cloneSkeleton",
         "title": "HARDWARIO Tower Clone Firmware"
       },
       {
-        "command": "hardwario-tower.clone_firmware",
+        "command": "hardwario.tower.cloneFirmware",
         "title": "HARDWARIO Tower Clone Firmware From Existing"
       },
       {
-        "command": "hardwario-tower.change_release_type",
+        "command": "hardwario.tower.changeReleaseType",
         "title": "HARDWARIO Tower Change Release Type"
       },
       {
-        "command": "hardwario-tower.open_documentation",
+        "command": "hardwario.tower.openDocumentation",
         "title": "HARDWARIO Tower Shop"
       },
       {
-        "command": "hardwario-tower.open_shop",
+        "command": "hardwario.tower.openShop",
         "title": "HARDWARIO Tower Documentation"
       },
       {
-        "command": "hardwario-tower.open_projects",
+        "command": "hardwario.tower.openProjects",
         "title": "HARDWARIO Tower Projects"
       },
       {
-        "command": "hardwario-tower.open_github",
+        "command": "hardwario.tower.openGithub",
         "title": "HARDWARIO Tower GitHub"
       },
       {
-        "command": "hardwario-tower.open_forum",
+        "command": "hardwario.tower.openForum",
         "title": "HARDWARIO Tower Forum"
       },
       {
-        "command": "hardwario-tower.open_website",
+        "command": "hardwario.tower.openWebsite",
         "title": "HARDWARIO Tower Website"
       },
       {
-        "command": "hardwario-tower.open_sdk",
+        "command": "hardwario.tower.openSdk",
         "title": "HARDWARIO Tower SDK"
       },
       {
-        "command": "hardwario-tower.update_sdk",
+        "command": "hardwario.tower.updateSdk",
         "title": "HARDWARIO Tower Update Firmware SDK"
       },
       {
-        "command": "hardwario-tower.upgrade_firmware",
+        "command": "hardwario.tower.upgradeFirmware",
         "title": "HARDWARIO Tower Upgrade Firmware"
       },
       {
-        "command": "hardwario-tower.clear_console",
+        "command": "hardwario.tower.clearConsole",
         "title": "Clear HARDWARIO Console",
         "icon": "$(clear-all)"
       },
       {
-        "command": "hardwario-tower.disconect_console",
+        "command": "hardwario.tower.disconnectConsole",
         "title": "Disconnect HARDWARIO Console",
         "icon": "$(debug-disconnect)"
       },
       {
-        "command": "hardwario-tower.connect_console",
+        "command": "hardwario.tower.connectConsole",
         "title": "Connect HARDWARIO Console",
         "icon": "$(debug-continue)"
       },
       {
-        "command": "hardwario-tower.save_log",
+        "command": "hardwario.tower.saveLog",
         "title": "Save HARDWARIO Console Log",
         "icon": "$(save-as)"
       },
       {
-        "command": "hardwario-tower.console.scroll_to_bottom",
-        "title": "Scrool to bottom",
+        "command": "hardwario.tower.scrollToBottom",
+        "title": "Scroll to bottom",
         "icon": "$(arrow-down)"
       }
     ],
@@ -200,34 +200,34 @@
 					"name": "Console",
 					"contextualTitle": "Console",
 					"icon": "media/logo.svg",
-					"visibility": "visible"
+          "visibility": "visible"
 				}
 			]
     },
     "menus": {
 			"view/title": [
 				{
-					"command": "hardwario-tower.clear_console",
+					"command": "hardwario.tower.clearConsole",
 					"group": "navigation",
 					"when": "view == harwdario.tower.views.console"
 				},
         {
-					"command": "hardwario-tower.disconect_console",
+					"command": "hardwario.tower.disconnectConsole",
 					"group": "navigation",
-					"when": "view == harwdario.tower.views.console && hardwario-tower.console_connected"
+					"when": "view == harwdario.tower.views.console && hardwario.tower.consoleConnected"
 				},
         {
-					"command": "hardwario-tower.connect_console",
+					"command": "hardwario.tower.connectConsole",
 					"group": "navigation",
-					"when": "view == harwdario.tower.views.console && !hardwario-tower.console_connected"
+					"when": "view == harwdario.tower.views.console && !hardwario.tower.consoleConnected"
 				},
         {
-					"command": "hardwario-tower.save_log",
+					"command": "hardwario.tower.saveLog",
 					"group": "navigation",
 					"when": "view == harwdario.tower.views.console"
 				},
         {
-					"command": "hardwario-tower.console.scroll_to_bottom",
+					"command": "hardwario.tower.scrollToBottom",
 					"group": "navigation",
 					"when": "view == harwdario.tower.views.console"
 				}
@@ -263,7 +263,6 @@
     "command-exists": "^1.2.9",
     "request": "^2.88.2",
     "serialport": "^10.4.0",
-    "unzip": "^0.1.11",
     "child_process": "1.0.2"
   }
 }

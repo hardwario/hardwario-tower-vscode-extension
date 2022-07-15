@@ -61,10 +61,7 @@
     }
   });
 
-  /**
-   * @param {Array<{ value: string }>} data
-   */
-  function updateDataList(data) {
+  function updateDataList() {
     ul = document.querySelector('.data-list');
     ul.textContent = '';
     for (const record of data) {
@@ -102,7 +99,7 @@
     }
 
     // Update the saved state
-    // vscode.setState({ data });
+    vscode.setState({ data });
   }
 
   function clearLog() {

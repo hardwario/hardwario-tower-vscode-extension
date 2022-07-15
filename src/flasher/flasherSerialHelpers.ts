@@ -1,4 +1,9 @@
 /* eslint-disable no-bitwise */
+
+/**
+ * Helper functions for the serial port
+ */
+
 export function getAddressBufferWithXor(address) {
   const buff = Buffer.allocUnsafe(5);
   buff.writeUInt32BE(address, 0);

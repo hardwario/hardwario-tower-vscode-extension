@@ -16,14 +16,14 @@ export default class ConsoleWebViewProvider implements vscode.WebviewViewProvide
 
   private view?: vscode.WebviewView;
 
-  constructor(
-          private readonly extensionUri: vscode.Uri,
-  ) { }
+  extensionUri : vscode.Uri;
+
+  constructor(private readonly extUri: vscode.Uri) {
+    this.extensionUri = extUri;
+  }
 
   public resolveWebviewView(
     webviewView: vscode.WebviewView,
-    context: vscode.WebviewViewResolveContext,
-    _token: vscode.CancellationToken,
   ) {
     this.view = webviewView;
 
@@ -62,7 +62,6 @@ export default class ConsoleWebViewProvider implements vscode.WebviewViewProvide
 
   public addSerialData(data) {
     if (this.view) {
-      // this.view.show?.(true); // `show` is not implemented in 1.49 but is for 1.50 insiders
       this.view.webview.postMessage({ type: 'serialData', message: data });
     }
   }
@@ -76,6 +75,8 @@ export default class ConsoleWebViewProvider implements vscode.WebviewViewProvide
   public showWebView() {
     if (this.view) {
       this.view.show?.(false);
+    } else {
+      vscode.commands.executeCommand('workbench.view.extension.hardwarioTowerPanel');
     }
   }
 
@@ -83,8 +84,8 @@ export default class ConsoleWebViewProvider implements vscode.WebviewViewProvide
     this.view.webview.postMessage({ type: 'saveLog', path });
   }
 
-  public turnOnAutoscrool() {
-    this.view.webview.postMessage({ type: 'autoScrool' });
+  public turnOnAutoScroll() {
+    this.view.webview.postMessage({ type: 'autoScroll' });
   }
 
   private getHtmlForWebview(webview: vscode.Webview) {

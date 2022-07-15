@@ -386,14 +386,14 @@ export function startDebug() {
     servertype: 'jlink',
     jlinkscript: './sdk/tools/jlink/flash.jlink',
     interface: 'swd',
-    serverpath: '${command:hardwario-tower.locate_jlink}',
+    serverpath: '${command:hardwario.tower.locateJlink}',
     svdFile: './sdk/sys/svd/stm32l0x3.svd',
-    gdbPath: '${command:hardwario-tower.locate_toolchain}',
+    gdbPath: '${command:hardwario.tower.locateToolchain}',
     runToEntryPoint: 'application_init',
     executable: '${workspaceFolder}/out/debug/firmware.elf',
     windows: {
-      gdbPath: '${command:hardwario-tower.locate_toolchain}.exe',
-      serverpath: '${command:hardwario-tower.locate_jlink}.exe',
+      gdbPath: '${command:hardwario.tower.locateToolchain}.exe',
+      serverpath: '${command:hardwario.tower.locateJlink}.exe',
     },
   });
 }

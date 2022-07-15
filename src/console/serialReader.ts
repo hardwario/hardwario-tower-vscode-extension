@@ -1,14 +1,10 @@
-import { SerialPort, ReadlineParser } from 'serialport';
+/* eslint-disable consistent-return */
+/* eslint-disable no-await-in-loop */
+/* eslint-disable import/extensions */
+/* eslint-disable import/no-unresolved */
+import { ReadlineParser } from 'serialport';
 import SerialPortFtdi from '../flasher/serialportFtdi';
 import * as helpers from '../helpers';
-
-const ACK = 0x79;
-
-const BOOTLOADER_VERSION = Buffer.from([0x31, 0x00, 0x00]);
-const BOOTLOADER_ID = Buffer.from([0x01, 0x04, 0x47]);
-
-const COMMAND_GET_VERSION = Buffer.from([0x01, 0xfe]);
-const COMMAND_GET_ID = Buffer.from([0x02, 0xfd]);
 
 export default class SerialPortConsole {
   port: any;
@@ -37,7 +33,6 @@ export default class SerialPortConsole {
 
             return resolve();
           } catch (error) {
-            console.log('connect error', error);
             await this.port.close().catch(() => {});
             helpers.sleep(100);
           }
@@ -47,7 +42,7 @@ export default class SerialPortConsole {
     });
   }
 
-  disconect() {
+  disconnect() {
     return this.port.close();
   }
 }

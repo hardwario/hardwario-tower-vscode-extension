@@ -1,13 +1,12 @@
+/* eslint-disable no-bitwise */
 /* eslint-disable no-promise-executor-return */
 /* eslint-disable no-await-in-loop */
 /* eslint-disable consistent-return */
-/* eslint-disable no-bitwise */
 /* eslint-disable import/no-unresolved */
 /* eslint-disable import/extensions */
 import * as fs from 'fs';
 import { getAddressBufferWithXor, calculateXor } from './flasherSerialHelpers';
 import SerialPortFtdi from './serialportFtdi';
-
 import * as helpers from '../helpers';
 
 const ACK = 0x79;
@@ -72,14 +71,12 @@ export class FlashSerial {
     return new Promise<void>((resolve, reject) => {
       (async () => {
         for (let i = 0; i < 10; i += 1) {
-          console.log('connectPrivate', i);
           try {
             await this.port.open();
             await this.connectPrivate();
 
             return resolve();
           } catch (error) {
-            console.log('connect error', error);
             await this.port.close().catch(() => {});
             helpers.sleep(100);
           }
@@ -89,13 +86,11 @@ export class FlashSerial {
     });
   }
 
-  disconect() {
+  disconnect() {
     return this.port.close();
   }
 
   startBootloader() {
-    console.log('startBootloader');
-
     return new Promise<void>((resolve, reject) => {
       const buffer = Buffer.from([0x7f]);
 
@@ -110,7 +105,7 @@ export class FlashSerial {
           if ((length === 1) && (buffer.readUInt8() === ACK)) {
             resolve();
           } else {
-            reject(new Error('start bootloader expect ACK'));
+            reject(new Error('Start bootloader expect ACK'));
           }
         })
         .catch(() => {
@@ -129,7 +124,7 @@ export class FlashSerial {
           if ((outBuffer[0] === ACK) && outBuffer[4] === ACK) {
             resolve(outBuffer.subarray(1, 4));
           } else {
-            reject(new Error('fail getVersion'));
+            reject(new Error('Fail Get Version'));
           }
         })
         .catch(reject);
@@ -146,7 +141,7 @@ export class FlashSerial {
           if ((outBuffer[0] === ACK) && outBuffer[4] === ACK) {
             resolve(outBuffer.subarray(1, 4));
           } else {
-            reject(new Error('fail getID'));
+            reject(new Error('Fail Get ID'));
           }
         })
         .catch(reject);
@@ -158,7 +153,7 @@ export class FlashSerial {
 
     return new Promise<void>((resolve, reject) => {
       this.port.read(readBuffer, 0, 1)
-        .then((ret) => {
+        .then(() => {
           if (readBuffer[0] === ACK) {
             resolve();
           } else {
@@ -175,7 +170,6 @@ export class FlashSerial {
 
       (async () => {
         const timer = setTimeout(() => {
-          console.log('timeout');
           this.port.close();
         }, timeout);
 
@@ -317,7 +311,7 @@ export class FlashSerial {
     });
   }
 
-  erase(length = 196608, reporthook = null) {
+  erase(length = 196608, reportHook = null) {
     return new Promise<void>((resolve, reject) => {
       let maxPage = Math.ceil(length / 128) + 1;
 
@@ -325,7 +319,9 @@ export class FlashSerial {
         maxPage = 1536;
       }
 
-      if (reporthook) reporthook(0, maxPage);
+      if (reportHook) {
+        reportHook(0, maxPage);
+      }
 
       (async function loop() {
         for (let pageStart = 0; pageStart < maxPage; pageStart += 80) {
@@ -343,7 +339,7 @@ export class FlashSerial {
             return reject(error);
           }
 
-          if (reporthook) reporthook(pageStop, maxPage);
+          if (reportHook) reportHook(pageStop, maxPage);
         }
 
         resolve();
@@ -351,12 +347,12 @@ export class FlashSerial {
     });
   }
 
-  write(firmware, reporthook = null, startAddress = START_ADDRESS) {
+  write(firmware, reportHook = null, startAddress = START_ADDRESS) {
     return new Promise<void>((resolve, reject) => {
       const { length } = firmware;
       const step = 128;
 
-      if (reporthook) reporthook(0, length);
+      if (reportHook) reportHook(0, length);
 
       (async function loop() {
         for (let offset = 0; offset < length; offset += step) {
@@ -374,7 +370,7 @@ export class FlashSerial {
             return reject(error);
           }
 
-          if (reporthook) reporthook(offsetEnd, length);
+          if (reportHook) reportHook(offsetEnd, length);
         }
 
         resolve();
@@ -382,12 +378,12 @@ export class FlashSerial {
     });
   }
 
-  verify(firmware, reporthook = null, startAddress = START_ADDRESS) {
+  verify(firmware, reportHook = null, startAddress = START_ADDRESS) {
     return new Promise<void>((resolve, reject) => {
       const { length } = firmware;
       const step = 128;
 
-      if (reporthook) reporthook(0, length);
+      if (reportHook) reportHook(0, length);
 
       (async function loop() {
         for (let offset = 0; offset < length; offset += step) {
@@ -421,7 +417,7 @@ export class FlashSerial {
             return reject(new Error('Not Match'));
           }
 
-          if (reporthook) reporthook(offsetEnd, length);
+          if (reportHook) reportHook(offsetEnd, length);
         }
 
         resolve();
@@ -430,28 +426,21 @@ export class FlashSerial {
   }
 }
 
-export function flash(device, firmwarePath, reporthook = null) {
+export function flash(device, firmwarePath, reportHook = null) {
   return new Promise((resolve, reject) => {
     const firmware = fs.readFileSync(firmwarePath);
 
     const s = new FlashSerial(device);
 
     s.connect()
-      .then(() => s.erase(firmware.length, (a, b) => { reporthook('erase', a, b); }))
-      .then(() => s.write(firmware, (a, b) => { reporthook('write', a, b); }))
-      .then(() => s.verify(firmware, (a, b) => { reporthook('verify', a, b); }))
-      .then(() => {
-        console.log('go');
-
-        return s.go();
-      })
-      .then(() => s.disconect())
+      .then(() => s.erase(firmware.length, (a, b) => { reportHook('erase', a, b); }))
+      .then(() => s.write(firmware, (a, b) => { reportHook('write', a, b); }))
+      .then(() => s.verify(firmware, (a, b) => { reportHook('verify', a, b); }))
+      .then(() => s.go())
+      .then(() => s.disconnect())
       .then(resolve)
       .catch((e) => {
-        s.disconect().catch(() => {});
-
-        console.log('flash error', e);
-
+        s.disconnect().catch(() => {});
         reject(e);
       });
   });
