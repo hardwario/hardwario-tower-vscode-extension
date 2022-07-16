@@ -39,13 +39,17 @@ body {
 	color: green;
 }
 
+.log-message-time {
+	color: gray;
+}
+
 .color-input {
 	display: block;
 	flex: 1;
 	width: 100%;
 	color: var(--vscode-input-foreground);
 	border: none;
-	padding: 0 0.6em;
+	padding: 0 1em;
 }
 
 .clear-log-button {

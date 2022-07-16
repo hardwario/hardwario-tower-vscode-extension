@@ -9,7 +9,7 @@
   "engines": {
     "vscode": "^1.64.0"
   },
-  "extensionDependencies": [
+  "extensionPack": [
     "ms-vscode.cpptools-extension-pack",
     "marus25.cortex-debug",
     "ms-vscode.vscode-serial-monitor"
@@ -148,16 +148,6 @@
         "icon": "$(clear-all)"
       },
       {
-        "command": "hardwario.tower.disconnectConsole",
-        "title": "HARDWARIO Disconnect Console",
-        "icon": "$(debug-disconnect)"
-      },
-      {
-        "command": "hardwario.tower.connectConsole",
-        "title": "HARDWARIO Connect Console",
-        "icon": "$(debug-continue)"
-      },
-      {
         "command": "hardwario.tower.saveLog",
         "title": "HARDWARIO Save Console Log",
         "icon": "$(save-as)"
@@ -166,6 +156,16 @@
         "command": "hardwario.tower.scrollToBottom",
         "title": "HARDWARIO Console Scroll to bottom",
         "icon": "$(arrow-down)"
+      },
+      {
+        "command": "hardwario.tower.disconnectConsole",
+        "title": "HARDWARIO Disconnect Console",
+        "icon": "$(debug-disconnect)"
+      },
+      {
+        "command": "hardwario.tower.connectConsole",
+        "title": "HARDWARIO Connect Console",
+        "icon": "$(debug-continue)"
       }
     ],
     "viewsContainers": {
@@ -208,29 +208,29 @@
 			"view/title": [
 				{
 					"command": "hardwario.tower.clearConsole",
-					"group": "navigation",
+					"group": "navigation@1",
 					"when": "view == harwdario.tower.views.console"
 				},
         {
-					"command": "hardwario.tower.disconnectConsole",
-					"group": "navigation",
-					"when": "view == harwdario.tower.views.console && hardwario.tower.consoleConnected"
-				},
-        {
-					"command": "hardwario.tower.connectConsole",
-					"group": "navigation",
-					"when": "view == harwdario.tower.views.console && !hardwario.tower.consoleConnected"
-				},
-        {
-					"command": "hardwario.tower.saveLog",
-					"group": "navigation",
+          "command": "hardwario.tower.saveLog",
+					"group": "navigation@4",
 					"when": "view == harwdario.tower.views.console"
 				},
         {
-					"command": "hardwario.tower.scrollToBottom",
-					"group": "navigation",
+          "command": "hardwario.tower.scrollToBottom",
+					"group": "navigation@3",
 					"when": "view == harwdario.tower.views.console"
-				}
+				},
+        {
+          "command": "hardwario.tower.disconnectConsole",
+          "group": "navigation@2",
+          "when": "view == harwdario.tower.views.console && hardwario.tower.consoleConnected"
+        },
+        {
+          "command": "hardwario.tower.connectConsole",
+          "group": "navigation@2",
+          "when": "view == harwdario.tower.views.console && !hardwario.tower.consoleConnected"
+        }
 			]
 		}
   },

@@ -2,8 +2,6 @@
 /* eslint-disable no-restricted-syntax */
 // @ts-check
 
-// This script will be run within the webview itself
-// It cannot access the main VS Code APIs directly.
 (function () {
   let ul = '';
 
@@ -14,10 +12,9 @@
   const oldState = vscode.getState() || { data: [] };
 
   /** @type {Array<{ value: string }>} */
-  let data = oldState;
+  let { data } = oldState;
 
-  data = [];
-  updateDataList(data);
+  updateDataList();
 
   addEventListener('wheel', (event) => {
     if (autoScrool) {
@@ -33,9 +30,9 @@
     switch (message.type) {
       case 'serialData':
       {
-        data.push({ value: event.data.message });
-        updateDataList(data);
-        vscode.postMessage({ type: 'serialData', message: event.data.message });
+        const logData = `${new Date().toLocaleTimeString()} ${event.data.message}`;
+        data.push({ value: logData });
+        updateDataList();
         break;
       }
       case 'clearData':
@@ -48,9 +45,10 @@
         vscode.postMessage({ type: 'saveLog', message: data, path: event.data.path });
         break;
       }
-      case 'autoScrool':
+      case 'autoScroll':
       {
         autoScrool = true;
+
         window.scrollTo(0, document.body.scrollHeight);
         break;
       }
@@ -70,14 +68,22 @@
 
       const logDiv = document.createElement('div');
 
+      const logMessageSystemTimeContainer = document.createElement('span');
+      const logMessageSystemTime = record.value.substring(0, record.value.indexOf('#'));
+      const logMessageSystemTimeElement = document.createTextNode(logMessageSystemTime);
+
+      logMessageSystemTimeContainer.className = 'log-message-time';
+
       const logMessageStartContainer = document.createElement('span');
-      const logMessageStart = record.value.substring(0, record.value.indexOf('>') + 1);
+      const logMessageStart = record.value.substring(record.value.indexOf('#'), record.value.indexOf('>') + 1);
       const logMessageStartElement = document.createTextNode(logMessageStart);
 
       const logMessage = record.value.substring(record.value.indexOf('>') + 1);
       const logMessageElement = document.createTextNode(logMessage);
 
       logMessageStartContainer.appendChild(logMessageStartElement);
+      logMessageSystemTimeContainer.appendChild(logMessageSystemTimeElement);
+      logDiv.appendChild(logMessageSystemTimeContainer);
       logDiv.appendChild(logMessageStartContainer);
       logDiv.appendChild(logMessageElement);
 
@@ -104,6 +110,7 @@
 
   function clearLog() {
     data = [];
-    updateDataList(data);
+    vscode.setState({ data });
+    updateDataList();
   }
 }());
