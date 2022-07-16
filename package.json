@@ -9,7 +9,7 @@
   "engines": {
     "vscode": "^1.64.0"
   },
-  "extensionPack": [
+  "extensionDependencies": [
     "ms-vscode.cpptools-extension-pack",
     "marus25.cortex-debug",
     "ms-vscode.vscode-serial-monitor"
