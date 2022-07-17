@@ -50,6 +50,7 @@ export default class ConsoleWebViewProvider implements vscode.WebviewViewProvide
             file.write(`${v.value}\n`);
           });
           file.end();
+          vscode.window.showInformationMessage('Log successfully saved');
           break;
         }
         default:
