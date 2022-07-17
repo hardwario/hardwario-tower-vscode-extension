@@ -17,14 +17,16 @@ export default class SerialPortConsole {
     this.port = new SerialPortFtdi(device, 115200, 'none');
   }
 
-  connect(func) {
+  connect(func, reset) {
     return new Promise<void>((resolve, reject) => {
       (async () => {
         for (let i = 0; i < 10; i += 1) {
           try {
             await this.port.open();
             await this.port.clearBuffer();
-            await this.port.resetSequence();
+            if (reset) {
+              await this.port.resetSequence();
+            }
 
             helpers.sleep(100);
 

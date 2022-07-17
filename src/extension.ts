@@ -371,7 +371,8 @@ function pushHardwarioCommands() {
   contextGlobal.subscriptions.push(vscode.commands.registerCommand('hardwario.tower.connectConsole', () => {
     if (serialConsole === undefined) {
       serialConsole = new SerialPortConsole(selectedPort);
-      serialConsole.connect(addSerialData);
+      vscode.commands.executeCommand('hardwario.tower.clearConsole');
+      serialConsole.connect(addSerialData, true);
       vscode.commands.executeCommand('setContext', 'hardwario.tower.consoleConnected', true);
     }
   }));

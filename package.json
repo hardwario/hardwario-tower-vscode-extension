@@ -165,7 +165,7 @@
       {
         "command": "hardwario.tower.connectConsole",
         "title": "HARDWARIO Connect Console",
-        "icon": "$(debug-continue)"
+        "icon": "$(plug)"
       }
     ],
     "viewsContainers": {
@@ -212,16 +212,6 @@
 					"when": "view == harwdario.tower.views.console"
 				},
         {
-          "command": "hardwario.tower.saveLog",
-					"group": "navigation@4",
-					"when": "view == harwdario.tower.views.console"
-				},
-        {
-          "command": "hardwario.tower.scrollToBottom",
-					"group": "navigation@3",
-					"when": "view == harwdario.tower.views.console"
-				},
-        {
           "command": "hardwario.tower.disconnectConsole",
           "group": "navigation@2",
           "when": "view == harwdario.tower.views.console && hardwario.tower.consoleConnected"
@@ -230,7 +220,17 @@
           "command": "hardwario.tower.connectConsole",
           "group": "navigation@2",
           "when": "view == harwdario.tower.views.console && !hardwario.tower.consoleConnected"
-        }
+        },
+        {
+          "command": "hardwario.tower.scrollToBottom",
+          "group": "navigation@3",
+          "when": "view == harwdario.tower.views.console"
+        },
+        {
+          "command": "hardwario.tower.saveLog",
+					"group": "navigation@4",
+					"when": "view == harwdario.tower.views.console"
+				}
 			]
 		}
   },
