@@ -118,7 +118,7 @@ function pushGeneralCommands() {
           } else {
             folderUriString += text;
           }
-          cloneTerminal.get().sendText(`git clone --recursive https://github.com/hardwario/twr-tester-chester-x0.git ${folderUriString} && exit`);
+          cloneTerminal.get().sendText(`git clone --recursive https://github.com/hardwario/twr-skeleton.git "${folderUriString}" && exit`);
           cloneTerminal.get().show();
           vscode.workspace.saveAll();
 
@@ -184,7 +184,7 @@ function pushGeneralCommands() {
                   } else {
                     folderUriString += text;
                   }
-                  cloneTerminal.get().sendText(`git clone --recursive ${pickedItem.link} ${folderUriString} && exit`);
+                  cloneTerminal.get().sendText(`git clone --recursive ${pickedItem.link} "${folderUriString}" && exit`);
                   cloneTerminal.get().show();
                   vscode.workspace.saveAll();
 
