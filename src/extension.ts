@@ -264,9 +264,6 @@ function pushHardwarioCommands() {
     buildTerminal.get().show();
   }));
 
-  /**
-   * Build and upload the firmware to the selected connected device
-   */
   contextGlobal.subscriptions.push(vscode.commands.registerCommand('hardwario.tower.flash', async () => {
     vscode.workspace.saveAll();
 
@@ -319,6 +316,19 @@ function pushHardwarioCommands() {
           e.toString(),
         );
       }));
+  }));
+
+  /**
+   * Upload the firmware to the selected connected device
+   */
+  contextGlobal.subscriptions.push(vscode.commands.registerCommand('hardwario.tower.flashToDevice', async () => {
+    vscode.workspace.saveAll();
+
+    const command = helpers.buildMakeCommand(releaseType, true);
+
+    buildTerminal.get().sendText(command);
+    buildTerminal.get().show();
+    flashAfterBuild = true;
   }));
 
   /**
@@ -447,6 +457,7 @@ function pushHardwarioCommands() {
     }
     fs.rmSync(path.join(workspaceFolder.uri.fsPath.toString(), 'out'), { recursive: true, force: true });
     fs.rmSync(path.join(workspaceFolder.uri.fsPath.toString(), 'obj'), { recursive: true, force: true });
+    fs.rmSync(path.join(workspaceFolder.uri.fsPath.toString(), 'firmware.bin'), { force: true });
     cleanTerminal.get().show();
   }));
 
@@ -467,16 +478,6 @@ function pushHardwarioCommands() {
 
     if (serialConsole !== undefined) {
       vscode.commands.executeCommand('hardwario.tower.disconnectConsole');
-    }
-
-    if (consoleTerminal.instance !== null) {
-      consoleTerminal.get().dispose();
-      consoleTerminal.instance = null;
-    }
-
-    if (flashAndLogTerminal.instance !== null) {
-      flashAndLogTerminal.get().dispose();
-      flashAndLogTerminal.instance = null;
     }
 
     const command = helpers.buildMakeCommand(releaseType, true);
@@ -599,7 +600,7 @@ function createToolbar(context: vscode.ExtensionContext) {
   flashCommand.name = 'HARDWARIO: Toolbar';
   flashCommand.text = '$(arrow-up)';
   flashCommand.tooltip = 'HARDWARIO: Flash Firmware';
-  flashCommand.command = 'hardwario.tower.flash';
+  flashCommand.command = 'hardwario.tower.flashToDevice';
   flashCommand.show();
   context.subscriptions.push(flashCommand);
 
@@ -655,9 +656,6 @@ function setup() {
   helpers.addSetting();
 
   vscode.window.registerTreeDataProvider('hardwario.tower.views.palette', new PaletteProvider());
-
-  webViewProvider = new ConsoleWebViewProvider(contextGlobal.extensionUri);
-  vscode.window.registerWebviewViewProvider(ConsoleWebViewProvider.viewType, webViewProvider);
 }
 
 /**
@@ -670,73 +668,18 @@ function setupNormal() {
     helpers.checkCommand('arm-none-eabi-gcc', 'Please install arm-none-eabi-gcc, add it to PATH and restart VSCode', 'How to install arm-none-eabi-gcc', 'Cancel', 'https://mynewt.apache.org/latest/get_started/native_install/cross_tools.html#installing-the-arm-toolchain-for-windows');
     helpers.checkCommand('cmake', 'Please install CMake, add if to PATH and restart VSCode', 'How to install CMake', 'Cancel', 'https://cmake.org/install/');
     helpers.checkCommand('ninja', 'Please install Ninja, add if to PATH and restart VSCode', 'How to install Ninja', 'Cancel', 'https://github.com/ninja-build/ninja/releases');
-
-    // helpers.checkCommand('rm', 'Please install linux commands, add them to PATH and restart VSCode', 'How to install linux tools', 'Cancel', 'https://github.com/git-guides/install-git#install-git-on-linux');
-    // helpers.checkCommand('bcf', 'Please install bcf, add if to PATH and restart VSCode', 'How to install bcf', 'Cancel', 'https://tower.hardwario.com/en/latest/tools/hardwario-firmware-flashing-tool/#install-upgrade');
-    /* if (!commandExistsSync('python') && !commandExistsSync('python3')) {
-      vscode.window.showWarningMessage(
-        'Please install python, add it to PATH and restart VSCode',
-        'How to install python',
-
-        'Cancel',
-      )
-        .then((answer) => {
-          if (answer === 'How to install python') {
-            vscode.env.openExternal(vscode.Uri.parse('https://phoenixnap.com/kb/how-to-install-python-3-windows'));
-          }
-        });
-    }
-    buildTerminal.get().sendText('python -m pip install --upgrade --force-reinstall --user bcf');
-    buildTerminal.get().sendText('python3 -m pip install --upgrade --force-reinstall --user bcf');
-    buildTerminal.get().sendText('exit 0'); */
   } else if (helpers.LINUX) {
     helpers.checkCommand('git', 'Please install git and restart VSCode', 'How to install git', 'Cancel', 'https://git-scm.com/book/en/v2/Getting-Started-Installing-Git');
     helpers.checkCommand('make', 'Please install make and restart VSCode', 'How to install make', 'Cancel', 'https://linuxhint.com/install-make-ubuntu/');
     helpers.checkCommand('arm-none-eabi-gcc', 'Please install arm-none-eabi-gcc and restart VSCode', 'How to install arm-none-eabi-gcc', 'Cancel', 'https://mynewt.apache.org/latest/get_started/native_install/cross_tools.html#installing-the-arm-toolchain-for-linux');
     helpers.checkCommand('cmake', 'Please install CMake, add if to PATH and restart VSCode', 'How to install CMake', 'Cancel', 'https://cmake.org/install/');
     helpers.checkCommand('ninja', 'Please install Ninja, add if to PATH and restart VSCode', 'How to install Ninja', 'Cancel', 'https://github.com/ninja-build/ninja/releases');
-
-    // helpers.checkCommand('bcf', 'Please install bcf and restart VSCode', 'How to install bcf', 'Cancel', 'https://tower.hardwario.com/en/latest/tools/hardwario-firmware-flashing-tool/#install-upgrade');
-    /* if (!commandExistsSync('python') && !commandExistsSync('python3')) {
-      vscode.window.showWarningMessage(
-        'Please install python, add it to PATH and restart VSCode',
-        'How to install python',
-
-        'Cancel',
-      )
-        .then((answer) => {
-          if (answer === 'How to install python') {
-            vscode.env.openExternal(vscode.Uri.parse('https://www.scaler.com/topics/python/install-python-on-linux/'));
-          }
-        });
-    }
-    buildTerminal.get().sendText('python -m pip install --upgrade --force-reinstall --user bcf');
-    buildTerminal.get().sendText('python3 -m pip install --upgrade --force-reinstall --user bcf');
-    buildTerminal.get().sendText('exit 0'); */
   } else if (helpers.MACOS) {
     helpers.checkCommand('git', 'Please install git and restart VSCode', 'How to install git', 'Cancel', 'https://git-scm.com/book/en/v2/Getting-Started-Installing-Git');
     helpers.checkCommand('make', 'Please install make and restart VSCode', 'How to install make', 'Cancel', 'https://formulae.brew.sh/formula/make');
     helpers.checkCommand('arm-none-eabi-gcc', 'Please install arm-none-eabi-gcc and restart VSCode', 'How to install arm-none-eabi-gcc', 'Cancel', 'https://mynewt.apache.org/latest/get_started/native_install/cross_tools.html#installing-the-arm-toolchain-for-mac-os-x');
     helpers.checkCommand('cmake', 'Please install CMake, add if to PATH and restart VSCode', 'How to install CMake', 'Cancel', 'https://cmake.org/install/');
     helpers.checkCommand('ninja', 'Please install Ninja, add if to PATH and restart VSCode', 'How to install Ninja', 'Cancel', 'https://github.com/ninja-build/ninja/releases');
-
-    // helpers.checkCommand('bcf', 'Please install bcf and restart VSCode', 'How to install bcf', 'Cancel', 'https://tower.hardwario.com/en/latest/tools/hardwario-firmware-flashing-tool/#install-upgrade');
-    /* if (!commandExistsSync('python') && !commandExistsSync('python3')) {
-      vscode.window.showWarningMessage(
-        'Please install python, add it to PATH and restart VSCode',
-        'How to install python',
-
-        'Cancel',
-      )
-        .then((answer) => {
-          if (answer === 'How to install python') {
-            vscode.env.openExternal(vscode.Uri.parse('https://www.dataquest.io/blog/installing-python-on-mac/'));
-          }
-        });
-    }
-    buildTerminal.get().sendText('python -m pip install --upgrade --force-reinstall --user bcf');
-    buildTerminal.get().sendText('python3 -m pip install --upgrade --force-reinstall --user bcf');
-    buildTerminal.get().sendText('exit 0'); */
   }
   setup();
 }
@@ -745,21 +688,6 @@ function setupNormal() {
  * Sets up the extension in full if the VSCode is portable
  */
 function setupPortable() {
-  /* if (helpers.WINDOWS) {
-    buildTerminal.get().sendText('python -m pip install --upgrade --force-reinstall --user bcf');
-    buildTerminal.get().sendText('python3 -m pip install --upgrade --force-reinstall --user bcf');
-    buildTerminal.get().sendText('exit 0');
-  } else if (helpers.MACOS) {
-    buildTerminal.get().sendText('python -m pip install --upgrade --force-reinstall --user bcf');
-    buildTerminal.get().sendText('python3 -m pip install --upgrade --force-reinstall --user bcf');
-    buildTerminal.get().sendText('exit 0');
-  } else if (helpers.LINUX) {
-    helpers.checkCommand('git', "Please install git with 'sudo apt install git' and restart VSCode", 'How to install git', 'Cancel', 'https://github.com/git-guides/install-git#install-git-on-linux');
-    buildTerminal.get().sendText('python -m pip install --upgrade --force-reinstall --user bcf');
-    buildTerminal.get().sendText('python3 -m pip install --upgrade --force-reinstall --user bcf');
-    buildTerminal.get().sendText('exit 0');
-  } */
-
   setup();
 }
 
@@ -796,6 +724,9 @@ export function activate(context: vscode.ExtensionContext) {
       }
     }
   });
+
+  webViewProvider = new ConsoleWebViewProvider(contextGlobal.extensionUri);
+  vscode.window.registerWebviewViewProvider(ConsoleWebViewProvider.viewType, webViewProvider);
 
   /**
    * If the open folder is HARDWARIO TOWER firmware the extension will be started in full
@@ -871,9 +802,12 @@ export function activate(context: vscode.ExtensionContext) {
 
     const provider = new HardwarioTowerDebugConfigurationProvider();
     context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('hardwario-debugger', provider));
+
+    vscode.commands.executeCommand('setContext', 'hardwario.tower.hardwarioProject', true);
   } else {
     pushGeneralCommands();
     vscode.window.registerTreeDataProvider('hardwario.tower.views.palette', new PaletteProvider());
+    vscode.commands.executeCommand('setContext', 'hardwario.tower.hardwarioProject', false);
   }
 }
 

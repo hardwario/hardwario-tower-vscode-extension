@@ -27,7 +27,7 @@ class PaletteProvider implements vscode.TreeDataProvider<PaletteCommand> {
 
           new PaletteCommand('Clean All Outputs', undefined, 'hardwario.tower.clean'),
           new PaletteCommand('Build Firmware', undefined, 'hardwario.tower.build'),
-          new PaletteCommand('Flash Firmware', undefined, 'hardwario.tower.flash'),
+          new PaletteCommand('Flash Firmware', undefined, 'hardwario.tower.flashToDevice'),
 
           new PaletteCommand('Attach Console', undefined, 'hardwario.tower.console'),
           new PaletteCommand('Attach Debugger', undefined, 'hardwario.tower.debug'),
