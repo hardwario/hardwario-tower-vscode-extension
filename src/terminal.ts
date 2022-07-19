@@ -31,13 +31,10 @@ class Terminal {
       if (!helpers.MACOS) {
         const vscodepath = process.env.VSCODE_CWD;
         const towerPath = path.join(vscodepath, 'data', 'tower');
-        const pythonPath = path.join(towerPath, 'python');
         const toolchainPath = path.join(towerPath, 'toolchain');
         const gitPath = path.join(toolchainPath, 'git');
 
         if (helpers.WINDOWS) {
-          const pythonScriptsPath = path.join(pythonPath, 'Scripts');
-
           const makeBinPath = path.join(toolchainPath, 'make', 'bin');
 
           const gccPath = path.join(toolchainPath, 'gcc');
@@ -56,13 +53,12 @@ class Terminal {
             systemCmdPath = systemCmdPath.replace(/(\r\n|\n|\r)/gm, '');
             systemCmdPath = systemCmdPath.substring(0, systemCmdPath.length - 8);
 
-            envClone.PATH = `${pythonPath};${pythonScriptsPath};${makeBinPath};${gccBinPath};${gccArmBinPath};${gitCmdPath};${gitUsrBinPath};${gitMingw64BinPath};${cmakePath};${ninjaPath};${systemCmdPath}`;
-            envClone.Path = `${pythonPath};${pythonScriptsPath};${makeBinPath};${gccBinPath};${gccArmBinPath};${gitCmdPath};${gitUsrBinPath};${gitMingw64BinPath};${cmakePath};${ninjaPath};${systemCmdPath}`;
+            envClone.PATH = `${makeBinPath};${gccBinPath};${gccArmBinPath};${gitCmdPath};${gitUsrBinPath};${gitMingw64BinPath};${cmakePath};${ninjaPath};${systemCmdPath}`;
+            envClone.Path = `${makeBinPath};${gccBinPath};${gccArmBinPath};${gitCmdPath};${gitUsrBinPath};${gitMingw64BinPath};${cmakePath};${ninjaPath};${systemCmdPath}`;
           }
         } else if (helpers.LINUX) {
           const homePath = env.HOME;
 
-          const pythonBinPath = path.join(pythonPath, 'install', 'bin');
           const makePath = path.join(toolchainPath, 'make');
           const gccArmBinPath = path.join(toolchainPath, 'gcc', 'bin');
 
@@ -70,8 +66,8 @@ class Terminal {
           const ninjaPath = path.join(toolchainPath, 'ninja');
 
           if (helpers.isPortable()) {
-            envClone.PATH = `${homePath}/.local/bin:${pythonBinPath}:${makePath}:${gccArmBinPath}:${cmakePath}:${ninjaPath}:${process.env.PATH}`;
-            envClone.Path = `${homePath}/.local/bin:${pythonBinPath}:${makePath}:${gccArmBinPath}:${cmakePath}:${ninjaPath}:${process.env.PATH}`;
+            envClone.PATH = `${homePath}/.local/bin:${makePath}:${gccArmBinPath}:${cmakePath}:${ninjaPath}:${process.env.PATH}`;
+            envClone.Path = `${homePath}/.local/bin:${makePath}:${gccArmBinPath}:${cmakePath}:${ninjaPath}:${process.env.PATH}`;
           }
         }
       } else
