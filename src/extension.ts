@@ -276,6 +276,11 @@ function pushHardwarioCommands() {
       vscode.commands.executeCommand('hardwario.tower.disconnectConsole');
     }
 
+    if (selectedPort === '') {
+      vscode.window.showWarningMessage('No HARDWARIO TOWER module connected. Please connect it and try again');
+      return;
+    }
+
     const workspaceFolder = vscode.workspace.workspaceFolders[0];
     const firmwarePath = path.join(workspaceFolder.uri.fsPath.toString(), 'firmware.bin');
 

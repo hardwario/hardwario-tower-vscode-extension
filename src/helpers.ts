@@ -190,6 +190,22 @@ export function addSetting() {
   }
 }
 
+function appendToGitignore(workspacePath) {
+  const ignores : Array<string> = ['obj/', 'out/', '.gitmodules', '.DS_Store', 'firmware.bin', '.vscode/'];
+
+  for (const ignore of ignores) {
+    fs.readFile(path.join(workspacePath, '.gitignore'), (err, data) => {
+      if (err) throw err;
+      if (!data.includes(ignore)) {
+        fs.appendFile(path.join(workspacePath, '.gitignore'), `${ignore}\r\n`, (err) => {
+          if (err) throw err;
+          console.log('File is created successfully.');
+        });
+      }
+    });
+  }
+}
+
 /**
  * Updates the project to latest supported project structure
  * @param workspacePath path to the current workspace
@@ -230,6 +246,15 @@ export function updateToSupportedFirmwareStructure(workspacePath) {
     });
   } else {
     updateFirmwareTerminal.get().sendText('exit');
+  }
+
+  if (!fs.existsSync(path.join(workspacePath, '.gitignore'))) {
+    fs.writeFile(path.join(workspacePath, '.gitignore'), 'obj/\r\nout/\r\n.gitmodules\r\n.DS_Store\r\nfirmware.bin\r\n.vscode/', (err) => {
+      if (err) throw err;
+      console.log('File is created successfully.');
+    });
+  } else {
+    appendToGitignore(workspacePath);
   }
 
   if (!fs.existsSync(path.join(workspacePath, 'src'))) {

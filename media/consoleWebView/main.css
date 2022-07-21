@@ -3,6 +3,7 @@ body {
 }
 
 .data-list {
+	font-family: Consolas;
 	list-style: none;
 	padding: 0;
 }
