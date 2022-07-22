@@ -223,6 +223,11 @@ export function updateToSupportedFirmwareStructure(workspacePath) {
     updateFirmwareTerminal.get().show();
   }
 
+  if (!fs.existsSync(path.join(workspacePath, 'sdk', 'CMakeLists.txt'))) {
+    updateFirmwareTerminal.get().sendText('git submodule init && git submodule update --remote --merge');
+    updateFirmwareTerminal.get().show();
+  }
+
   if (!fs.existsSync(path.join(workspacePath, 'CMakeLists.txt'))) {
     updateFirmwareTerminal.get().sendText('git clone https://github.com/SmejkalJakub/cmake-files.git && exit');
     updateFirmwareTerminal.get().show();
@@ -374,6 +379,16 @@ export function isCmakeGenerated(type: string) {
 
 export function buildMakeCommand(type: string, includeExit: boolean = false) {
   let command = '';
+
+  const workspaceFolder = vscode.workspace.workspaceFolders[0];
+  const workspacePath = workspaceFolder.uri.fsPath.toString();
+
+  if (!fs.existsSync(path.join(workspacePath, 'sdk'))) {
+    command += 'git submodule add https://github.com/hardwario/twr-sdk.git sdk && ';
+  } else if (!fs.existsSync(path.join(workspacePath, 'sdk', 'CMakeLists.txt'))) {
+    command += 'git submodule init && git submodule update --remote --merge && ';
+  }
+
   if (isCmakeProject()) {
     if (!isCmakeGenerated(type)) {
       command += `cmake -Bobj/${type} . -G Ninja -DCMAKE_TOOLCHAIN_FILE=sdk/toolchain/toolchain.cmake -DTYPE=${type} && `;
