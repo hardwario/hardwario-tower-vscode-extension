@@ -59,6 +59,9 @@ let preDebugBuildActive = false;
 let flashAfterBuild = false;
 let logAfterFlash = false;
 
+let attachingConsole = false;
+let disconnectingConsole = false;
+
 /* Lock to disable flashing while there is another flashing running */
 let flashing = false;
 
@@ -384,11 +387,18 @@ function pushHardwarioCommands() {
    * Attach console to the selected serial port
    */
   contextGlobal.subscriptions.push(vscode.commands.registerCommand('hardwario.tower.connectConsole', () => {
+    if (selectedPort === '') {
+      vscode.window.showWarningMessage('No HARDWARIO TOWER module connected. Please connect it and try again');
+      return;
+    }
+
     if (serialConsole === undefined) {
       serialConsole = new SerialPortConsole(selectedPort);
       vscode.commands.executeCommand('hardwario.tower.clearConsole');
-      serialConsole.connect(addSerialData, true);
-      vscode.commands.executeCommand('setContext', 'hardwario.tower.consoleConnected', true);
+      serialConsole.connect(addSerialData, true).then(() => {
+        webViewProvider.consoleConnected(`${selectedPort} ${selectedPortNumber}`, serialConsole);
+        vscode.commands.executeCommand('setContext', 'hardwario.tower.consoleConnected', true);
+      });
     }
   }));
 
@@ -396,10 +406,22 @@ function pushHardwarioCommands() {
    * Disconnect attached serial console to free the serial port
    */
   contextGlobal.subscriptions.push(vscode.commands.registerCommand('hardwario.tower.disconnectConsole', () => {
+    disconnectingConsole = true;
     if (serialConsole !== undefined) {
       serialConsole.disconnect();
       serialConsole = undefined;
+      webViewProvider.consoleDisconnected();
       vscode.commands.executeCommand('setContext', 'hardwario.tower.consoleConnected', false);
+    }
+  }));
+
+  /**
+   * Restart device attached to the console
+   */
+  contextGlobal.subscriptions.push(vscode.commands.registerCommand('hardwario.tower.restartDevice', () => {
+    if (serialConsole !== undefined) {
+      vscode.commands.executeCommand('hardwario.tower.clearConsole');
+      serialConsole.resetDevice();
     }
   }));
 
@@ -450,6 +472,13 @@ function pushHardwarioCommands() {
   }));
 
   /**
+   * Show the input field in the bottom of the HARDWARIO Console
+   */
+  contextGlobal.subscriptions.push(vscode.commands.registerCommand('hardwario.tower.consoleInput', () => {
+    webViewProvider.showInput();
+  }));
+
+  /**
    * Clear all builded binaries
    */
   contextGlobal.subscriptions.push(vscode.commands.registerCommand('hardwario.tower.clean', () => {
@@ -470,8 +499,18 @@ function pushHardwarioCommands() {
    * Attach the console to the selected device for the logging messages
    */
   contextGlobal.subscriptions.push(vscode.commands.registerCommand('hardwario.tower.console', () => {
+    attachingConsole = true;
     webViewProvider.showWebView();
-    vscode.commands.executeCommand('hardwario.tower.connectConsole');
+    if (serialConsole !== undefined) {
+      if (serialConsole.port.port.openOptions.path === selectedPort) {
+        vscode.commands.executeCommand('hardwario.tower.restartDevice');
+      } else {
+        vscode.commands.executeCommand('hardwario.tower.disconnectConsole');
+        vscode.commands.executeCommand('hardwario.tower.connectConsole');
+      }
+    } else {
+      vscode.commands.executeCommand('hardwario.tower.connectConsole');
+    }
   }));
 
   /**
@@ -813,6 +852,18 @@ export function activate(context: vscode.ExtensionContext) {
     pushGeneralCommands();
     vscode.window.registerTreeDataProvider('hardwario.tower.views.palette', new PaletteProvider());
     vscode.commands.executeCommand('setContext', 'hardwario.tower.hardwarioProject', false);
+  }
+}
+
+export function deviceDisconnected() {
+  if (!attachingConsole && !disconnectingConsole) {
+    vscode.commands.executeCommand('hardwario.tower.disconnectConsole');
+  }
+  if (attachingConsole) {
+    attachingConsole = false;
+  }
+  if (disconnectingConsole) {
+    disconnectingConsole = false;
   }
 }
 

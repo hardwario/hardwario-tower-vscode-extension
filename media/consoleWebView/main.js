@@ -9,12 +9,25 @@
 
   let autoScrool = true;
 
+  document.getElementById('send-data-div').style.display = 'none';
+
   const oldState = vscode.getState() || { data: [] };
 
   /** @type {Array<{ value: string }>} */
   let { data } = oldState;
 
+  let connectedDevice = '';
+
   updateDataList();
+
+  document.getElementById('send-button').addEventListener('click', () => {
+    sendData();
+  });
+
+  document.getElementById('send-data-form').addEventListener('submit', (event) => {
+    event.preventDefault();
+    sendData();
+  });
 
   addEventListener('wheel', (event) => {
     if (autoScrool) {
@@ -30,8 +43,20 @@
     switch (message.type) {
       case 'serialData':
       {
-        const logData = `${new Date().toLocaleTimeString()} ${event.data.message}`;
+        const logData = `${new Date().toLocaleTimeString([], { hour12: false })} ${event.data.message}`;
         data.push({ value: logData });
+        updateDataList();
+        break;
+      }
+      case 'connected':
+      {
+        connectedDevice = event.data.message;
+        updateDataList();
+        break;
+      }
+      case 'disconnected':
+      {
+        connectedDevice = '';
         updateDataList();
         break;
       }
@@ -52,6 +77,15 @@
         window.scrollTo(0, document.body.scrollHeight);
         break;
       }
+      case 'showInputBox':
+      {
+        if (document.getElementById('send-data-div').style.display === 'block') {
+          document.getElementById('send-data-div').style.display = 'none';
+        } else {
+          document.getElementById('send-data-div').style.display = 'block';
+        }
+        break;
+      }
       default:
       {
         break;
@@ -59,7 +93,23 @@
     }
   });
 
+  function sendData() {
+    const inputData = document.getElementById('send-data-input').value;
+    vscode.postMessage({ type: 'sendData', message: inputData });
+    document.getElementById('send-data-input').value = '';
+    autoScroll = true;
+  }
+
   function updateDataList() {
+    const header = document.getElementById('header-div');
+    if (header !== null) {
+      if (connectedDevice === '') {
+        header.textContent = 'CONSOLE NOT ATTACHED TO HARDWARIO DEVICE';
+      } else {
+        header.textContent = `CONSOLE ATTACHED TO: ${connectedDevice}`;
+      }
+    }
+
     ul = document.querySelector('.data-list');
     ul.textContent = '';
     for (const record of data) {

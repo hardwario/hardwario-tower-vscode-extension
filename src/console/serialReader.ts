@@ -44,6 +44,10 @@ export default class SerialPortConsole {
     });
   }
 
+  resetDevice() {
+    this.port.resetSequence();
+  }
+
   disconnect() {
     return this.port.close();
   }

@@ -2,6 +2,7 @@
 /* eslint-disable import/extensions */
 /* eslint-disable import/no-unresolved */
 import { SerialPort } from 'serialport';
+import * as ext from '../extension';
 import { sleep } from '../helpers';
 
 /**
@@ -42,6 +43,7 @@ export default class SerialPortFtdi {
 
     this.serial.on('close', () => {
       this.connected = false;
+      ext.deviceDisconnected();
     });
 
     this.open = this.open.bind(this);

@@ -2,6 +2,8 @@
 import * as vscode from 'vscode';
 import * as fs from 'fs';
 
+let serialPort;
+
 function getNonce() {
   let text = '';
   const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
@@ -53,6 +55,11 @@ export default class ConsoleWebViewProvider implements vscode.WebviewViewProvide
           vscode.window.showInformationMessage('Log successfully saved');
           break;
         }
+        case 'sendData': {
+          const buf = Buffer.from(`${data.message}\r\n`);
+          serialPort.port.write(buf);
+          break;
+        }
         default:
         {
           break;
@@ -67,10 +74,24 @@ export default class ConsoleWebViewProvider implements vscode.WebviewViewProvide
     }
   }
 
+  public consoleConnected(connectedDevice, connectedDeviceSerialPort) {
+    serialPort = this.view.webview.postMessage({ type: 'connected', message: connectedDevice });
+    serialPort = connectedDeviceSerialPort;
+  }
+
+  public consoleDisconnected() {
+    serialPort = undefined;
+    this.view.webview.postMessage({ type: 'disconnected' });
+  }
+
   public clearData() {
     if (this.view) {
       this.view.webview.postMessage({ type: 'clearData' });
     }
+  }
+
+  public showInput() {
+    this.view.webview.postMessage({ type: 'showInputBox' });
   }
 
   public showWebView() {
@@ -120,8 +141,18 @@ export default class ConsoleWebViewProvider implements vscode.WebviewViewProvide
                     <link href="${styleMainUri}" rel="stylesheet">
                 </head>
                 <body>
+                    <div class="sticky-div" id="header-div">
+                      CONSOLE NOT ATTACHED TO DEVICE
+                    </div>
                     <ul class="data-list">
                     </ul>
+
+                    <div id="send-data-div">
+                      <form id="send-data-form">
+                        <input type="text" placeholder="Input command that should be send to connected device" id="send-data-input">
+                        <button type="button" id="send-button">Send</button>
+                      </form>
+                    </div>
 
                     <script nonce="${nonce}" src="${scriptUri}"></script>
                 </body>

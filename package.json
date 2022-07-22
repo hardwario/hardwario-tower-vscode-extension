@@ -148,16 +148,6 @@
         "icon": "$(clear-all)"
       },
       {
-        "command": "hardwario.tower.saveLog",
-        "title": "HARDWARIO Save Console Log",
-        "icon": "$(save-as)"
-      },
-      {
-        "command": "hardwario.tower.scrollToBottom",
-        "title": "HARDWARIO Console Scroll to bottom",
-        "icon": "$(arrow-down)"
-      },
-      {
         "command": "hardwario.tower.disconnectConsole",
         "title": "HARDWARIO Disconnect Console",
         "icon": "$(debug-disconnect)"
@@ -166,6 +156,26 @@
         "command": "hardwario.tower.connectConsole",
         "title": "HARDWARIO Connect Console",
         "icon": "$(plug)"
+      },
+      {
+        "command": "hardwario.tower.restartDevice",
+        "title": "HARDWARIO Restart Connected Device",
+        "icon": "$(debug-restart)"
+      },
+      {
+        "command": "hardwario.tower.scrollToBottom",
+        "title": "HARDWARIO Console Scroll to bottom",
+        "icon": "$(arrow-down)"
+      },
+      {
+        "command": "hardwario.tower.saveLog",
+        "title": "HARDWARIO Save Console Log",
+        "icon": "$(save-as)"
+      },
+      {
+        "command": "hardwario.tower.consoleInput",
+        "title": "HARDWARIO Allow Console Input",
+        "icon": "$(terminal)"
       }
     ],
     "viewsContainers": {
@@ -222,15 +232,25 @@
           "when": "view == harwdario.tower.views.console && !hardwario.tower.consoleConnected && hardwario.tower.hardwarioProject"
         },
         {
-          "command": "hardwario.tower.scrollToBottom",
+          "command": "hardwario.tower.restartDevice",
           "group": "navigation@3",
+          "when": "view == harwdario.tower.views.console && hardwario.tower.consoleConnected && hardwario.tower.hardwarioProject"
+        },
+        {
+          "command": "hardwario.tower.scrollToBottom",
+          "group": "navigation@4",
           "when": "view == harwdario.tower.views.console && hardwario.tower.hardwarioProject"
         },
         {
           "command": "hardwario.tower.saveLog",
-					"group": "navigation@4",
+					"group": "navigation@5",
 					"when": "view == harwdario.tower.views.console && hardwario.tower.hardwarioProject"
-				}
+				},
+        {
+          "command": "hardwario.tower.consoleInput",
+					"group": "navigation@6",
+					"when": "view == harwdario.tower.views.console && hardwario.tower.hardwarioProject && hardwario.tower.consoleConnected"
+				}   
 			]
 		}
   },

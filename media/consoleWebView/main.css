@@ -2,6 +2,16 @@ body {
 	background-color: transparent;
 }
 
+.sticky-div {
+	background-color: #252532;
+	color: #E30427;
+	position: sticky;
+	top: 0px;
+	padding: 5px 0px;
+	text-align: center;
+	border-radius: 15px;
+}
+
 .data-list {
 	font-family: Consolas;
 	list-style: none;
@@ -19,6 +29,23 @@ body {
 	width: 2em;
 	height: 2em;
 }
+
+.sticky-bottom {
+	position: fixed;
+	width: 50%;
+	bottom: 10px;
+	border: 3px solid #8AC007;
+}
+
+form {
+	display: flex;
+}
+
+form > input[type="text"] {
+	flex: 0 0 90%;
+	margin-right: 5px;
+}
+
 
 .color-preview:hover {
 	outline: inset white;
