@@ -10,9 +10,7 @@
     "vscode": "^1.64.0"
   },
   "extensionDependencies": [
-    "ms-vscode.cpptools-extension-pack",
-    "marus25.cortex-debug",
-    "ms-vscode.vscode-serial-monitor"
+    "marus25.cortex-debug"
   ],
   "repository": {
     "type": "git",
