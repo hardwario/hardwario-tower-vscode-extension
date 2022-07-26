@@ -1,4 +1,4 @@
-# HARDWARIO TOWER VS Code extension - BETA
+# HARDWARIO TOWER VS Code extension
 
 [![License](https://img.shields.io/github/license/bigclownprojects/bcf-lora-climate-pir-co2.svg)](https://github.com/bigclownprojects/bcf-lora-climate-pir-co2/blob/master/LICENSE)
 [![Twitter](https://img.shields.io/twitter/follow/hardwario_en.svg?style=social&label=Follow)](https://twitter.com/hardwario_en)
@@ -9,7 +9,7 @@ Extension for Visual Studio Code made to help with firmware development
 
 This extension takes care of building, flashing and console logging of your firmware. You can also clone firmware from GitHub so you don't have to start development from scratch.
 
-This extension also autodetects any connected HARDWARIO TOWER devices that you can roll through and work with them.
+This extension also autodetect any connected HARDWARIO TOWER devices that you can roll through and work with them.
 
 To work with the extension you can use the bottom bar of the VS Code or open the command palette on the left sidebar.
 
@@ -25,16 +25,10 @@ To install the extension, [download *.vsix from releases](https://github.com/har
 ![alt How to install extension](/media/InstallGuide.png "How to install extension").
 
 #### Extension dependencies:
-- **make** - for compiling the firmware
-    - [Install Windows](https://www.technewstoday.com/install-and-use-make-in-windows/)
-    - [Install Linux](https://linuxhint.com/install-make-ubuntu/)
-    - [Install macOS](https://formulae.brew.sh/formula/make)
-- **python** - our flashing and logging tool is made in python
-    - [Install Windows](https://phoenixnap.com/kb/how-to-install-python-3-windows)
-    - [Install Linux](https://www.scaler.com/topics/python/install-python-on-linux/)
-    - [Install macOS](https://www.dataquest.io/blog/installing-python-on-mac/)
-- **bcf** - our flashing and logging tool made in python
-    - [Install with Python](https://tower.hardwario.com/en/latest/tools/hardwario-firmware-flashing-tool/#install-upgrade)
+- **cmake**
+    - [Install cmake](https://cmake.org/install/)
+- **ninja**
+    - [Install ninja](https://github.com/ninja-build/ninja/releases)
 - **arm-none-eabi-gcc**
     - [Install Windows](https://mynewt.apache.org/latest/get_started/native_install/cross_tools.html#installing-the-arm-toolchain-for-windows)
     - [Install Linux](https://mynewt.apache.org/latest/get_started/native_install/cross_tools.html#installing-the-arm-toolchain-for-linux)
@@ -48,8 +42,6 @@ To install the extension, [download *.vsix from releases](https://github.com/har
 ## Known Issues
 
 ## Release Notes
-
-This is a beta version of the extension
 
 -----------------------------------------------------------------------------------------------------------
 

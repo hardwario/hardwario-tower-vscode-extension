@@ -1,7 +1,7 @@
 {
   "name": "hardwario-tower",
-  "displayName": "HARDWARIO Tower",
-  "description": "Extension for development of a firmware for HARDWARIO TOWER Industrial IoT Kit",
+  "displayName": "HARDWARIO TOWER",
+  "description": "Extension for HARDWARIO TOWER (Modular IoT Kit) firmware development.",
   "version": "0.0.1",
   "publisher": "HARDWARIO",
   "license": "MIT",

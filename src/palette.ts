@@ -32,8 +32,8 @@ class PaletteProvider implements vscode.TreeDataProvider<PaletteCommand> {
           new PaletteCommand('Attach Console', undefined, 'hardwario.tower.console'),
           new PaletteCommand('Attach Debugger', undefined, 'hardwario.tower.debug'),
         ]),
-        new PaletteCommand('TOWER Firmware Advanced Commands', [
-          new PaletteCommand('Update SDK', undefined, 'hardwario.tower.updateSdk'),
+        new PaletteCommand('TOWER Firmware Maintenance', [
+          new PaletteCommand('Update Firmware SDK', undefined, 'hardwario.tower.updateSdk'),
           new PaletteCommand('Upgrade Firmware Project', undefined, 'hardwario.tower.upgradeFirmware'),
         ]),
         new PaletteCommand('TOWER Resources', [

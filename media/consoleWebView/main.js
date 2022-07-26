@@ -11,12 +11,27 @@
 
   document.getElementById('send-data-div').style.display = 'none';
 
-  const oldState = vscode.getState() || { data: [] };
+  const oldState = vscode.getState() || {
+    data: [], connectedDevice: '',
+  };
 
   /** @type {Array<{ value: string }>} */
-  let { data } = oldState;
+  let { data } = oldState || [];
 
-  let connectedDevice = '';
+  let { connectedDevice } = oldState || '';
+
+  let commandHistory = [];
+
+  let commandCounter = -1;
+  let historyCounter = -1;
+
+  if (connectedDevice === undefined) {
+    connectedDevice = '';
+  }
+
+  if (commandHistory === undefined) {
+    commandHistory = [];
+  }
 
   updateDataList();
 
@@ -56,6 +71,7 @@
       }
       case 'disconnected':
       {
+        document.getElementById('send-data-div').style.display = 'none';
         connectedDevice = '';
         updateDataList();
         break;
@@ -95,7 +111,20 @@
 
   function sendData() {
     const inputData = document.getElementById('send-data-input').value;
+
+    if (commandHistory[commandHistory.length - 1] !== inputData) {
+      commandHistory[commandCounter++] = inputData;
+      historyCounter = commandCounter;
+    } else {
+      historyCounter = commandCounter;
+    }
+
     vscode.postMessage({ type: 'sendData', message: inputData });
+
+    const logData = `# SEND: ${inputData}`;
+    data.push({ value: logData });
+    updateDataList();
+
     document.getElementById('send-data-input').value = '';
     autoScroll = true;
   }
@@ -104,9 +133,12 @@
     const header = document.getElementById('header-div');
     if (header !== null) {
       if (connectedDevice === '') {
-        header.textContent = 'CONSOLE NOT ATTACHED TO HARDWARIO DEVICE';
+        header.textContent = 'NO DEVICE ATTACHED';
       } else {
-        header.textContent = `CONSOLE ATTACHED TO: ${connectedDevice}`;
+        const delimiter = '-';
+        const tokens = connectedDevice.split(delimiter).slice(0, 3);
+        const result = tokens.join(delimiter); // this
+        header.textContent = `CONSOLE ATTACHED TO: ${result}`;
       }
     }
 
@@ -155,7 +187,7 @@
     }
 
     // Update the saved state
-    vscode.setState({ data });
+    vscode.setState({ data, connectedDevice });
   }
 
   function clearLog() {
@@ -163,4 +195,24 @@
     vscode.setState({ data });
     updateDataList();
   }
+
+  document.onkeydown = function (event) {
+    const elem = document.getElementById('send-data-input');
+    if (elem === document.activeElement) {
+      switch (event.key) {
+        case 'ArrowUp':
+          if (historyCounter >= 0) {
+            elem.value = commandHistory[--historyCounter];
+          }
+          break;
+        case 'ArrowDown':
+          if (historyCounter < commandHistory.length - 1) {
+            elem.value = commandHistory[++historyCounter];
+          }
+          break;
+        default:
+          break;
+      }
+    }
+  };
 }());

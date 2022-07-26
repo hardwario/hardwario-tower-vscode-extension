@@ -149,7 +149,7 @@ export default class ConsoleWebViewProvider implements vscode.WebviewViewProvide
 
                     <div id="send-data-div">
                       <form id="send-data-form">
-                        <input type="text" placeholder="Input command that should be send to connected device" id="send-data-input">
+                        <input type="text" placeholder="Enter your command here" id="send-data-input">
                         <button type="button" id="send-button">Send</button>
                       </form>
                     </div>

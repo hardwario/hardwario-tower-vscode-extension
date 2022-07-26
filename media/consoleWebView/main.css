@@ -4,12 +4,13 @@ body {
 
 .sticky-div {
 	background-color: #252532;
-	color: #E30427;
 	position: sticky;
 	top: 0px;
 	padding: 5px 0px;
 	text-align: center;
 	border-radius: 15px;
+	width: 30%;
+	float: right;
 }
 
 .data-list {
