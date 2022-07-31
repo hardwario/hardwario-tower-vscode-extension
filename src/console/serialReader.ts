@@ -26,6 +26,8 @@ export default class SerialPortConsole {
             await this.port.clearBuffer();
             if (reset) {
               await this.port.resetSequence();
+            } else {
+              await this.port.attachSequence();
             }
 
             helpers.sleep(100);

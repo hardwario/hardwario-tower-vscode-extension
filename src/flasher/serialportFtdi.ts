@@ -51,6 +51,7 @@ export default class SerialPortFtdi {
     this.clearBuffer = this.clearBuffer.bind(this);
     this.resetSequence = this.resetSequence.bind(this);
     this.bootSequence = this.bootSequence.bind(this);
+    this.attachSequence = this.attachSequence.bind(this);
   }
 
   /**
@@ -109,6 +110,12 @@ export default class SerialPortFtdi {
         sleep(100);
         this.port.set({ rts: true, dtr: true }).then(resolve).catch(reject);
       });
+    });
+  }
+
+  attachSequence() {
+    return new Promise((resolve, reject) => {
+      this.port.set({ rts: false, dtr: false }).then(resolve).catch(reject);
     });
   }
 

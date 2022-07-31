@@ -59,6 +59,16 @@
         ]
       }
     ],
+    "configuration": {
+      "title": "HARDWARIO",
+      "properties": {
+        "hardwario.tower.alwaysSaveAll": {
+          "type": "boolean",
+          "default": false,
+          "description": "Let the extension save all the open dirty files"
+        }
+      }
+    },
     "commands": [
       {
         "command": "hardwario.tower.build",
@@ -102,7 +112,7 @@
       },
       {
         "command": "hardwario.tower.changeReleaseType",
-        "title": "HARDWARIO Tower Change Release Type"
+        "title": "HARDWARIO Tower Change Build Type"
       },
       {
         "command": "hardwario.tower.openDocumentation",
@@ -142,37 +152,37 @@
       },
       {
         "command": "hardwario.tower.clearConsole",
-        "title": "HARDWARIO Clear Console",
+        "title": "Clear Console",
         "icon": "$(clear-all)"
       },
       {
         "command": "hardwario.tower.disconnectConsole",
-        "title": "HARDWARIO Disconnect Console",
+        "title": "Detach Console",
         "icon": "$(debug-disconnect)"
       },
       {
         "command": "hardwario.tower.connectConsole",
-        "title": "HARDWARIO Connect Console",
+        "title": "Attach Console",
         "icon": "$(plug)"
       },
       {
         "command": "hardwario.tower.restartDevice",
-        "title": "HARDWARIO Restart Connected Device",
+        "title": "Restart Attached Device",
         "icon": "$(debug-restart)"
       },
       {
         "command": "hardwario.tower.scrollToBottom",
-        "title": "HARDWARIO Console Scroll to bottom",
+        "title": "Scroll to bottom",
         "icon": "$(arrow-down)"
       },
       {
         "command": "hardwario.tower.saveLog",
-        "title": "HARDWARIO Save Console Log",
+        "title": "Save Console Log",
         "icon": "$(save-as)"
       },
       {
         "command": "hardwario.tower.consoleInput",
-        "title": "HARDWARIO Allow Console Input",
+        "title": "Allow Console Input",
         "icon": "$(terminal)"
       }
     ],

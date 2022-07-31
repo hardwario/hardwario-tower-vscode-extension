@@ -127,6 +127,11 @@ export function isHardwarioProject() {
     return false;
   }
   const workspaceFolder = vscode.workspace.workspaceFolders[0];
+
+  if (fs.existsSync(path.join(workspaceFolder.uri.fsPath.toString(), 'tower-project.yaml'))) {
+    return true;
+  }
+
   if (fs.existsSync(path.join(workspaceFolder.uri.fsPath.toString(), 'app', 'application.c')) || fs.existsSync(path.join(workspaceFolder.uri.fsPath.toString(), 'src', 'application.c'))) {
     let data : Buffer;
     try {
@@ -333,13 +338,13 @@ export function checkProjectStructure() {
         || (!fs.existsSync(path.join(workspacePath, 'sdk')))
        || (fs.existsSync(path.join(workspacePath, 'src', 'application.c')) && (fs.existsSync(path.join(workspacePath, 'include')) || fs.existsSync(path.join(workspacePath, 'platformio.ini'))))) {
     vscode.window.showWarningMessage(
-      'It looks like your project is deprecated. It might not work with current SDK and this extension',
-      'Update to currently supported firmware version',
+      'Your project has an outdated structure.',
+      'Update the project structure',
 
       'Cancel',
     )
       .then((answer) => {
-        if (answer === 'Update to currently supported firmware version') {
+        if (answer === 'Update the project structure') {
           updateToSupportedFirmwareStructure(workspacePath);
         }
       });
@@ -411,6 +416,30 @@ export function sleep(milliseconds) {
   do {
     currentDate = Date.now();
   } while (currentDate - date < milliseconds);
+}
+
+export function checkDirtyFiles(dirtyFiles) {
+  if (dirtyFiles.length === 0) {
+    return;
+  }
+
+  const config = vscode.workspace.getConfiguration();
+  const alwaysSaveAll = config.get('hardwario.tower.alwaysSaveAll');
+
+  if (alwaysSaveAll) {
+    vscode.workspace.saveAll();
+  } else {
+    vscode.window.showWarningMessage(
+      'You have an unsaved changes in your open file. You can enable `harwdario.tower.alwaysSaveAll` setting to always save all unsaved changes',
+      'Save All',
+      'Cancel',
+    )
+      .then((answer) => {
+        if (answer === 'Save All') {
+          vscode.workspace.saveAll();
+        }
+      });
+  }
 }
 
 /**

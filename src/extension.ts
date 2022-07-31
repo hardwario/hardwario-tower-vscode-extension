@@ -12,27 +12,26 @@ import { flash } from './flasher/flasherSerial';
 import SerialPortConsole from './console/serialReader';
 import ConsoleWebViewProvider from './console/consoleWebView';
 
+const { spawn, execSync } = require('child_process');
+
 // const commandExistsSync = require('command-exists').sync;
 
 /**
- * Instances of all the available terminals
+ * Instances of clone terminal used for git commands
  */
-const buildTerminal = new Terminal('HARDWARIO TOWER Build');
-const flashTerminal = new Terminal('HARDWARIO TOWER Flash');
-const flashAndLogTerminal = new Terminal('HARDWARIO TOWER Flash And Log');
-const consoleTerminal = new Terminal('HARDWARIO TOWER Console');
-const cleanTerminal = new Terminal('HARDWARIO TOWER Clean');
 const cloneTerminal = new Terminal('HARDWARIO TOWER Clone');
 
 /* Last selected folder used on cloning */
 let lastSelectedFolder = '';
 
 /* Build type of the firmware */
-let releaseType = 'debug';
+let buildType = 'Debug';
 let releaseBar: vscode.StatusBarItem;
 
 /* VSCode extension context */
 let contextGlobal: vscode.ExtensionContext;
+
+const dirtyFiles = [];
 
 /* Console Web View provider */
 let webViewProvider;
@@ -65,14 +64,19 @@ let disconnectingConsole = false;
 /* Lock to disable flashing while there is another flashing running */
 let flashing = false;
 
+let hardwarioOutputChannel : vscode.OutputChannel;
+
 /**
  * Builds the project before the start of the debug session with Jlink
  */
 function preDebugBuild() {
-  vscode.workspace.saveAll();
-  const command = helpers.buildMakeCommand('debug', true);
-  buildTerminal.get().sendText(command);
-  buildTerminal.get().show();
+  helpers.checkDirtyFiles(dirtyFiles);
+
+  if (buildType.toLowerCase() !== 'debug') {
+    vscode.commands.executeCommand('hardwario.tower.changeBuildType');
+  }
+
+  vscode.commands.executeCommand('hardwario.tower.build');
 }
 
 /**
@@ -123,7 +127,7 @@ function pushGeneralCommands() {
           }
           cloneTerminal.get().sendText(`git clone --recursive https://github.com/hardwario/twr-skeleton.git "${folderUriString}" && exit`);
           cloneTerminal.get().show();
-          vscode.workspace.saveAll();
+          helpers.checkDirtyFiles(dirtyFiles);
 
           lastSelectedFolder = folderUriString;
         });
@@ -189,7 +193,7 @@ function pushGeneralCommands() {
                   }
                   cloneTerminal.get().sendText(`git clone --recursive ${pickedItem.link} "${folderUriString}" && exit`);
                   cloneTerminal.get().show();
-                  vscode.workspace.saveAll();
+                  helpers.checkDirtyFiles(dirtyFiles);
 
                   lastSelectedFolder = folderUriString;
                 });
@@ -251,6 +255,42 @@ function pushGeneralCommands() {
   }));
 }
 
+function runNinja(resolve, reject) {
+  const workspaceFolder = vscode.workspace.workspaceFolders[0];
+
+  const ninjaProcess = spawn(
+    'ninja',
+    ['-C', `obj/${buildType.toLowerCase()}`],
+    {
+      cwd: workspaceFolder.uri.fsPath.toString(),
+    },
+  );
+
+  ninjaProcess.stdout.on('data', (data) => {
+    hardwarioOutputChannel.append(data.toString());
+  });
+
+  ninjaProcess.stderr.on('data', (data) => {
+    hardwarioOutputChannel.append(data.toString());
+  });
+
+  ninjaProcess.on('exit', (code) => {
+    if (code === 0) {
+      if (preDebugBuildActive) {
+        preDebugBuildActive = false;
+        helpers.startDebug();
+      } else if (flashAfterBuild) {
+        flashAfterBuild = false;
+        helpers.sleep(1500);
+        vscode.commands.executeCommand('hardwario.tower.flash');
+      }
+      resolve();
+    } else {
+      reject();
+    }
+  });
+}
+
 /**
  * Create, define and push the advanced commands to the palette
  * when HARDWARIO TOWER firmware is opened
@@ -260,15 +300,98 @@ function pushHardwarioCommands() {
    * Build code with make and create final binary
    */
   contextGlobal.subscriptions.push(vscode.commands.registerCommand('hardwario.tower.build', () => {
-    vscode.workspace.saveAll();
+    helpers.checkDirtyFiles(dirtyFiles);
 
-    const command = helpers.buildMakeCommand(releaseType);
-    buildTerminal.get().sendText(command);
-    buildTerminal.get().show();
+    const workspaceFolder = vscode.workspace.workspaceFolders[0];
+
+    const envClone = Object.create(process.env);
+
+    const vscodepath = process.env.VSCODE_CWD;
+    const towerPath = path.join(vscodepath, 'data', 'tower');
+    const toolchainPath = path.join(towerPath, 'toolchain');
+    const gitPath = path.join(toolchainPath, 'git');
+
+    const makeBinPath = path.join(toolchainPath, 'make', 'bin');
+
+    const gccPath = path.join(toolchainPath, 'gcc');
+    const gccBinPath = path.join(gccPath, 'bin');
+    const gccArmBinPath = path.join(gccPath, 'arm-none-eabi', 'bin');
+
+    const gitCmdPath = path.join(gitPath, 'cmd');
+    const gitUsrBinPath = path.join(gitPath, 'usr', 'bin');
+    const gitMingw64BinPath = path.join(gitPath, 'mingw64', 'bin');
+
+    const cmakePath = path.join(toolchainPath, 'cmake', 'bin');
+    const ninjaPath = path.join(toolchainPath, 'ninja');
+
+    if (helpers.isPortable()) {
+      let systemCmdPath = execSync('where cmd.exe', { timeout: 5000 }).toString();
+      systemCmdPath = systemCmdPath.replace(/(\r\n|\n|\r)/gm, '');
+      systemCmdPath = systemCmdPath.substring(0, systemCmdPath.length - 8);
+
+      envClone.PATH = `${makeBinPath};${gccBinPath};${gccArmBinPath};${gitCmdPath};${gitUsrBinPath};${gitMingw64BinPath};${cmakePath};${ninjaPath};${systemCmdPath}`;
+      envClone.Path = `${makeBinPath};${gccBinPath};${gccArmBinPath};${gitCmdPath};${gitUsrBinPath};${gitMingw64BinPath};${cmakePath};${ninjaPath};${systemCmdPath}`;
+    }
+
+    hardwarioOutputChannel.clear();
+
+    vscode.window.withProgress({
+      location: vscode.ProgressLocation.Notification,
+      title: 'HARDWARIO TOWER Build',
+      cancellable: false,
+    }, (_) => new Promise<void>((resolve, reject) => {
+      if (!(helpers.isCmakeGenerated(buildType.toLowerCase()))) {
+        const cmakeProcess = spawn(
+          'cmake',
+          [`-Bobj/${buildType.toLowerCase()}`, '.', '-G Ninja', '-DCMAKE_TOOLCHAIN_FILE=sdk/toolchain/toolchain.cmake', `-DTYPE=${buildType.toLowerCase()}`],
+          {
+            cwd: workspaceFolder.uri.fsPath.toString(),
+          },
+        );
+
+        cmakeProcess.stdout.on('data', (data) => {
+          hardwarioOutputChannel.append(data.toString());
+        });
+
+        cmakeProcess.stderr.on('data', (data) => {
+          hardwarioOutputChannel.append(data.toString());
+        });
+
+        cmakeProcess.on('exit', (code) => {
+          if (code === 0) {
+            runNinja(resolve, reject);
+          } else {
+            vscode.window.showWarningMessage(
+              'There was an error running the cmake build',
+              'Show the output',
+            )
+              .then((answer) => {
+                if (answer === 'Show the output') {
+                  hardwarioOutputChannel.show(false);
+                }
+              });
+          }
+        });
+      } else {
+        runNinja(resolve, reject);
+      }
+    }).then(() => {
+      vscode.window.showInformationMessage('Build successfully finished');
+    }).catch(() => {
+      vscode.window.showWarningMessage(
+        'There was an error running the build',
+        'Show the output',
+      )
+        .then((answer) => {
+          if (answer === 'Show the output') {
+            hardwarioOutputChannel.show(false);
+          }
+        });
+    }));
   }));
 
   contextGlobal.subscriptions.push(vscode.commands.registerCommand('hardwario.tower.flash', async () => {
-    vscode.workspace.saveAll();
+    helpers.checkDirtyFiles(dirtyFiles);
 
     if (flashing) {
       vscode.window.showWarningMessage('Wait for the previous flashing to finish');
@@ -330,13 +453,10 @@ function pushHardwarioCommands() {
    * Upload the firmware to the selected connected device
    */
   contextGlobal.subscriptions.push(vscode.commands.registerCommand('hardwario.tower.flashToDevice', async () => {
-    vscode.workspace.saveAll();
+    helpers.checkDirtyFiles(dirtyFiles);
 
-    const command = helpers.buildMakeCommand(releaseType, true);
-
-    buildTerminal.get().sendText(command);
-    buildTerminal.get().show();
     flashAfterBuild = true;
+    vscode.commands.executeCommand('hardwario.tower.build');
   }));
 
   /**
@@ -429,39 +549,35 @@ function pushHardwarioCommands() {
    * Save the console log to selected file
    */
   contextGlobal.subscriptions.push(vscode.commands.registerCommand('hardwario.tower.saveLog', () => {
-    if (serialConsole !== undefined) {
-      const options: vscode.OpenDialogOptions = {
-        canSelectMany: false,
-        canSelectFiles: false,
-        canSelectFolders: true,
-        title: 'Select parent folder for log file',
-        openLabel: 'Select folder',
-      };
-      vscode.window.showOpenDialog(options).then((folderUri) => {
-        if (folderUri) {
-          let folderUriString = '';
-          if (helpers.WINDOWS) {
-            folderUriString = `${folderUri[0].path.substring(1)}/`;
-          } else if (helpers.LINUX || helpers.MACOS) {
-            folderUriString = `${folderUri[0].path}/`;
-          }
+    const workspaceFolder = vscode.workspace.workspaceFolders[0];
+    const dateLongString = new Date().toISOString().split('.')[0].replace(/[^\d]/gi, '');
 
-          const inputOptions = {
-            value: 'logFile.txt',
-            title: 'Final Log File Name',
-          };
+    const fileDefaultUri = vscode.Uri.file(path.join(workspaceFolder.uri.fsPath.toString(), `hio-code-${dateLongString}.log`));
 
-          vscode.window.showInputBox(inputOptions).then((text) => {
-            if (text === undefined || text === '') {
-              folderUriString += 'logFile.txt';
-            } else {
-              folderUriString += text;
-            }
-            webViewProvider.saveLog(folderUriString);
-          });
+    const options: vscode.SaveDialogOptions = {
+      title: 'Save log file',
+      saveLabel: 'Save Log',
+      defaultUri: fileDefaultUri,
+    };
+    vscode.window.showSaveDialog(options).then((uri) => {
+      if (uri) {
+        let fileUriString = '';
+        if (helpers.WINDOWS) {
+          fileUriString = `${uri.path.substring(1)}/`;
+        } else if (helpers.LINUX || helpers.MACOS) {
+          fileUriString = `${uri.path}/`;
         }
-      });
-    }
+
+        fileUriString = fileUriString.substring(0, fileUriString.length - 1);
+        const fileExtension = fileUriString.substring(fileUriString.length - 4, fileUriString.length);
+
+        if (fileExtension !== '.log') {
+          fileUriString += '.log';
+        }
+
+        webViewProvider.saveLog(fileUriString);
+      }
+    });
   }));
 
   /**
@@ -483,16 +599,11 @@ function pushHardwarioCommands() {
    */
   contextGlobal.subscriptions.push(vscode.commands.registerCommand('hardwario.tower.clean', () => {
     const workspaceFolder = vscode.workspace.workspaceFolders[0];
-    if (helpers.isCmakeProject()) {
-      cleanTerminal.get().sendText('ninja -C obj/release clean');
-      cleanTerminal.get().sendText('ninja -C obj/debug clean');
-    } else {
-      cleanTerminal.get().sendText('make clean');
-    }
+
     fs.rmSync(path.join(workspaceFolder.uri.fsPath.toString(), 'out'), { recursive: true, force: true });
     fs.rmSync(path.join(workspaceFolder.uri.fsPath.toString(), 'obj'), { recursive: true, force: true });
     fs.rmSync(path.join(workspaceFolder.uri.fsPath.toString(), 'firmware.bin'), { force: true });
-    cleanTerminal.get().show();
+    vscode.window.showInformationMessage('Cleaning done');
   }));
 
   /**
@@ -500,17 +611,18 @@ function pushHardwarioCommands() {
    */
   contextGlobal.subscriptions.push(vscode.commands.registerCommand('hardwario.tower.console', () => {
     attachingConsole = true;
-    webViewProvider.showWebView();
-    if (serialConsole !== undefined) {
-      if (serialConsole.port.port.openOptions.path === selectedPort) {
-        vscode.commands.executeCommand('hardwario.tower.restartDevice');
+    webViewProvider.showWebView().then(() => {
+      if (serialConsole !== undefined) {
+        if (serialConsole.port.port.openOptions.path === selectedPort) {
+          vscode.commands.executeCommand('hardwario.tower.restartDevice');
+        } else {
+          vscode.commands.executeCommand('hardwario.tower.disconnectConsole');
+          vscode.commands.executeCommand('hardwario.tower.connectConsole');
+        }
       } else {
-        vscode.commands.executeCommand('hardwario.tower.disconnectConsole');
         vscode.commands.executeCommand('hardwario.tower.connectConsole');
       }
-    } else {
-      vscode.commands.executeCommand('hardwario.tower.connectConsole');
-    }
+    });
   }));
 
   /**
@@ -518,26 +630,24 @@ function pushHardwarioCommands() {
    * After the upload the console will be attached to the device
    */
   contextGlobal.subscriptions.push(vscode.commands.registerCommand('hardwario.tower.flashAndLog', () => {
-    vscode.workspace.saveAll();
+    helpers.checkDirtyFiles(dirtyFiles);
 
     if (serialConsole !== undefined) {
       vscode.commands.executeCommand('hardwario.tower.disconnectConsole');
     }
 
-    const command = helpers.buildMakeCommand(releaseType, true);
-
-    buildTerminal.get().sendText(command);
-    buildTerminal.get().show();
     flashAfterBuild = true;
     logAfterFlash = true;
+
+    vscode.commands.executeCommand('hardwario.tower.build');
   }));
 
   /**
    * Build and debug firmware for selected device with JLink
    */
   contextGlobal.subscriptions.push(vscode.commands.registerCommand('hardwario.tower.flashAndDebug', async () => {
-    preDebugBuild();
     preDebugBuildActive = true;
+    vscode.commands.executeCommand('hardwario.tower.build');
   }));
 
   /**
@@ -548,15 +658,15 @@ function pushHardwarioCommands() {
   }));
 
   /**
-   * Change the type of builded firmware (debug/release)
+   * Change the type of the built firmware (debug/release)
    */
-  contextGlobal.subscriptions.push(vscode.commands.registerCommand('hardwario.tower.changeReleaseType', () => {
-    if (releaseType === 'debug') {
-      releaseType = 'release';
+  contextGlobal.subscriptions.push(vscode.commands.registerCommand('hardwario.tower.changeBuildType', () => {
+    if (buildType === 'Debug') {
+      buildType = 'Release';
     } else {
-      releaseType = 'debug';
+      buildType = 'Debug';
     }
-    releaseBar.text = `Firmware type: ${releaseType}`;
+    releaseBar.text = `Build type: ${buildType}`;
   }));
 
   /**
@@ -603,7 +713,7 @@ function pushHardwarioCommands() {
    * Update firmware SDK
    */
   contextGlobal.subscriptions.push(vscode.commands.registerCommand('hardwario.tower.updateSdk', () => {
-    buildTerminal.get().sendText('git submodule update --remote --merge && exit');
+    cloneTerminal.get().sendText('git submodule update --remote --merge && exit');
   }));
 
   /**
@@ -681,11 +791,23 @@ function createToolbar(context: vscode.ExtensionContext) {
   );
 
   releaseBar.name = 'HARDWARIO: Toolbar';
-  releaseBar.text = `Firmware type: ${releaseType}`;
+  releaseBar.text = `Build type: ${buildType}`;
   releaseBar.tooltip = 'HARDWARIO: Change release type';
-  releaseBar.command = 'hardwario.tower.changeReleaseType';
+  releaseBar.command = 'hardwario.tower.changeBuildType';
   releaseBar.show();
   context.subscriptions.push(releaseBar);
+}
+
+/**
+ * Simple function to remove last session attached device if there was any
+ */
+function removeDeviceAtStartup() {
+  const removeDeviceStartupInterval = setInterval(() => {
+    if (webViewProvider.view !== undefined) {
+      webViewProvider.removeDevice();
+      clearInterval(removeDeviceStartupInterval);
+    }
+  }, 100);
 }
 
 /**
@@ -744,24 +866,7 @@ export function activate(context: vscode.ExtensionContext) {
   contextGlobal = context;
 
   vscode.window.onDidCloseTerminal((terminal) => {
-    if (buildTerminal.instance !== null && terminal === buildTerminal.get()) {
-      if (preDebugBuildActive) {
-        preDebugBuildActive = false;
-        helpers.startDebug();
-      } else if (flashAfterBuild) {
-        flashAfterBuild = false;
-        vscode.commands.executeCommand('hardwario.tower.flash');
-      }
-      buildTerminal.instance = null;
-    } else if (flashTerminal.instance !== null && terminal === flashTerminal.get()) {
-      flashTerminal.instance = null;
-    } else if (consoleTerminal.instance !== null && terminal === consoleTerminal.get()) {
-      consoleTerminal.instance = null;
-    } else if (cleanTerminal.instance !== null && terminal === cleanTerminal.get()) {
-      cleanTerminal.instance = null;
-    } else if (flashAndLogTerminal.instance !== null && terminal === flashAndLogTerminal.get()) {
-      flashAndLogTerminal.instance = null;
-    } else if (cloneTerminal.instance !== null && terminal === cloneTerminal.get()) {
+    if (cloneTerminal.instance !== null && terminal === cloneTerminal.get()) {
       if (lastSelectedFolder !== '') {
         vscode.commands.executeCommand('vscode.openFolder', vscode.Uri.file(lastSelectedFolder));
         lastSelectedFolder = '';
@@ -769,8 +874,23 @@ export function activate(context: vscode.ExtensionContext) {
     }
   });
 
+  vscode.workspace.onDidChangeTextDocument((e) => {
+    if (!dirtyFiles.includes(e.document.uri.path)) {
+      dirtyFiles.push(e.document.uri.path);
+    }
+  });
+
+  vscode.workspace.onDidSaveTextDocument((e) => {
+    const index = dirtyFiles.indexOf(e.uri.path);
+
+    if (index > -1) {
+      dirtyFiles.splice(index, 1);
+    }
+  });
+
   webViewProvider = new ConsoleWebViewProvider(contextGlobal.extensionUri);
   vscode.window.registerWebviewViewProvider(ConsoleWebViewProvider.viewType, webViewProvider);
+  removeDeviceAtStartup();
 
   /**
    * If the open folder is HARDWARIO TOWER firmware the extension will be started in full
@@ -848,6 +968,15 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.debug.registerDebugConfigurationProvider('hardwario-debugger', provider));
 
     vscode.commands.executeCommand('setContext', 'hardwario.tower.hardwarioProject', true);
+
+    hardwarioOutputChannel = vscode.window.createOutputChannel('HARDWARIO TOWER');
+
+    const workspaceFolder = vscode.workspace.workspaceFolders[0];
+    if (fs.existsSync(path.join(workspaceFolder.uri.fsPath.toString(), 'src', 'application.c'))) {
+      vscode.workspace.openTextDocument(path.join(workspaceFolder.uri.fsPath.toString(), 'src', 'application.c')).then((textDocument) => {
+        vscode.window.showTextDocument(textDocument);
+      });
+    }
   } else {
     pushGeneralCommands();
     vscode.window.registerTreeDataProvider('hardwario.tower.views.palette', new PaletteProvider());

@@ -69,6 +69,12 @@
         updateDataList();
         break;
       }
+      case 'removeDevice':
+      {
+        connectedDevice = '';
+        updateDataList();
+        break;
+      }
       case 'disconnected':
       {
         document.getElementById('send-data-div').style.display = 'none';

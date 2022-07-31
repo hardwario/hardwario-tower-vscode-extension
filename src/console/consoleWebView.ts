@@ -16,7 +16,7 @@ function getNonce() {
 export default class ConsoleWebViewProvider implements vscode.WebviewViewProvider {
   public static readonly viewType = 'harwdario.tower.views.console';
 
-  private view?: vscode.WebviewView;
+  public view?: vscode.WebviewView;
 
   extensionUri : vscode.Uri;
 
@@ -79,6 +79,10 @@ export default class ConsoleWebViewProvider implements vscode.WebviewViewProvide
     serialPort = connectedDeviceSerialPort;
   }
 
+  public removeDevice() {
+    this.view.webview.postMessage({ type: 'removeDevice' });
+  }
+
   public consoleDisconnected() {
     serialPort = undefined;
     this.view.webview.postMessage({ type: 'disconnected' });
@@ -95,11 +99,16 @@ export default class ConsoleWebViewProvider implements vscode.WebviewViewProvide
   }
 
   public showWebView() {
-    if (this.view) {
-      this.view.show?.(false);
-    } else {
-      vscode.commands.executeCommand('workbench.view.extension.hardwarioTowerPanel');
-    }
+    return new Promise<void>((resolve) => {
+      if (this.view) {
+        this.view.show?.(false);
+        resolve();
+      } else {
+        vscode.commands.executeCommand('workbench.view.extension.hardwarioTowerPanel').then(() => {
+          resolve();
+        });
+      }
+    });
   }
 
   public saveLog(path) {
