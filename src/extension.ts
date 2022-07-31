@@ -31,8 +31,6 @@ let releaseBar: vscode.StatusBarItem;
 /* VSCode extension context */
 let contextGlobal: vscode.ExtensionContext;
 
-const dirtyFiles = [];
-
 /* Console Web View provider */
 let webViewProvider;
 
@@ -70,7 +68,7 @@ let hardwarioOutputChannel : vscode.OutputChannel;
  * Builds the project before the start of the debug session with Jlink
  */
 function preDebugBuild() {
-  helpers.checkDirtyFiles(dirtyFiles);
+  helpers.checkDirtyFiles();
 
   if (buildType.toLowerCase() !== 'debug') {
     vscode.commands.executeCommand('hardwario.tower.changeBuildType');
@@ -127,7 +125,7 @@ function pushGeneralCommands() {
           }
           cloneTerminal.get().sendText(`git clone --recursive https://github.com/hardwario/twr-skeleton.git "${folderUriString}" && exit`);
           cloneTerminal.get().show();
-          helpers.checkDirtyFiles(dirtyFiles);
+          helpers.checkDirtyFiles();
 
           lastSelectedFolder = folderUriString;
         });
@@ -193,7 +191,7 @@ function pushGeneralCommands() {
                   }
                   cloneTerminal.get().sendText(`git clone --recursive ${pickedItem.link} "${folderUriString}" && exit`);
                   cloneTerminal.get().show();
-                  helpers.checkDirtyFiles(dirtyFiles);
+                  helpers.checkDirtyFiles();
 
                   lastSelectedFolder = folderUriString;
                 });
@@ -300,7 +298,7 @@ function pushHardwarioCommands() {
    * Build code with make and create final binary
    */
   contextGlobal.subscriptions.push(vscode.commands.registerCommand('hardwario.tower.build', () => {
-    helpers.checkDirtyFiles(dirtyFiles);
+    helpers.checkDirtyFiles();
 
     const workspaceFolder = vscode.workspace.workspaceFolders[0];
 
@@ -391,7 +389,7 @@ function pushHardwarioCommands() {
   }));
 
   contextGlobal.subscriptions.push(vscode.commands.registerCommand('hardwario.tower.flash', async () => {
-    helpers.checkDirtyFiles(dirtyFiles);
+    helpers.checkDirtyFiles();
 
     if (flashing) {
       vscode.window.showWarningMessage('Wait for the previous flashing to finish');
@@ -453,7 +451,7 @@ function pushHardwarioCommands() {
    * Upload the firmware to the selected connected device
    */
   contextGlobal.subscriptions.push(vscode.commands.registerCommand('hardwario.tower.flashToDevice', async () => {
-    helpers.checkDirtyFiles(dirtyFiles);
+    helpers.checkDirtyFiles();
 
     flashAfterBuild = true;
     vscode.commands.executeCommand('hardwario.tower.build');
@@ -630,7 +628,7 @@ function pushHardwarioCommands() {
    * After the upload the console will be attached to the device
    */
   contextGlobal.subscriptions.push(vscode.commands.registerCommand('hardwario.tower.flashAndLog', () => {
-    helpers.checkDirtyFiles(dirtyFiles);
+    helpers.checkDirtyFiles();
 
     if (serialConsole !== undefined) {
       vscode.commands.executeCommand('hardwario.tower.disconnectConsole');
@@ -871,20 +869,6 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.commands.executeCommand('vscode.openFolder', vscode.Uri.file(lastSelectedFolder));
         lastSelectedFolder = '';
       }
-    }
-  });
-
-  vscode.workspace.onDidChangeTextDocument((e) => {
-    if (!dirtyFiles.includes(e.document.uri.path)) {
-      dirtyFiles.push(e.document.uri.path);
-    }
-  });
-
-  vscode.workspace.onDidSaveTextDocument((e) => {
-    const index = dirtyFiles.indexOf(e.uri.path);
-
-    if (index > -1) {
-      dirtyFiles.splice(index, 1);
     }
   });
 

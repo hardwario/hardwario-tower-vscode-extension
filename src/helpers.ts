@@ -418,8 +418,8 @@ export function sleep(milliseconds) {
   } while (currentDate - date < milliseconds);
 }
 
-export function checkDirtyFiles(dirtyFiles) {
-  if (dirtyFiles.length === 0) {
+export function checkDirtyFiles() {
+  if (vscode.workspace.textDocuments.length === 0) {
     return;
   }
 
@@ -429,16 +429,26 @@ export function checkDirtyFiles(dirtyFiles) {
   if (alwaysSaveAll) {
     vscode.workspace.saveAll();
   } else {
-    vscode.window.showWarningMessage(
-      'You have an unsaved changes in your open file. You can enable `harwdario.tower.alwaysSaveAll` setting to always save all unsaved changes',
-      'Save All',
-      'Cancel',
-    )
-      .then((answer) => {
-        if (answer === 'Save All') {
-          vscode.workspace.saveAll();
-        }
-      });
+    let dirtyFile = false;
+    for (const file of vscode.workspace.textDocuments) {
+      if (file.isDirty) {
+        dirtyFile = true;
+        break;
+      }
+    }
+
+    if (dirtyFile) {
+      vscode.window.showWarningMessage(
+        'You have an unsaved changes in your open file. You can enable `harwdario.tower.alwaysSaveAll` setting to always save all unsaved changes',
+        'Save All',
+        'Cancel',
+      )
+        .then((answer) => {
+          if (answer === 'Save All') {
+            vscode.workspace.saveAll();
+          }
+        });
+    }
   }
 }
 
