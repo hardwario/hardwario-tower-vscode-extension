@@ -80,7 +80,7 @@ class Terminal {
         const gccBinPath = path.join(gccPath, 'bin');
         const gccArmBinPath = path.join(gccPath, 'arm-none-eabi', 'bin');
 
-        const cmakePath = path.join(toolchainPath, 'cmake');
+        const cmakePath = path.join(toolchainPath, 'cmake', 'Cmake.app', 'Contents', 'bin');
         const ninjaPath = path.join(toolchainPath, 'ninja');
 
         envClone.PATH = `${gccBinPath}:${gccArmBinPath}:${cmakePath}:${ninjaPath}:${process.env.PATH}`;
