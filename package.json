@@ -72,7 +72,8 @@
     "commands": [
       {
         "command": "hardwario.tower.build",
-        "title": "HARDWARIO Tower Build"
+        "title": "HARDWARIO Tower Build",
+        "icon": "$(check)"
       },
       {
         "command": "hardwario.tower.flashToDevice",
