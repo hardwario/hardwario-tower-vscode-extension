@@ -154,6 +154,8 @@ function pushGeneralCommands() {
           placeHolder: 'Pick firmware template',
           canPickMany: false,
           title: 'Firmware template',
+          matchOnDescription: true,
+          matchOnDetail: true,
         };
 
         vscode.window.showQuickPick(
@@ -274,9 +276,9 @@ function runNinja(resolve, reject, envClone) {
   });
 
   ninjaProcess.on('error', () => {
-    hardwarioOutputChannel.appendLine("----------------------------------------------------------------------------------------------------");
-    hardwarioOutputChannel.appendLine("There was an error executing ninja command. Please check your PATH and that you have ninja installed");
-    hardwarioOutputChannel.appendLine("----------------------------------------------------------------------------------------------------");
+    hardwarioOutputChannel.appendLine('----------------------------------------------------------------------------------------------------');
+    hardwarioOutputChannel.appendLine('There was an error executing ninja command. Please check your PATH and that you have ninja installed');
+    hardwarioOutputChannel.appendLine('----------------------------------------------------------------------------------------------------');
     reject();
   });
 
@@ -338,9 +340,9 @@ function pushHardwarioCommands() {
         });
 
         cmakeProcess.on('error', () => {
-          hardwarioOutputChannel.appendLine("----------------------------------------------------------------------------------------------------");
-          hardwarioOutputChannel.appendLine("There was an error executing cmake command. Please check your PATH and that you have cmake installed");
-          hardwarioOutputChannel.appendLine("----------------------------------------------------------------------------------------------------");
+          hardwarioOutputChannel.appendLine('----------------------------------------------------------------------------------------------------');
+          hardwarioOutputChannel.appendLine('There was an error executing cmake command. Please check your PATH and that you have cmake installed');
+          hardwarioOutputChannel.appendLine('----------------------------------------------------------------------------------------------------');
           reject();
         });
 
