@@ -5,14 +5,14 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { SerialPort } from 'serialport';
+import { spawn, execSync } from 'child_process';
+import getEnv from './output';
 import Terminal from './terminal';
 import * as helpers from './helpers';
 import PaletteProvider from './palette';
 import { flash } from './flasher/flasherSerial';
 import SerialPortConsole from './console/serialReader';
 import ConsoleWebViewProvider from './console/consoleWebView';
-
-const { spawn, execSync } = require('child_process');
 
 // const commandExistsSync = require('command-exists').sync;
 
@@ -253,7 +253,7 @@ function pushGeneralCommands() {
   }));
 }
 
-function runNinja(resolve, reject) {
+function runNinja(resolve, reject, envClone) {
   const workspaceFolder = vscode.workspace.workspaceFolders[0];
 
   const ninjaProcess = spawn(
@@ -261,6 +261,7 @@ function runNinja(resolve, reject) {
     ['-C', `obj/${buildType.toLowerCase()}`],
     {
       cwd: workspaceFolder.uri.fsPath.toString(),
+      env: envClone,
     },
   );
 
@@ -270,6 +271,13 @@ function runNinja(resolve, reject) {
 
   ninjaProcess.stderr.on('data', (data) => {
     hardwarioOutputChannel.append(data.toString());
+  });
+
+  ninjaProcess.on('error', () => {
+    hardwarioOutputChannel.appendLine("----------------------------------------------------------------------------------------------------");
+    hardwarioOutputChannel.appendLine("There was an error executing ninja command. Please check your PATH and that you have ninja installed");
+    hardwarioOutputChannel.appendLine("----------------------------------------------------------------------------------------------------");
+    reject();
   });
 
   ninjaProcess.on('exit', (code) => {
@@ -302,34 +310,7 @@ function pushHardwarioCommands() {
 
     const workspaceFolder = vscode.workspace.workspaceFolders[0];
 
-    const envClone = Object.create(process.env);
-
-    const vscodepath = process.env.VSCODE_CWD;
-    const towerPath = path.join(vscodepath, 'data', 'tower');
-    const toolchainPath = path.join(towerPath, 'toolchain');
-    const gitPath = path.join(toolchainPath, 'git');
-
-    const makeBinPath = path.join(toolchainPath, 'make', 'bin');
-
-    const gccPath = path.join(toolchainPath, 'gcc');
-    const gccBinPath = path.join(gccPath, 'bin');
-    const gccArmBinPath = path.join(gccPath, 'arm-none-eabi', 'bin');
-
-    const gitCmdPath = path.join(gitPath, 'cmd');
-    const gitUsrBinPath = path.join(gitPath, 'usr', 'bin');
-    const gitMingw64BinPath = path.join(gitPath, 'mingw64', 'bin');
-
-    const cmakePath = path.join(toolchainPath, 'cmake', 'bin');
-    const ninjaPath = path.join(toolchainPath, 'ninja');
-
-    if (helpers.isPortable()) {
-      let systemCmdPath = execSync('where cmd.exe', { timeout: 5000 }).toString();
-      systemCmdPath = systemCmdPath.replace(/(\r\n|\n|\r)/gm, '');
-      systemCmdPath = systemCmdPath.substring(0, systemCmdPath.length - 8);
-
-      envClone.PATH = `${makeBinPath};${gccBinPath};${gccArmBinPath};${gitCmdPath};${gitUsrBinPath};${gitMingw64BinPath};${cmakePath};${ninjaPath};${systemCmdPath}`;
-      envClone.Path = `${makeBinPath};${gccBinPath};${gccArmBinPath};${gitCmdPath};${gitUsrBinPath};${gitMingw64BinPath};${cmakePath};${ninjaPath};${systemCmdPath}`;
-    }
+    const envClone = getEnv();
 
     hardwarioOutputChannel.clear();
 
@@ -344,6 +325,7 @@ function pushHardwarioCommands() {
           [`-Bobj/${buildType.toLowerCase()}`, '.', '-G Ninja', '-DCMAKE_TOOLCHAIN_FILE=sdk/toolchain/toolchain.cmake', `-DTYPE=${buildType.toLowerCase()}`],
           {
             cwd: workspaceFolder.uri.fsPath.toString(),
+            env: envClone,
           },
         );
 
@@ -355,29 +337,35 @@ function pushHardwarioCommands() {
           hardwarioOutputChannel.append(data.toString());
         });
 
+        cmakeProcess.on('error', () => {
+          hardwarioOutputChannel.appendLine("----------------------------------------------------------------------------------------------------");
+          hardwarioOutputChannel.appendLine("There was an error executing cmake command. Please check your PATH and that you have cmake installed");
+          hardwarioOutputChannel.appendLine("----------------------------------------------------------------------------------------------------");
+          reject();
+        });
+
         cmakeProcess.on('exit', (code) => {
           if (code === 0) {
-            runNinja(resolve, reject);
+            runNinja(resolve, reject, envClone);
           } else {
-            vscode.window.showWarningMessage(
-              'There was an error running the cmake build',
-              'Show the output',
-            )
-              .then((answer) => {
-                if (answer === 'Show the output') {
-                  hardwarioOutputChannel.show(false);
-                }
-              });
+            reject();
           }
         });
       } else {
-        runNinja(resolve, reject);
+        runNinja(resolve, reject, envClone);
       }
     }).then(() => {
-      vscode.window.showInformationMessage('Build successfully finished');
+      vscode.window.showInformationMessage(
+        'Build successfully finished',
+        'Show the output',
+      ).then((answer) => {
+        if (answer === 'Show the output') {
+          hardwarioOutputChannel.show(false);
+        }
+      });
     }).catch(() => {
       vscode.window.showWarningMessage(
-        'There was an error running the build',
+        'There was an error while running the build',
         'Show the output',
       )
         .then((answer) => {
@@ -610,6 +598,7 @@ function pushHardwarioCommands() {
   contextGlobal.subscriptions.push(vscode.commands.registerCommand('hardwario.tower.console', () => {
     attachingConsole = true;
     webViewProvider.showWebView().then(() => {
+      helpers.sleep(500);
       if (serialConsole !== undefined) {
         if (serialConsole.port.port.openOptions.path === selectedPort) {
           vscode.commands.executeCommand('hardwario.tower.restartDevice');
