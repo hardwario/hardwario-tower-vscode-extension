@@ -17,11 +17,11 @@ class PaletteProvider implements vscode.TreeDataProvider<PaletteCommand> {
     */
     if (helpers.isHardwarioProject()) {
       this.data = [
-        new PaletteCommand('Start New TOWER Firmware', [
+        new PaletteCommand('TOWER: Start', [
           new PaletteCommand('From Skeleton Project...', undefined, 'hardwario.tower.cloneSkeleton'),
           new PaletteCommand('From Existing Project...', undefined, 'hardwario.tower.cloneFirmware'),
         ]),
-        new PaletteCommand('TOWER Firmware Commands', [
+        new PaletteCommand('TOWER: Commands', [
           new PaletteCommand('Build + Flash (Console)', undefined, 'hardwario.tower.flashAndLog'),
           new PaletteCommand('Build + Flash (Debugger)', undefined, 'hardwario.tower.flashAndDebug'),
 
@@ -32,18 +32,18 @@ class PaletteProvider implements vscode.TreeDataProvider<PaletteCommand> {
           new PaletteCommand('Attach Console', undefined, 'hardwario.tower.console'),
           new PaletteCommand('Attach Debugger', undefined, 'hardwario.tower.debug'),
         ]),
-        new PaletteCommand('TOWER Firmware Maintenance', [
+        new PaletteCommand('TOWER: Maintenace', [
           new PaletteCommand('Update Firmware SDK', undefined, 'hardwario.tower.updateSdk'),
           new PaletteCommand('Upgrade Firmware Project', undefined, 'hardwario.tower.upgradeFirmware'),
         ]),
-        new PaletteCommand('TOWER Resources', [
+        new PaletteCommand('TOWER: Resources', [
           new PaletteCommand('Technical Documentation', undefined, 'hardwario.tower.openDocumentation'),
           new PaletteCommand('Software Development Kit', undefined, 'hardwario.tower.openSdk'),
           new PaletteCommand('Projects on Hackster.io', undefined, 'hardwario.tower.openProjects'),
           new PaletteCommand('GitHub Repositories', undefined, 'hardwario.tower.openGithub'),
           new PaletteCommand('Discussion Forum', undefined, 'hardwario.tower.openForum'),
         ]),
-        new PaletteCommand('Other Resources', [
+        new PaletteCommand('Company Links', [
           new PaletteCommand('HARDWARIO Website', undefined, 'hardwario.tower.openWebsite'),
           new PaletteCommand('HARDWARIO E-shop', undefined, 'hardwario.tower.openShop'),
         ]),

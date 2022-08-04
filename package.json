@@ -73,28 +73,28 @@
     "commands": [
       {
         "command": "hardwario.tower.build",
-        "title": "HARDWARIO Tower Build",
+        "title": "HARDWARIO TOWER: Build Firmware",
         "icon": "$(check)"
       },
       {
         "command": "hardwario.tower.flashToDevice",
-        "title": "HARDWARIO Tower Flash"
+        "title": "HARDWARIO Tower Flash Firmware"
       },
       {
         "command": "hardwario.tower.clean",
-        "title": "HARDWARIO Tower Clean"
+        "title": "HARDWARIO Tower Clean All Outputs"
       },
       {
         "command": "hardwario.tower.console",
-        "title": "HARDWARIO Tower Console"
+        "title": "HARDWARIO Tower Attach Console"
       },
       {
         "command": "hardwario.tower.flashAndLog",
-        "title": "HARDWARIO Tower Flash and Attach"
+        "title": "HARDWARIO Tower Build + Flash (Console)"
       },
       {
         "command": "hardwario.tower.flashAndDebug",
-        "title": "HARDWARIO Tower Flash and Debug"
+        "title": "HARDWARIO Tower Build + Flash (Debugger)"
       },
       {
         "command": "hardwario.tower.changeDevice",
@@ -102,15 +102,15 @@
       },
       {
         "command": "hardwario.tower.debug",
-        "title": "HARDWARIO Tower Start Debugging"
+        "title": "HARDWARIO Tower Attach Debugger"
       },
       {
         "command": "hardwario.tower.cloneSkeleton",
-        "title": "HARDWARIO Tower Clone Firmware"
+        "title": "HARDWARIO Tower From Skeleton Project..."
       },
       {
         "command": "hardwario.tower.cloneFirmware",
-        "title": "HARDWARIO Tower Clone Firmware From Existing"
+        "title": "HARDWARIO Tower Clone From Existing Project..."
       },
       {
         "command": "hardwario.tower.changeReleaseType",
@@ -118,23 +118,23 @@
       },
       {
         "command": "hardwario.tower.openDocumentation",
-        "title": "HARDWARIO Tower Shop"
+        "title": "HARDWARIO Tower E-shop"
       },
       {
         "command": "hardwario.tower.openShop",
-        "title": "HARDWARIO Tower Documentation"
+        "title": "HARDWARIO Tower Technical Documentation"
       },
       {
         "command": "hardwario.tower.openProjects",
-        "title": "HARDWARIO Tower Projects"
+        "title": "HARDWARIO Tower Projects on Hackster.io"
       },
       {
         "command": "hardwario.tower.openGithub",
-        "title": "HARDWARIO Tower GitHub"
+        "title": "HARDWARIO Tower GitHub Repositories"
       },
       {
         "command": "hardwario.tower.openForum",
-        "title": "HARDWARIO Tower Forum"
+        "title": "HARDWARIO Tower Discussion Forum"
       },
       {
         "command": "hardwario.tower.openWebsite",
@@ -142,7 +142,7 @@
       },
       {
         "command": "hardwario.tower.openSdk",
-        "title": "HARDWARIO Tower SDK"
+        "title": "HARDWARIO Tower Software Development Kit"
       },
       {
         "command": "hardwario.tower.updateSdk",
@@ -150,7 +150,7 @@
       },
       {
         "command": "hardwario.tower.upgradeFirmware",
-        "title": "HARDWARIO Tower Upgrade Firmware"
+        "title": "HARDWARIO Tower Upgrade Firmware Project"
       },
       {
         "command": "hardwario.tower.clearConsole",

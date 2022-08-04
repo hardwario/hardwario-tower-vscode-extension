@@ -60,6 +60,8 @@ let disconnectingConsole = false;
 /* Lock to disable flashing while there is another flashing running */
 let flashing = false;
 
+let warningPresent = false;
+
 let hardwarioOutputChannel : vscode.OutputChannel;
 
 /**
@@ -266,11 +268,14 @@ function runNinja(resolve, reject, envClone) {
   );
 
   ninjaProcess.stdout.on('data', (data) => {
-    hardwarioOutputChannel.append(data.toString());
+    if ((data.toString()).includes('warning')) {
+      warningPresent = true;
+    }
+    hardwarioOutputChannel.append(`${data}`);
   });
 
   ninjaProcess.stderr.on('data', (data) => {
-    hardwarioOutputChannel.append(data.toString());
+    hardwarioOutputChannel.append(`${data}`);
   });
 
   ninjaProcess.on('error', () => {
@@ -307,6 +312,7 @@ function pushHardwarioCommands() {
    */
   contextGlobal.subscriptions.push(vscode.commands.registerCommand('hardwario.tower.build', () => {
     helpers.checkDirtyFiles();
+    warningPresent = false;
 
     const workspaceFolder = vscode.workspace.workspaceFolders[0];
 
@@ -316,7 +322,7 @@ function pushHardwarioCommands() {
 
     vscode.window.withProgress({
       location: vscode.ProgressLocation.Notification,
-      title: 'HARDWARIO TOWER Build',
+      title: 'Build Firmware: Running...',
       cancellable: false,
     }, (_) => new Promise<void>((resolve, reject) => {
       if (!(helpers.isCmakeGenerated(buildType.toLowerCase()))) {
@@ -355,18 +361,34 @@ function pushHardwarioCommands() {
         runNinja(resolve, reject, envClone);
       }
     }).then(() => {
-      vscode.window.showInformationMessage(
-        'Build successfully finished',
-        'Show the output',
-      ).then((answer) => {
-        if (answer === 'Show the output') {
-          hardwarioOutputChannel.show(false);
-        }
-      });
+      let output = '';
+      if (warningPresent) {
+        hardwarioOutputChannel.show(false);
+
+        output = 'Build Firmware: Success. With Warnings';
+        vscode.window.showWarningMessage(
+          output,
+        ).then((answer) => {
+          if (answer === 'Show the output') {
+            hardwarioOutputChannel.show(false);
+          }
+        });
+      } else {
+        output = 'Build Firmware: Success';
+        vscode.window.showInformationMessage(
+          output,
+          'Show the output',
+        ).then((answer) => {
+          if (answer === 'Show the output') {
+            hardwarioOutputChannel.show(false);
+          }
+        });
+      }
     }).catch(() => {
+      hardwarioOutputChannel.show(false);
+
       vscode.window.showWarningMessage(
-        'There was an error while running the build',
-        'Show the output',
+        'Build Firmware: Failed',
       )
         .then((answer) => {
           if (answer === 'Show the output') {
@@ -389,7 +411,7 @@ function pushHardwarioCommands() {
     }
 
     if (selectedPort === '') {
-      vscode.window.showWarningMessage('No HARDWARIO TOWER module connected. Please connect it and try again');
+      vscode.window.showWarningMessage('No HARDWARIO TOWER module connected. Please connect it and try again.');
       return;
     }
 
@@ -420,7 +442,7 @@ function pushHardwarioCommands() {
     })
       .then(() => {
         flashing = false;
-        vscode.window.showInformationMessage(`Flashing to ${selectedPort} - ${selectedPortNumber} successful`);
+        vscode.window.showInformationMessage('Flash Firmware: Success');
         if (logAfterFlash) {
           vscode.commands.executeCommand('hardwario.tower.console');
           logAfterFlash = false;
@@ -428,7 +450,7 @@ function pushHardwarioCommands() {
       })
       .catch((e) => {
         flashing = false;
-        vscode.window.showWarningMessage(`Flashing to ${selectedPort} - ${selectedPortNumber} failed`);
+        vscode.window.showWarningMessage('Flash Firmware: Failed');
         vscode.window.showWarningMessage(
           e.toString(),
         );
@@ -494,7 +516,7 @@ function pushHardwarioCommands() {
    */
   contextGlobal.subscriptions.push(vscode.commands.registerCommand('hardwario.tower.connectConsole', () => {
     if (selectedPort === '') {
-      vscode.window.showWarningMessage('No HARDWARIO TOWER module connected. Please connect it and try again');
+      vscode.window.showWarningMessage('No HARDWARIO TOWER module connected. Please connect it and try again.');
       return;
     }
 
@@ -589,7 +611,7 @@ function pushHardwarioCommands() {
     fs.rmSync(path.join(workspaceFolder.uri.fsPath.toString(), 'out'), { recursive: true, force: true });
     fs.rmSync(path.join(workspaceFolder.uri.fsPath.toString(), 'obj'), { recursive: true, force: true });
     fs.rmSync(path.join(workspaceFolder.uri.fsPath.toString(), 'firmware.bin'), { force: true });
-    vscode.window.showInformationMessage('Cleaning done');
+    vscode.window.showInformationMessage('Clean All Outputs: Success');
   }));
 
   /**
