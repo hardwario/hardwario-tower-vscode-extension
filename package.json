@@ -33,7 +33,7 @@
       {
         "initialConfigurations": [
           {
-            "name": "HARDWARIO TOWER Debug",
+            "name": "HARDWARIO TOWER Debugger",
             "request": "launch",
             "type": "cortex-debug",
             "cwd": "${workspaceFolder}",
@@ -52,10 +52,11 @@
             }
           }
         ],
-        "label": "HARDWARIO TOWER Debug",
+        "label": "HARDWARIO TOWER Debugger",
         "type": "hardwario-debugger",
         "languages": [
-          "c"
+          "c",
+          "c++"
         ]
       }
     ],
