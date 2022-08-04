@@ -192,14 +192,14 @@
       "activitybar": [
         {
           "id": "hardwarioTowerActivityBar",
-          "title": "HARDWARIO Tower",
+          "title": "HARDWARIO TOWER",
           "icon": "media/logo.svg"
         }
       ],
       "panel": [
 				{
 					"id": "hardwarioTowerPanel",
-					"title": "HARDWARIO TOWER",
+					"title": "TOWER",
 					"icon": "media/logo.svg"
 				}
 			]
