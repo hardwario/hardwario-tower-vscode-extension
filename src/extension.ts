@@ -14,8 +14,6 @@ import { flash } from './flasher/flasherSerial';
 import SerialPortConsole from './console/serialReader';
 import ConsoleWebViewProvider from './console/consoleWebView';
 
-// const commandExistsSync = require('command-exists').sync;
-
 /**
  * Instances of clone terminal used for git commands
  */
