@@ -153,16 +153,6 @@ export function isHardwarioProject() {
   return false;
 }
 
-export function isCmakeProject() {
-  const workspaceFolder = vscode.workspace.workspaceFolders[0];
-
-  if (fs.existsSync(path.join(workspaceFolder.uri.fsPath.toString(), 'CMakeLists.txt'))) {
-    return true;
-  }
-
-  return false;
-}
-
 /**
  * Adds all needed setting to the setting.json in .vscode folder
  */
@@ -204,7 +194,6 @@ function appendToGitignore(workspacePath) {
       if (!data.includes(ignore)) {
         fs.appendFile(path.join(workspacePath, '.gitignore'), `${ignore}\r\n`, (err) => {
           if (err) throw err;
-          console.log('File is created successfully.');
         });
       }
     });
@@ -261,7 +250,6 @@ export function updateToSupportedFirmwareStructure(workspacePath) {
   if (!fs.existsSync(path.join(workspacePath, '.gitignore'))) {
     fs.writeFile(path.join(workspacePath, '.gitignore'), 'obj/\r\nout/\r\n.gitmodules\r\n.DS_Store\r\nfirmware.bin\r\n.vscode/', (err) => {
       if (err) throw err;
-      console.log('File is created successfully.');
     });
   } else {
     appendToGitignore(workspacePath);
@@ -351,6 +339,11 @@ export function checkProjectStructure() {
   }
 }
 
+/**
+ * Checks for all the needed cmake files
+ * @param type build type of the firmware
+ * @returns true is cmake is already generated, false otherwise
+ */
 export function isCmakeGenerated(type: string) {
   const workspaceFolder = vscode.workspace.workspaceFolders[0];
 
@@ -382,34 +375,10 @@ export function isCmakeGenerated(type: string) {
   return true;
 }
 
-export function buildMakeCommand(type: string, includeExit: boolean = false) {
-  let command = '';
-
-  const workspaceFolder = vscode.workspace.workspaceFolders[0];
-  const workspacePath = workspaceFolder.uri.fsPath.toString();
-
-  if (!fs.existsSync(path.join(workspacePath, 'sdk'))) {
-    command += 'git submodule add https://github.com/hardwario/twr-sdk.git sdk && ';
-  } else if (!fs.existsSync(path.join(workspacePath, 'sdk', 'CMakeLists.txt'))) {
-    command += 'git submodule init && git submodule update --remote --merge && ';
-  }
-
-  if (isCmakeProject()) {
-    if (!isCmakeGenerated(type)) {
-      command += `cmake -Bobj/${type} . -G Ninja -DCMAKE_TOOLCHAIN_FILE=sdk/toolchain/toolchain.cmake -DTYPE=${type} && `;
-    }
-    command += `ninja -C obj/${type}`;
-  } else {
-    command = `make -j ${type}`;
-  }
-
-  if (includeExit) {
-    command += ' && exit';
-  }
-
-  return command;
-}
-
+/**
+ * Stops the execution for a given number of milliseconds
+ * @param milliseconds how long the sleep should last
+ */
 export function sleep(milliseconds) {
   const date = Date.now();
   let currentDate = null;
@@ -418,6 +387,9 @@ export function sleep(milliseconds) {
   } while (currentDate - date < milliseconds);
 }
 
+/**
+ * Checks all the open files, if any of them are dirty a popup will appear.
+ */
 export function checkDirtyFiles() {
   if (vscode.workspace.textDocuments.length === 0) {
     return;

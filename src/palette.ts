@@ -44,8 +44,8 @@ class PaletteProvider implements vscode.TreeDataProvider<PaletteCommand> {
           new PaletteCommand('Discussion Forum', undefined, 'hardwario.tower.openForum'),
         ]),
         new PaletteCommand('Company Links', [
-          new PaletteCommand('HARDWARIO Website', undefined, 'hardwario.tower.openWebsite'),
-          new PaletteCommand('HARDWARIO E-shop', undefined, 'hardwario.tower.openShop'),
+          new PaletteCommand('TOWER: Website', undefined, 'hardwario.tower.openWebsite'),
+          new PaletteCommand('TOWER: E-shop', undefined, 'hardwario.tower.openShop'),
         ]),
       ];
     } else {
@@ -62,8 +62,8 @@ class PaletteProvider implements vscode.TreeDataProvider<PaletteCommand> {
           new PaletteCommand('Discussion Forum', undefined, 'hardwario.tower.openForum'),
         ]),
         new PaletteCommand('Other Resources', [
-          new PaletteCommand('HARDWARIO Website', undefined, 'hardwario.tower.openWebsite'),
-          new PaletteCommand('HARDWARIO E-shop', undefined, 'hardwario.tower.openShop'),
+          new PaletteCommand('TOWER: Website', undefined, 'hardwario.tower.openWebsite'),
+          new PaletteCommand('TOWER: E-shop', undefined, 'hardwario.tower.openShop'),
         ]),
       ];
     }
