@@ -388,7 +388,7 @@ function pushHardwarioCommands() {
       hardwarioOutputChannel.show(false);
 
       vscode.window.showWarningMessage(
-        'Build Firmware: Failed',
+        'Build Firmware: Failure',
       )
         .then((answer) => {
           if (answer === 'Show the output') {
@@ -450,7 +450,7 @@ function pushHardwarioCommands() {
       })
       .catch((e) => {
         flashing = false;
-        vscode.window.showWarningMessage('Flash Firmware: Failed');
+        vscode.window.showWarningMessage('Flash Firmware: Failure');
         vscode.window.showWarningMessage(
           e.toString(),
         );
