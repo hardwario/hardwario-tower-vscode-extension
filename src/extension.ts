@@ -373,6 +373,10 @@ function pushHardwarioCommands() {
             hardwarioOutputChannel.show(false);
           }
         });
+
+        hardwarioOutputChannel.appendLine('----------------------------------------------------------------------------------------------------');
+        hardwarioOutputChannel.appendLine('                                TOWER: Build finished with warnings                                 ');
+        hardwarioOutputChannel.appendLine('----------------------------------------------------------------------------------------------------');
       } else {
         output = 'Build Firmware: Success';
         vscode.window.showInformationMessage(
@@ -383,11 +387,14 @@ function pushHardwarioCommands() {
             hardwarioOutputChannel.show(false);
           }
         });
+        hardwarioOutputChannel.appendLine('----------------------------------------------------------------------------------------------------');
+        hardwarioOutputChannel.appendLine('                                TOWER: Build finished successfully                                  ');
+        hardwarioOutputChannel.appendLine('----------------------------------------------------------------------------------------------------');
       }
     }).catch(() => {
       hardwarioOutputChannel.show(false);
 
-      vscode.window.showWarningMessage(
+      vscode.window.showErrorMessage(
         'Build Firmware: Failure',
       )
         .then((answer) => {
@@ -395,6 +402,9 @@ function pushHardwarioCommands() {
             hardwarioOutputChannel.show(false);
           }
         });
+      hardwarioOutputChannel.appendLine('----------------------------------------------------------------------------------------------------');
+      hardwarioOutputChannel.appendLine('                      TOWER: Build finished with errors (NO FIRMWARE GENERATED)                     ');
+      hardwarioOutputChannel.appendLine('----------------------------------------------------------------------------------------------------');
     }));
   }));
 
