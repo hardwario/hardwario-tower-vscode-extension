@@ -54,6 +54,7 @@
         ],
         "label": "TOWER: Debugger",
         "type": "hardwario-debugger",
+        "when": "hardwario.tower.hardwarioProject",
         "languages": [
           "c",
           "c++"
@@ -217,8 +218,7 @@
 				{
 					"type": "webview",
 					"id": "harwdario.tower.views.console",
-					"name": "Console",
-					"contextualTitle": "Console",
+					"name": "",
 					"icon": "media/logo.svg",
           "visibility": "visible"
 				}

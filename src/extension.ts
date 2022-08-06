@@ -1,3 +1,5 @@
+/* eslint-disable class-methods-use-this */
+/* eslint-disable no-use-before-define */
 /* eslint-disable max-len */
 /* eslint-disable import/extensions */
 /* eslint-disable import/no-unresolved */
@@ -324,7 +326,7 @@ function pushHardwarioCommands() {
       location: vscode.ProgressLocation.Notification,
       title: 'Build Firmware: Running...',
       cancellable: false,
-    }, (_) => new Promise<void>((resolve, reject) => {
+    }, () => new Promise<void>((resolve, reject) => {
       if (!(helpers.isCmakeGenerated(buildType.toLowerCase()))) {
         const cmakeProcess = spawn(
           'cmake',
@@ -365,7 +367,7 @@ function pushHardwarioCommands() {
       if (warningPresent) {
         hardwarioOutputChannel.show(false);
 
-        output = 'Build Firmware: Success. With Warnings';
+        output = 'Build Firmware: Success (with Warnings)';
         vscode.window.showWarningMessage(
           output,
         ).then((answer) => {

@@ -1,3 +1,4 @@
+/* eslint-disable class-methods-use-this */
 /* eslint-disable import/extensions */
 /* eslint-disable import/no-unresolved */
 import * as vscode from 'vscode';
@@ -37,15 +38,13 @@ class PaletteProvider implements vscode.TreeDataProvider<PaletteCommand> {
           new PaletteCommand('Upgrade Firmware Project', undefined, 'hardwario.tower.upgradeFirmware'),
         ]),
         new PaletteCommand('TOWER: Resources', [
+          new PaletteCommand('Product Website', undefined, 'hardwario.tower.openWebsite'),
           new PaletteCommand('Technical Documentation', undefined, 'hardwario.tower.openDocumentation'),
           new PaletteCommand('Software Development Kit', undefined, 'hardwario.tower.openSdk'),
           new PaletteCommand('Projects on Hackster.io', undefined, 'hardwario.tower.openProjects'),
           new PaletteCommand('GitHub Repositories', undefined, 'hardwario.tower.openGithub'),
           new PaletteCommand('Discussion Forum', undefined, 'hardwario.tower.openForum'),
-        ]),
-        new PaletteCommand('Company Links', [
-          new PaletteCommand('TOWER: Website', undefined, 'hardwario.tower.openWebsite'),
-          new PaletteCommand('TOWER: E-shop', undefined, 'hardwario.tower.openShop'),
+          new PaletteCommand('Online shop', undefined, 'hardwario.tower.openShop'),
         ]),
       ];
     } else {
@@ -55,15 +54,13 @@ class PaletteProvider implements vscode.TreeDataProvider<PaletteCommand> {
           new PaletteCommand('From Existing Project...', undefined, 'hardwario.tower.cloneFirmware'),
         ]),
         new PaletteCommand('TOWER Resources', [
+          new PaletteCommand('Product Website', undefined, 'hardwario.tower.openWebsite'),
           new PaletteCommand('Technical Documentation', undefined, 'hardwario.tower.openDocumentation'),
           new PaletteCommand('Software Development Kit', undefined, 'hardwario.tower.openSdk'),
           new PaletteCommand('Projects on Hackster.io', undefined, 'hardwario.tower.openProjects'),
           new PaletteCommand('GitHub Repositories', undefined, 'hardwario.tower.openGithub'),
           new PaletteCommand('Discussion Forum', undefined, 'hardwario.tower.openForum'),
-        ]),
-        new PaletteCommand('Other Resources', [
-          new PaletteCommand('TOWER: Website', undefined, 'hardwario.tower.openWebsite'),
-          new PaletteCommand('TOWER: E-shop', undefined, 'hardwario.tower.openShop'),
+          new PaletteCommand('Online shop', undefined, 'hardwario.tower.openShop'),
         ]),
       ];
     }
