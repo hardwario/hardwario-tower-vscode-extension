@@ -29,12 +29,12 @@ class Terminal {
       const envClone = Object.create(process.env);
 
       if (!helpers.MACOS) {
-        const vscodepath = process.env.VSCODE_CWD;
-        const towerPath = path.join(vscodepath, 'data', 'tower');
-        const toolchainPath = path.join(towerPath, 'toolchain');
-        const gitPath = path.join(toolchainPath, 'git');
-
         if (helpers.WINDOWS) {
+          const vscodepath = process.env.VSCODE_CWD;
+          const towerPath = path.join(vscodepath, 'data', 'tower');
+          const toolchainPath = path.join(towerPath, 'toolchain');
+          const gitPath = path.join(toolchainPath, 'git');
+
           const makeBinPath = path.join(toolchainPath, 'make', 'bin');
 
           const gccPath = path.join(toolchainPath, 'gcc');
@@ -57,6 +57,10 @@ class Terminal {
             envClone.Path = `${makeBinPath};${gccBinPath};${gccArmBinPath};${gitCmdPath};${gitUsrBinPath};${gitMingw64BinPath};${cmakePath};${ninjaPath};${systemCmdPath}`;
           }
         } else if (helpers.LINUX) {
+          const vscodepath = process.env.VSCODE_PORTABLE;
+          const towerPath = path.join(vscodepath, 'tower');
+          const toolchainPath = path.join(towerPath, 'toolchain');
+
           const homePath = env.HOME;
 
           const makePath = path.join(toolchainPath, 'make');
