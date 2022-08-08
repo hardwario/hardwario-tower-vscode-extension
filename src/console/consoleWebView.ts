@@ -137,6 +137,10 @@ export default class ConsoleWebViewProvider implements vscode.WebviewViewProvide
                 <head>
                     <meta charset="UTF-8">
 
+                    <link rel="preconnect" href="https://fonts.googleapis.com">
+                    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+                    <link href="https://fonts.googleapis.com/css2?family=PT+Mono&display=swap" rel="stylesheet">
+
                     <!--
                         Use a content security policy to only allow loading images from https or from our extension directory,
                         and only allow scripts that have a specific nonce.

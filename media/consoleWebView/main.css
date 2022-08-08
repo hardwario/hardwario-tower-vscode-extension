@@ -14,7 +14,7 @@ body {
 }
 
 .data-list {
-	font-family: Consolas;
+	font-family: 'PT Mono', monospace;
 	list-style: none;
 	padding: 0;
 }

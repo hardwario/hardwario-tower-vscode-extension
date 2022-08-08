@@ -49,11 +49,11 @@ class PaletteProvider implements vscode.TreeDataProvider<PaletteCommand> {
       ];
     } else {
       this.data = [
-        new PaletteCommand('Start New TOWER Firmware', [
+        new PaletteCommand('TOWER: Start', [
           new PaletteCommand('From Skeleton Project...', undefined, 'hardwario.tower.cloneSkeleton'),
           new PaletteCommand('From Existing Project...', undefined, 'hardwario.tower.cloneFirmware'),
         ]),
-        new PaletteCommand('TOWER Resources', [
+        new PaletteCommand('TOWER: Resources', [
           new PaletteCommand('Product Website', undefined, 'hardwario.tower.openWebsite'),
           new PaletteCommand('Technical Documentation', undefined, 'hardwario.tower.openDocumentation'),
           new PaletteCommand('Software Development Kit', undefined, 'hardwario.tower.openSdk'),
