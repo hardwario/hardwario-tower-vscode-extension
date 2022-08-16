@@ -630,13 +630,13 @@ function pushHardwarioCommands() {
    * Attach the console to the selected device for the logging messages
    */
   contextGlobal.subscriptions.push(vscode.commands.registerCommand('hardwario.tower.console', () => {
-    attachingConsole = true;
     webViewProvider.showWebView().then(() => {
       helpers.sleep(500);
       if (serialConsole !== undefined) {
         if (serialConsole.port.port.openOptions.path === selectedPort) {
           vscode.commands.executeCommand('hardwario.tower.restartDevice');
         } else {
+          attachingConsole = true;
           vscode.commands.executeCommand('hardwario.tower.disconnectConsole');
           vscode.commands.executeCommand('hardwario.tower.connectConsole');
         }
