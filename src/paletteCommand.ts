@@ -1,5 +1,6 @@
 /* eslint-disable import/no-unresolved */
 import * as vscode from 'vscode';
+import * as path from 'path';
 
 /**
  * Class constructing palette commands
@@ -13,6 +14,7 @@ class PaletteCommand extends vscode.TreeItem {
         public readonly label: string,
         children?: PaletteCommand[],
         command?,
+        iconPath?,
   ) {
     super(
       label,
@@ -28,6 +30,12 @@ class PaletteCommand extends vscode.TreeItem {
       };
     }
     this.children = children;
+    if (iconPath) {
+      this.iconPath = {
+        light: path.join(__filename, '..', '..', 'media', 'icons', 'light', iconPath),
+        dark: path.join(__filename, '..', '..', 'media', 'icons', 'dark', iconPath),
+      };
+    }
   }
 }
 
