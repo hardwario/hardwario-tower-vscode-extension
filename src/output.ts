@@ -10,8 +10,8 @@ export default function getEnv() {
 
   if (!helpers.MACOS) {
     if (helpers.WINDOWS) {
-      const vscodepath = process.env.VSCODE_CWD;
-      const towerPath = path.join(vscodepath, 'data', 'tower');
+      const vscodepath = process.env.VSCODE_PORTABLE;
+      const towerPath = path.join(vscodepath, 'tower');
       const toolchainPath = path.join(towerPath, 'toolchain');
       const gitPath = path.join(toolchainPath, 'git');
 

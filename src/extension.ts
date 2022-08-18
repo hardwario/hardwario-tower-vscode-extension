@@ -696,7 +696,7 @@ function pushHardwarioCommands() {
   contextGlobal.subscriptions.push(vscode.commands.registerCommand('hardwario.tower.locateToolchain', () => {
     if (helpers.isPortable()) {
       if (helpers.WINDOWS || helpers.LINUX) {
-        return `${process.env.VSCODE_CWD}/data/tower/toolchain/gcc/bin/arm-none-eabi-gdb`;
+        return `${process.env.VSCODE_PORTABLE}/tower/toolchain/gcc/bin/arm-none-eabi-gdb`;
       }
       if (helpers.MACOS) {
         return `${process.env.VSCODE_PORTABLE}/tower/toolchain/gcc/bin/arm-none-eabi-gdb`;
@@ -711,13 +711,13 @@ function pushHardwarioCommands() {
   contextGlobal.subscriptions.push(vscode.commands.registerCommand('hardwario.tower.locateJlink', () => {
     if (helpers.isPortable()) {
       if (helpers.WINDOWS) {
-        return `${process.env.VSCODE_CWD}/data/tower/toolchain/SEGGER/JLink/JLinkGDBServerCL`;
+        return `${process.env.VSCODE_PORTABLE}/tower/toolchain/SEGGER/JLink/JLinkGDBServerCL`;
       }
       if (helpers.MACOS) {
         return `${process.env.VSCODE_PORTABLE}/tower/toolchain/SEGGER/JLink/JLinkGDBServerCLExe`;
       }
       if (helpers.LINUX) {
-        return `${process.env.VSCODE_CWD}/data/tower/toolchain/SEGGER/JLink/JLinkGDBServerCLExe`;
+        return `${process.env.VSCODE_PORTABLE}/tower/toolchain/SEGGER/JLink/JLinkGDBServerCLExe`;
       }
     } else {
       if (helpers.LINUX || helpers.MACOS) {
