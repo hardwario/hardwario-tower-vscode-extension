@@ -19,49 +19,49 @@ class PaletteProvider implements vscode.TreeDataProvider<PaletteCommand> {
     if (helpers.isHardwarioProject()) {
       this.data = [
         new PaletteCommand('TOWER: Start', [
-          new PaletteCommand('From Skeleton Project...', undefined, 'hardwario.tower.cloneSkeleton'),
-          new PaletteCommand('From Existing Project...', undefined, 'hardwario.tower.cloneFirmware'),
-        ]),
+          new PaletteCommand('From Skeleton Project...', undefined, 'hardwario.tower.cloneSkeleton', 'github.svg'),
+          new PaletteCommand('From Existing Project...', undefined, 'hardwario.tower.cloneFirmware', 'github.svg'),
+        ], undefined, 'hardwario-logo.png'),
         new PaletteCommand('TOWER: Commands', [
-          new PaletteCommand('Build + Flash (Console)', undefined, 'hardwario.tower.flashAndLog'),
-          new PaletteCommand('Build + Flash (Debugger)', undefined, 'hardwario.tower.flashAndDebug'),
+          new PaletteCommand('Build + Flash (Console)', undefined, 'hardwario.tower.flashAndLog', 'flashAndAttach.svg'),
+          new PaletteCommand('Build + Flash (Debugger)', undefined, 'hardwario.tower.flashAndDebug', 'debug.svg'),
 
-          new PaletteCommand('Clean All Outputs', undefined, 'hardwario.tower.clean'),
-          new PaletteCommand('Build Firmware', undefined, 'hardwario.tower.build'),
-          new PaletteCommand('Flash Firmware', undefined, 'hardwario.tower.flashToDevice'),
+          new PaletteCommand('Clean All Outputs', undefined, 'hardwario.tower.clean', 'trash.svg'),
+          new PaletteCommand('Build Firmware', undefined, 'hardwario.tower.build', 'tick.svg'),
+          new PaletteCommand('Flash Firmware', undefined, 'hardwario.tower.flashToDevice', 'up.svg'),
 
-          new PaletteCommand('Attach Console', undefined, 'hardwario.tower.console'),
-          new PaletteCommand('Attach Debugger', undefined, 'hardwario.tower.debug'),
-        ]),
+          new PaletteCommand('Attach Console', undefined, 'hardwario.tower.console', 'attach.svg'),
+          new PaletteCommand('Attach Debugger', undefined, 'hardwario.tower.debug', 'debug.svg'),
+        ], undefined, 'hardwario-logo.png'),
         new PaletteCommand('TOWER: Maintenace', [
-          new PaletteCommand('Update Firmware SDK', undefined, 'hardwario.tower.updateSdk'),
-          new PaletteCommand('Upgrade Firmware Project', undefined, 'hardwario.tower.upgradeFirmware'),
-        ]),
+          new PaletteCommand('Update Firmware SDK', undefined, 'hardwario.tower.updateSdk', 'update.svg'),
+          new PaletteCommand('Upgrade Firmware Project', undefined, 'hardwario.tower.upgradeFirmware', 'update.svg'),
+        ], undefined, 'hardwario-logo.png'),
         new PaletteCommand('TOWER: Resources', [
-          new PaletteCommand('Product Website', undefined, 'hardwario.tower.openWebsite'),
-          new PaletteCommand('Technical Documentation', undefined, 'hardwario.tower.openDocumentation'),
-          new PaletteCommand('Software Development Kit', undefined, 'hardwario.tower.openSdk'),
-          new PaletteCommand('Projects on Hackster.io', undefined, 'hardwario.tower.openProjects'),
-          new PaletteCommand('GitHub Repositories', undefined, 'hardwario.tower.openGithub'),
-          new PaletteCommand('Discussion Forum', undefined, 'hardwario.tower.openForum'),
-          new PaletteCommand('Online shop', undefined, 'hardwario.tower.openShop'),
-        ]),
+          new PaletteCommand('Product Website', undefined, 'hardwario.tower.openWebsite', 'web.svg'),
+          new PaletteCommand('Technical Documentation', undefined, 'hardwario.tower.openDocumentation', 'documentation.svg'),
+          new PaletteCommand('Software Development Kit', undefined, 'hardwario.tower.openSdk', 'sdk.svg'),
+          new PaletteCommand('Projects on Hackster.io', undefined, 'hardwario.tower.openProjects', 'projects.svg'),
+          new PaletteCommand('GitHub Repositories', undefined, 'hardwario.tower.openGithub', 'github.svg'),
+          new PaletteCommand('Discussion Forum', undefined, 'hardwario.tower.openForum', 'forum.svg'),
+          new PaletteCommand('Online shop', undefined, 'hardwario.tower.openShop', 'cart.svg'),
+        ], undefined, 'hardwario-logo.png'),
       ];
     } else {
       this.data = [
         new PaletteCommand('TOWER: Start', [
-          new PaletteCommand('From Skeleton Project...', undefined, 'hardwario.tower.cloneSkeleton'),
-          new PaletteCommand('From Existing Project...', undefined, 'hardwario.tower.cloneFirmware'),
-        ]),
+          new PaletteCommand('From Skeleton Project...', undefined, 'hardwario.tower.cloneSkeleton', 'github.svg'),
+          new PaletteCommand('From Existing Project...', undefined, 'hardwario.tower.cloneFirmware', 'github.svg'),
+        ], undefined, 'hardwario-logo.png'),
         new PaletteCommand('TOWER: Resources', [
-          new PaletteCommand('Product Website', undefined, 'hardwario.tower.openWebsite'),
-          new PaletteCommand('Technical Documentation', undefined, 'hardwario.tower.openDocumentation'),
-          new PaletteCommand('Software Development Kit', undefined, 'hardwario.tower.openSdk'),
-          new PaletteCommand('Projects on Hackster.io', undefined, 'hardwario.tower.openProjects'),
-          new PaletteCommand('GitHub Repositories', undefined, 'hardwario.tower.openGithub'),
-          new PaletteCommand('Discussion Forum', undefined, 'hardwario.tower.openForum'),
-          new PaletteCommand('Online shop', undefined, 'hardwario.tower.openShop'),
-        ]),
+          new PaletteCommand('Product Website', undefined, 'hardwario.tower.openWebsite', 'web.svg'),
+          new PaletteCommand('Technical Documentation', undefined, 'hardwario.tower.openDocumentation', 'documentation.svg'),
+          new PaletteCommand('Software Development Kit', undefined, 'hardwario.tower.openSdk', 'sdk.svg'),
+          new PaletteCommand('Projects on Hackster.io', undefined, 'hardwario.tower.openProjects', 'projects.svg'),
+          new PaletteCommand('GitHub Repositories', undefined, 'hardwario.tower.openGithub', 'github.svg'),
+          new PaletteCommand('Discussion Forum', undefined, 'hardwario.tower.openForum', 'forum.svg'),
+          new PaletteCommand('Online shop', undefined, 'hardwario.tower.openShop', 'cart.svg'),
+        ], undefined, 'hardwario-logo.png'),
       ];
     }
   }
