@@ -40,7 +40,7 @@ class PaletteProvider implements vscode.TreeDataProvider<PaletteCommand> {
         new PaletteCommand('TOWER: Resources', [
           new PaletteCommand('Product Website', undefined, 'hardwario.tower.openWebsite', 'web.svg'),
           new PaletteCommand('Technical Documentation', undefined, 'hardwario.tower.openDocumentation', 'documentation.svg'),
-          new PaletteCommand('Software Development Kit', undefined, 'hardwario.tower.openSdk', 'web.svg'),
+          new PaletteCommand('Software Development Kit', undefined, 'hardwario.tower.openSdk', 'sdk.svg'),
           new PaletteCommand('Projects on Hackster.io', undefined, 'hardwario.tower.openProjects', 'projects.svg'),
           new PaletteCommand('GitHub Repositories', undefined, 'hardwario.tower.openGithub', 'github.svg'),
           new PaletteCommand('Discussion Forum', undefined, 'hardwario.tower.openForum', 'forum.svg'),
