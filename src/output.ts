@@ -8,6 +8,9 @@ import * as helpers from './helpers';
 export default function getEnv() {
   const envClone = Object.create(process.env);
 
+  if (!helpers.isPortable()) {
+    return envClone;
+  }
   if (!helpers.MACOS) {
     if (helpers.WINDOWS) {
       const vscodepath = process.env.VSCODE_PORTABLE;
