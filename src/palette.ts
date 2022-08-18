@@ -50,18 +50,18 @@ class PaletteProvider implements vscode.TreeDataProvider<PaletteCommand> {
     } else {
       this.data = [
         new PaletteCommand('TOWER: Start', [
-          new PaletteCommand('From Skeleton Project...', undefined, 'hardwario.tower.cloneSkeleton'),
-          new PaletteCommand('From Existing Project...', undefined, 'hardwario.tower.cloneFirmware'),
-        ]),
+          new PaletteCommand('From Skeleton Project...', undefined, 'hardwario.tower.cloneSkeleton', 'github.svg'),
+          new PaletteCommand('From Existing Project...', undefined, 'hardwario.tower.cloneFirmware', 'github.svg'),
+        ], undefined, 'hardwario-logo.png'),
         new PaletteCommand('TOWER: Resources', [
-          new PaletteCommand('Product Website', undefined, 'hardwario.tower.openWebsite'),
-          new PaletteCommand('Technical Documentation', undefined, 'hardwario.tower.openDocumentation'),
-          new PaletteCommand('Software Development Kit', undefined, 'hardwario.tower.openSdk'),
-          new PaletteCommand('Projects on Hackster.io', undefined, 'hardwario.tower.openProjects'),
-          new PaletteCommand('GitHub Repositories', undefined, 'hardwario.tower.openGithub'),
-          new PaletteCommand('Discussion Forum', undefined, 'hardwario.tower.openForum'),
-          new PaletteCommand('Online shop', undefined, 'hardwario.tower.openShop'),
-        ]),
+          new PaletteCommand('Product Website', undefined, 'hardwario.tower.openWebsite', 'web.svg'),
+          new PaletteCommand('Technical Documentation', undefined, 'hardwario.tower.openDocumentation', 'documentation.svg'),
+          new PaletteCommand('Software Development Kit', undefined, 'hardwario.tower.openSdk', 'sdk.svg'),
+          new PaletteCommand('Projects on Hackster.io', undefined, 'hardwario.tower.openProjects', 'projects.svg'),
+          new PaletteCommand('GitHub Repositories', undefined, 'hardwario.tower.openGithub', 'github.svg'),
+          new PaletteCommand('Discussion Forum', undefined, 'hardwario.tower.openForum', 'forum.svg'),
+          new PaletteCommand('Online shop', undefined, 'hardwario.tower.openShop', 'cart.svg'),
+        ], undefined, 'hardwario-logo.png'),
       ];
     }
   }
