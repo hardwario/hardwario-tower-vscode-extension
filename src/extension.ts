@@ -304,6 +304,78 @@ function runNinja(resolve, reject, envClone) {
   });
 }
 
+function initSdk(resolve, reject, envClone, workspaceFolder) {
+  const gitInitProcess = spawn(
+    'git',
+    ['submodule', 'update', '--init', 'sdk'],
+    {
+      cwd: workspaceFolder.uri.fsPath.toString(),
+      env: envClone,
+    },
+  );
+
+  gitInitProcess.stdout.on('data', (data) => {
+    hardwarioOutputChannel.append(data.toString());
+  });
+
+  gitInitProcess.stderr.on('data', (data) => {
+    hardwarioOutputChannel.append(data.toString());
+  });
+
+  gitInitProcess.on('error', () => {
+    hardwarioOutputChannel.appendLine('----------------------------------------------------------------------------------------------------');
+    hardwarioOutputChannel.appendLine('There was an error executing cmake command. Please check your PATH and that you have cmake installed');
+    hardwarioOutputChannel.appendLine('----------------------------------------------------------------------------------------------------');
+    reject();
+  });
+
+  gitInitProcess.on('exit', (code) => {
+    if (code === 0) {
+      buildWithCmake(resolve, reject, envClone, workspaceFolder);
+    } else {
+      reject();
+    }
+  });
+}
+
+function buildWithCmake(resolve, reject, envClone, workspaceFolder) {
+  if (!(helpers.isCmakeGenerated(buildType.toLowerCase()))) {
+    const cmakeProcess = spawn(
+      'cmake',
+      [`-Bobj/${buildType.toLowerCase()}`, '.', '-G Ninja', '-DCMAKE_TOOLCHAIN_FILE=sdk/toolchain/toolchain.cmake', `-DTYPE=${buildType.toLowerCase()}`],
+      {
+        cwd: workspaceFolder.uri.fsPath.toString(),
+        env: envClone,
+      },
+    );
+
+    cmakeProcess.stdout.on('data', (data) => {
+      hardwarioOutputChannel.append(data.toString());
+    });
+
+    cmakeProcess.stderr.on('data', (data) => {
+      hardwarioOutputChannel.append(data.toString());
+    });
+
+    cmakeProcess.on('error', () => {
+      hardwarioOutputChannel.appendLine('----------------------------------------------------------------------------------------------------');
+      hardwarioOutputChannel.appendLine('There was an error executing cmake command. Please check your PATH and that you have cmake installed');
+      hardwarioOutputChannel.appendLine('----------------------------------------------------------------------------------------------------');
+      reject();
+    });
+
+    cmakeProcess.on('exit', (code) => {
+      if (code === 0) {
+        runNinja(resolve, reject, envClone);
+      } else {
+        reject();
+      }
+    });
+  } else {
+    runNinja(resolve, reject, envClone);
+  }
+}
+
 /**
  * Create, define and push the advanced commands to the palette
  * when HARDWARIO TOWER firmware is opened
@@ -327,40 +399,10 @@ function pushHardwarioCommands() {
       title: 'Build Firmware: Running...',
       cancellable: false,
     }, () => new Promise<void>((resolve, reject) => {
-      if (!(helpers.isCmakeGenerated(buildType.toLowerCase()))) {
-        const cmakeProcess = spawn(
-          'cmake',
-          [`-Bobj/${buildType.toLowerCase()}`, '.', '-G Ninja', '-DCMAKE_TOOLCHAIN_FILE=sdk/toolchain/toolchain.cmake', `-DTYPE=${buildType.toLowerCase()}`],
-          {
-            cwd: workspaceFolder.uri.fsPath.toString(),
-            env: envClone,
-          },
-        );
-
-        cmakeProcess.stdout.on('data', (data) => {
-          hardwarioOutputChannel.append(data.toString());
-        });
-
-        cmakeProcess.stderr.on('data', (data) => {
-          hardwarioOutputChannel.append(data.toString());
-        });
-
-        cmakeProcess.on('error', () => {
-          hardwarioOutputChannel.appendLine('----------------------------------------------------------------------------------------------------');
-          hardwarioOutputChannel.appendLine('There was an error executing cmake command. Please check your PATH and that you have cmake installed');
-          hardwarioOutputChannel.appendLine('----------------------------------------------------------------------------------------------------');
-          reject();
-        });
-
-        cmakeProcess.on('exit', (code) => {
-          if (code === 0) {
-            runNinja(resolve, reject, envClone);
-          } else {
-            reject();
-          }
-        });
+      if (!fs.existsSync(path.join(workspaceFolder.uri.fsPath.toString(), 'sdk', 'CMakeLists.txt'))) {
+        initSdk(resolve, reject, envClone, workspaceFolder);
       } else {
-        runNinja(resolve, reject, envClone);
+        buildWithCmake(resolve, reject, envClone, workspaceFolder);
       }
     }).then(() => {
       let output = '';
@@ -736,7 +778,14 @@ function pushHardwarioCommands() {
    * Update firmware SDK
    */
   contextGlobal.subscriptions.push(vscode.commands.registerCommand('hardwario.tower.updateSdk', () => {
-    cloneTerminal.get().sendText('git submodule update --remote --merge && exit');
+    const workspaceFolder = vscode.workspace.workspaceFolders[0];
+
+    if (fs.existsSync(path.join(workspaceFolder.uri.fsPath.toString(), 'sdk', 'CMakeLists.txt'))) {
+      cloneTerminal.get().sendText('git submodule update --remote --merge && exit');
+    } else {
+      cloneTerminal.get().sendText('git submodule update --init sdk && exit');
+    }
+    cloneTerminal.get().show();
   }));
 
   /**
