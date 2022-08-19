@@ -396,6 +396,8 @@ function pushHardwarioCommands() {
     }).catch(() => {
       hardwarioOutputChannel.show(false);
 
+      flashAfterBuild = false;
+      logAfterFlash = false;
       vscode.window.showErrorMessage(
         'Build Firmware: Failure',
       )
