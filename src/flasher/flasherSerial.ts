@@ -42,7 +42,7 @@ export class FlashSerial {
     this.write = this.write.bind(this);
     this.verify = this.verify.bind(this);
 
-    this.port = new SerialPortFtdi(device, 921600, 'even');
+    this.port = new SerialPortFtdi(device, 115200, 'even');
   }
 
   connectPrivate() {

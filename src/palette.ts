@@ -21,7 +21,7 @@ class PaletteProvider implements vscode.TreeDataProvider<PaletteCommand> {
         new PaletteCommand('TOWER: Start', [
           new PaletteCommand('From Skeleton Project...', undefined, 'hardwario.tower.cloneSkeleton', 'github.svg'),
           new PaletteCommand('From Existing Project...', undefined, 'hardwario.tower.cloneFirmware', 'github.svg'),
-        ], undefined, 'hardwario-logo.png'),
+        ]),
         new PaletteCommand('TOWER: Commands', [
           new PaletteCommand('Build + Flash (Console)', undefined, 'hardwario.tower.flashAndLog', 'flashAndAttach.svg'),
           new PaletteCommand('Build + Flash (Debugger)', undefined, 'hardwario.tower.flashAndDebug', 'debug.svg'),
@@ -32,11 +32,11 @@ class PaletteProvider implements vscode.TreeDataProvider<PaletteCommand> {
 
           new PaletteCommand('Attach Console', undefined, 'hardwario.tower.console', 'attach.svg'),
           new PaletteCommand('Attach Debugger', undefined, 'hardwario.tower.debug', 'debug.svg'),
-        ], undefined, 'hardwario-logo.png'),
+        ]),
         new PaletteCommand('TOWER: Maintenace', [
           new PaletteCommand('Update Firmware SDK', undefined, 'hardwario.tower.updateSdk', 'update.svg'),
           new PaletteCommand('Upgrade Firmware Project', undefined, 'hardwario.tower.upgradeFirmware', 'update.svg'),
-        ], undefined, 'hardwario-logo.png'),
+        ]),
         new PaletteCommand('TOWER: Resources', [
           new PaletteCommand('Product Website', undefined, 'hardwario.tower.openWebsite', 'web.svg'),
           new PaletteCommand('Technical Documentation', undefined, 'hardwario.tower.openDocumentation', 'documentation.svg'),
@@ -45,14 +45,14 @@ class PaletteProvider implements vscode.TreeDataProvider<PaletteCommand> {
           new PaletteCommand('GitHub Repositories', undefined, 'hardwario.tower.openGithub', 'github.svg'),
           new PaletteCommand('Discussion Forum', undefined, 'hardwario.tower.openForum', 'forum.svg'),
           new PaletteCommand('Online shop', undefined, 'hardwario.tower.openShop', 'cart.svg'),
-        ], undefined, 'hardwario-logo.png'),
+        ]),
       ];
     } else {
       this.data = [
         new PaletteCommand('TOWER: Start', [
           new PaletteCommand('From Skeleton Project...', undefined, 'hardwario.tower.cloneSkeleton', 'github.svg'),
           new PaletteCommand('From Existing Project...', undefined, 'hardwario.tower.cloneFirmware', 'github.svg'),
-        ], undefined, 'hardwario-logo.png'),
+        ]),
         new PaletteCommand('TOWER: Resources', [
           new PaletteCommand('Product Website', undefined, 'hardwario.tower.openWebsite', 'web.svg'),
           new PaletteCommand('Technical Documentation', undefined, 'hardwario.tower.openDocumentation', 'documentation.svg'),
@@ -61,7 +61,7 @@ class PaletteProvider implements vscode.TreeDataProvider<PaletteCommand> {
           new PaletteCommand('GitHub Repositories', undefined, 'hardwario.tower.openGithub', 'github.svg'),
           new PaletteCommand('Discussion Forum', undefined, 'hardwario.tower.openForum', 'forum.svg'),
           new PaletteCommand('Online shop', undefined, 'hardwario.tower.openShop', 'cart.svg'),
-        ], undefined, 'hardwario-logo.png'),
+        ]),
       ];
     }
   }
