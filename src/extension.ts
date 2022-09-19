@@ -394,6 +394,13 @@ function pushHardwarioCommands() {
 
     hardwarioOutputChannel.clear();
 
+    const config = vscode.workspace.getConfiguration();
+    const openOutput = config.get('hardwario.tower.alwaysOpenOutputWindow');
+
+    if (openOutput) {
+      hardwarioOutputChannel.show(false);
+    }
+
     vscode.window.withProgress({
       location: vscode.ProgressLocation.Notification,
       title: 'Build Firmware: Running...',
