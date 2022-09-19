@@ -33,6 +33,8 @@
     commandHistory = [];
   }
 
+  console.log(commandHistory);
+
   updateDataList();
 
   document.getElementById('send-button').addEventListener('click', () => {
@@ -119,7 +121,8 @@
     const inputData = document.getElementById('send-data-input').value;
 
     if (commandHistory[commandHistory.length - 1] !== inputData) {
-      commandHistory[commandCounter++] = inputData;
+      commandHistory[commandCounter] = inputData;
+      commandCounter += 1;
       historyCounter = commandCounter;
     } else {
       historyCounter = commandCounter;
@@ -193,7 +196,7 @@
     }
 
     // Update the saved state
-    vscode.setState({ data, connectedDevice });
+    vscode.setState({ data, connectedDevice, commandHistory });
   }
 
   function clearLog() {
@@ -208,12 +211,14 @@
       switch (event.key) {
         case 'ArrowUp':
           if (historyCounter >= 0) {
-            elem.value = commandHistory[--historyCounter];
+            historyCounter -= 1;
+            elem.value = commandHistory[historyCounter];
           }
           break;
         case 'ArrowDown':
           if (historyCounter < commandHistory.length - 1) {
-            elem.value = commandHistory[++historyCounter];
+            historyCounter += 1;
+            elem.value = commandHistory[historyCounter];
           }
           break;
         default:
