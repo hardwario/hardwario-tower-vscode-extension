@@ -5,6 +5,7 @@
 /* eslint-disable import/no-unresolved */
 /* eslint-disable import/extensions */
 import * as fs from 'fs';
+import * as vscode from 'vscode';
 import { getAddressBufferWithXor, calculateXor } from './flasherSerialHelpers';
 import SerialPortFtdi from './serialportFtdi';
 import * as helpers from '../helpers';
@@ -42,7 +43,13 @@ export class FlashSerial {
     this.write = this.write.bind(this);
     this.verify = this.verify.bind(this);
 
-    this.port = new SerialPortFtdi(device, 115200, 'even');
+    const config = vscode.workspace.getConfiguration();
+    const fasterFlashing = config.get('hardwario.tower.allowFasterFlashing');
+    if (fasterFlashing) {
+      this.port = new SerialPortFtdi(device, 921600, 'even');
+    } else {
+      this.port = new SerialPortFtdi(device, 115200, 'even');
+    }
   }
 
   connectPrivate() {

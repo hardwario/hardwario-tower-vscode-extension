@@ -32,13 +32,13 @@ let releaseBar: vscode.StatusBarItem;
 let contextGlobal: vscode.ExtensionContext;
 
 /* Console Web View provider */
-let webViewProvider;
+let webViewProvider : ConsoleWebViewProvider;
 
 /* Instance of a serial port console */
-let serialConsole;
+let serialConsole : SerialPortConsole;
 
 /* List of serial ports available for flashing */
-let serialPorts;
+let serialPorts : any[];
 
 /* Currently selected serial port (item on the bottom bar) */
 let portSelection : vscode.StatusBarItem = null;
@@ -393,6 +393,13 @@ function pushHardwarioCommands() {
     const envClone = getEnv();
 
     hardwarioOutputChannel.clear();
+
+    const config = vscode.workspace.getConfiguration();
+    const openOutput = config.get('hardwario.tower.alwaysOpenOutputWindow');
+
+    if (openOutput) {
+      hardwarioOutputChannel.show(false);
+    }
 
     vscode.window.withProgress({
       location: vscode.ProgressLocation.Notification,

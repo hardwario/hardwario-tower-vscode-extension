@@ -66,6 +66,16 @@
           "type": "boolean",
           "default": false,
           "description": "Let the extension save all the open dirty files"
+        },
+        "hardwario.tower.allowFasterFlashing": {
+          "type": "boolean",
+          "default": false,
+          "description": "Allow faster flashing to the Core Module (caution: may cause some issues while flashing)"
+        },
+        "hardwario.tower.alwaysOpenOutputWindow": {
+          "type": "boolean",
+          "default": false,
+          "description": "The extension will open the output window every time while the build is started. If false, the output window will open only if there is some warning or error"
         }
       }
     },
