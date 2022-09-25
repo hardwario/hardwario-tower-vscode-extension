@@ -439,10 +439,12 @@ export function startDebug() {
     interface: 'swd',
     serverpath: '${command:hardwario.tower.locateJlink}',
     svdFile: './sdk/sys/svd/stm32l0x3.svd',
+    gdbPath: '${command:hardwario.tower.locateToolchain}',
     runToEntryPoint: 'application_init',
     executable: '${workspaceFolder}/out/debug/firmware.elf',
     windows: {
       serverpath: '${command:hardwario.tower.locateJlink}.exe',
+      gdbPath: '${command:hardwario.tower.locateToolchain}',
     },
   });
 }
