@@ -44,7 +44,7 @@ export class FlashSerial {
     this.verify = this.verify.bind(this);
 
     const config = vscode.workspace.getConfiguration();
-    const fasterFlashing = config.get('hardwario.tower.allowFasterFlashing');
+    const fasterFlashing = config.get('hardwario.tower.allowTurboFlashing');
     if (fasterFlashing) {
       this.port = new SerialPortFtdi(device, 921600, 'even');
     } else {

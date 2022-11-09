@@ -69,7 +69,7 @@
           "default": false,
           "description": "Let the extension save all the open dirty files"
         },
-        "hardwario.tower.allowFasterFlashing": {
+        "hardwario.tower.allowTurboFlashing": {
           "type": "boolean",
           "default": false,
           "description": "Allow faster flashing to the Core Module (caution: may cause some issues while flashing)"
