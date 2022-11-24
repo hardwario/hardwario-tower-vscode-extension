@@ -17,8 +17,12 @@ To work with the extension you can use the bottom bar of the VS Code or open the
 ### Portable version
 You can download the [Portable Visual Studio Code](https://drive.google.com/drive/u/3/folders/1gC91vzSR0O1RONRX6LMJ8_ug1_UOikpt) version that contains all the dependencies. And will work right after download.
 
+You can learn more about the HARDWARIO Code in the [About HARDWARIO Code documentation chapter](https://docs.hardwario.com/tower/firmware-development/about-hardwario-code).
+
 ### Normal Visual Studio Code
 If you want to put this extension into your already installed version of Visual Studio Code you will have to install all dependencies and put them into the PATH. The extension will warn you about everything you are missing at the start. If you see no warning you are good to go.
+
+You can learn more about the extension in the [TOWER VSCode Extension documentation chapter](https://docs.hardwario.com/tower/firmware-development/tower-vscode-extension).
 
 To install the extension, [download *.vsix from releases](https://github.com/hardwario/hardwario-tower-vscode-extension/releases), open your Visual Studio Code and go to `Extensions->...->Install from v VSIX...` and select the downloaded *.vsix
 
