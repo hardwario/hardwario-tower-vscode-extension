@@ -28,4 +28,6 @@ jobs:
         with:
           files: hardwario-tower-${{ env.GITHUB_TAG }}.vsix
       - name: Release the extension to marketplace
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
         run: vsce publish
