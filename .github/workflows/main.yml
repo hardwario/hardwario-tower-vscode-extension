@@ -20,10 +20,12 @@ jobs:
           sed -r -i'' "s/\"0.0.1\"/\"${{ env.GITHUB_TAG }}\"/g" package.json
           cat package.json
       - name: Pack the extension
-        run: vsce package --allow-star-activation
-      - name: Publish the extension;
+        run: vsce package
+      - name: Extension to Releases
         uses: softprops/action-gh-release@v0.1.5
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           files: hardwario-tower-${{ env.GITHUB_TAG }}.vsix
+      - name: Release the extension to marketplace
+        run: vsce publish
