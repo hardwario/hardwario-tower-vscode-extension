@@ -5,6 +5,8 @@
 
 Extension for Visual Studio Code made to help with firmware development
 
+This extension works with a [**HARDWARIO TOWER Modular IoT Kit**](https://shop.hardwario.com/?_ga=2.189709417.391614423.1669320979-324735601.1666821607).
+
 ## Features
 
 This extension takes care of building, flashing and console logging of your firmware. You can also clone firmware from GitHub so you don't have to start development from scratch.
