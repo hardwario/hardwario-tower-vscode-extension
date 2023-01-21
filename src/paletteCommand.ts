@@ -6,6 +6,7 @@ import * as path from 'path';
  * Class constructing palette commands
  */
 class PaletteCommand extends vscode.TreeItem {
+  // eslint-disable-next-line no-use-before-define
   children?: PaletteCommand[]|undefined;
 
   command?: vscode.Command|undefined;

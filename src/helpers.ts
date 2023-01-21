@@ -192,8 +192,8 @@ function appendToGitignore(workspacePath) {
     fs.readFile(path.join(workspacePath, '.gitignore'), (err, data) => {
       if (err) throw err;
       if (!data.includes(ignore)) {
-        fs.appendFile(path.join(workspacePath, '.gitignore'), `${ignore}\r\n`, (err) => {
-          if (err) throw err;
+        fs.appendFile(path.join(workspacePath, '.gitignore'), `${ignore}\r\n`, (error) => {
+          if (error) throw error;
         });
       }
     });
