@@ -9,6 +9,7 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 ## Added
 
 - Changelog for all the released versions
+- Basic extension tests
 
 ## Fixed
 
