@@ -211,7 +211,7 @@ function pushGeneralCommands() {
    * Open documentation website
    */
   contextGlobal.subscriptions.push(vscode.commands.registerCommand('hardwario.tower.openDocumentation', () => {
-    vscode.env.openExternal(vscode.Uri.parse('https://tower.hardwario.com/en/latest/'));
+    vscode.env.openExternal(vscode.Uri.parse('https://docs.hardwario.com/tower/'));
   }));
 
   /**

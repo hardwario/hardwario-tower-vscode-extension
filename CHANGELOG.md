@@ -6,6 +6,18 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 
+## Added
+
+- Changelog for all the released versions
+
+## Fixed
+
+- ESLint warnings
+
+## Changed
+
+- Link to the documentation so it points to the current documentation site
+
 ## [1.1.6] - 2022-11-24
 
 - Visual studio Extension Marketplace release
