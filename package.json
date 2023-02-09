@@ -314,6 +314,7 @@
     "glob": "^7.2.0",
     "mocha": "^9.1.3",
     "request": "^2.88.2",
-    "serialport": "^10.4.0"
+    "serialport": "^10.4.0",
+    "tree-kill": "^1.2.2"
   }
 }

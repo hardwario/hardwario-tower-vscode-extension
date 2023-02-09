@@ -8,11 +8,13 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## Added
 
+- Option to cancel build while it is running
 - Changelog for all the released versions
 - Basic extension tests
 
 ## Fixed
 
+- Possibility to run multiple builds simultaneously
 - ESLint warnings
 
 ## Changed

@@ -58,22 +58,5 @@ describe('HARDWARIO Code Basic Testing', () => {
         ]);
         customTreeItem = visItems[1];
     });
-    it('should be able to click Clone From Skeleton Project', async () => {
-        /* const actions = await customTreeItem.getActionButtons();
-        expect(actions.length).toBe(1);
-    
-        expect(actions[0].getLabel()).toBe('Call Me!'); */
-        await customTreeItem.select();
-        browser.debug();
-        // await actions[0].elem.click();
-        const workbench = await browser.getWorkbench();
-        await browser.waitUntil(async () => {
-            const notifs = await workbench.getNotifications();
-            const messages = await Promise.all(notifs.map((n) => n.getMessage()));
-            return messages.includes('I got called!');
-        }, {
-            timeoutMsg: 'Could not find notification as reaction to action item click',
-        });
-    });
 });
 //# sourceMappingURL=hardwario-extension-test.js.map

@@ -1,3 +1,4 @@
+/* eslint-disable prefer-promise-reject-errors */
 /* eslint-disable class-methods-use-this */
 /* eslint-disable no-use-before-define */
 /* eslint-disable max-len */
@@ -8,6 +9,8 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import { SerialPort } from 'serialport';
 import { spawn } from 'child_process';
+import { kill } from 'tree-kill';
+import treeKill = require('tree-kill');
 import getEnv from './output';
 import Terminal from './terminal';
 import * as helpers from './helpers';
@@ -21,6 +24,11 @@ import ConsoleWebViewProvider from './console/consoleWebView';
  */
 const cloneTerminal = new Terminal('HARDWARIO TOWER Clone');
 
+let cmakeProcess;
+let ninjaProcess;
+let buildCanceled = false;
+let buildRunning = false;
+
 /* Last selected folder used on cloning */
 let lastSelectedFolder = '';
 
@@ -32,16 +40,16 @@ let releaseBar: vscode.StatusBarItem;
 let contextGlobal: vscode.ExtensionContext;
 
 /* Console Web View provider */
-let webViewProvider : ConsoleWebViewProvider;
+let webViewProvider: ConsoleWebViewProvider;
 
 /* Instance of a serial port console */
-let serialConsole : SerialPortConsole;
+let serialConsole: SerialPortConsole;
 
 /* List of serial ports available for flashing */
-let serialPorts : any[];
+let serialPorts: any[];
 
 /* Currently selected serial port (item on the bottom bar) */
-let portSelection : vscode.StatusBarItem = null;
+let portSelection: vscode.StatusBarItem = null;
 
 /* Actual name of currently selected serial port */
 let selectedPort = '';
@@ -64,7 +72,7 @@ let flashing = false;
 
 let warningPresent = false;
 
-let hardwarioOutputChannel : vscode.OutputChannel;
+let hardwarioOutputChannel: vscode.OutputChannel;
 
 /**
  * Builds the project before the start of the debug session with Jlink
@@ -144,7 +152,7 @@ function pushGeneralCommands() {
     }
 
     helpers.updateFirmwareJson()
-      .then((data : string) => {
+      .then((data: string) => {
         const firmwareList = [];
         const json = JSON.parse(data);
 
@@ -204,7 +212,7 @@ function pushGeneralCommands() {
           }
         });
       })
-      .catch(() => {});
+      .catch(() => { });
   }));
 
   /**
@@ -260,7 +268,7 @@ function pushGeneralCommands() {
 function runNinja(resolve, reject, envClone) {
   const workspaceFolder = vscode.workspace.workspaceFolders[0];
 
-  const ninjaProcess = spawn(
+  ninjaProcess = spawn(
     'ninja',
     ['-C', `obj/${buildType.toLowerCase()}`],
     {
@@ -340,7 +348,7 @@ function initSdk(resolve, reject, envClone, workspaceFolder) {
 
 function buildWithCmake(resolve, reject, envClone, workspaceFolder) {
   if (!(helpers.isCmakeGenerated(buildType.toLowerCase()))) {
-    const cmakeProcess = spawn(
+    cmakeProcess = spawn(
       'cmake',
       [`-Bobj/${buildType.toLowerCase()}`, '.', '-G Ninja', '-DCMAKE_TOOLCHAIN_FILE=sdk/toolchain/toolchain.cmake', `-DTYPE=${buildType.toLowerCase()}`],
       {
@@ -371,7 +379,7 @@ function buildWithCmake(resolve, reject, envClone, workspaceFolder) {
         reject();
       }
     });
-  } else {
+  } else if (!buildCanceled) {
     runNinja(resolve, reject, envClone);
   }
 }
@@ -385,6 +393,12 @@ function pushHardwarioCommands() {
    * Build code with make and create final binary
    */
   contextGlobal.subscriptions.push(vscode.commands.registerCommand('hardwario.tower.build', () => {
+    if (buildRunning) {
+      vscode.window.showWarningMessage('Build is already running');
+      return;
+    }
+
+    buildRunning = true;
     helpers.checkDirtyFiles();
     warningPresent = false;
 
@@ -404,14 +418,23 @@ function pushHardwarioCommands() {
     vscode.window.withProgress({
       location: vscode.ProgressLocation.Notification,
       title: 'Build Firmware: Running...',
-      cancellable: false,
-    }, () => new Promise<void>((resolve, reject) => {
+      cancellable: true,
+    }, (_, token) => new Promise<void>((resolve, reject) => {
+      buildCanceled = false;
+
+      token.onCancellationRequested(() => {
+        buildCanceled = true;
+        treeKill(cmakeProcess.pid, 'SIGINT');
+        treeKill(ninjaProcess.pid, 'SIGINT');
+      });
+
       if (!fs.existsSync(path.join(workspaceFolder.uri.fsPath.toString(), 'sdk', 'CMakeLists.txt'))) {
         initSdk(resolve, reject, envClone, workspaceFolder);
       } else {
         buildWithCmake(resolve, reject, envClone, workspaceFolder);
       }
     }).then(() => {
+      buildRunning = false;
       let output = '';
       if (warningPresent) {
         hardwarioOutputChannel.show(false);
@@ -443,21 +466,38 @@ function pushHardwarioCommands() {
         hardwarioOutputChannel.appendLine('----------------------------------------------------------------------------------------------------');
       }
     }).catch(() => {
+      buildRunning = false;
       hardwarioOutputChannel.show(false);
 
       flashAfterBuild = false;
       logAfterFlash = false;
-      vscode.window.showErrorMessage(
-        'Build Firmware: Failure',
-      )
-        .then((answer) => {
-          if (answer === 'Show the output') {
-            hardwarioOutputChannel.show(false);
-          }
-        });
-      hardwarioOutputChannel.appendLine('----------------------------------------------------------------------------------------------------');
-      hardwarioOutputChannel.appendLine('                      TOWER: Build finished with errors (NO FIRMWARE GENERATED)                     ');
-      hardwarioOutputChannel.appendLine('----------------------------------------------------------------------------------------------------');
+
+      if (buildCanceled) {
+        vscode.window.showWarningMessage(
+          'Build Firmware: Canceled',
+        )
+          .then((answer) => {
+            if (answer === 'Show the output') {
+              hardwarioOutputChannel.show(false);
+            }
+          });
+        hardwarioOutputChannel.appendLine('');
+        hardwarioOutputChannel.appendLine('----------------------------------------------------------------------------------------------------');
+        hardwarioOutputChannel.appendLine('                                     TOWER: Build canceled                                          ');
+        hardwarioOutputChannel.appendLine('----------------------------------------------------------------------------------------------------');
+      } else {
+        vscode.window.showErrorMessage(
+          'Build Firmware: Failure',
+        )
+          .then((answer) => {
+            if (answer === 'Show the output') {
+              hardwarioOutputChannel.show(false);
+            }
+          });
+        hardwarioOutputChannel.appendLine('----------------------------------------------------------------------------------------------------');
+        hardwarioOutputChannel.appendLine('                      TOWER: Build finished with errors (NO FIRMWARE GENERATED)                     ');
+        hardwarioOutputChannel.appendLine('----------------------------------------------------------------------------------------------------');
+      }
     }));
   }));
 
@@ -1062,7 +1102,7 @@ export function deviceDisconnected() {
 }
 
 // this method is called when your extension is deactivated
-export function deactivate() {}
+export function deactivate() { }
 
 /**
  * Debug configuration with HARDWARIO TOWER Debug name
@@ -1070,7 +1110,7 @@ export function deactivate() {}
  */
 class HardwarioTowerDebugConfigurationProvider implements vscode.DebugConfigurationProvider {
   resolveDebugConfiguration(_folder: vscode.WorkspaceFolder |
-    undefined, config: vscode.DebugConfiguration):vscode.ProviderResult<vscode.DebugConfiguration> {
+    undefined, config: vscode.DebugConfiguration): vscode.ProviderResult<vscode.DebugConfiguration> {
     // if launch.json is missing or empty
     if (!config.type && !config.request && !config.name) {
       const editor = vscode.window.activeTextEditor;
