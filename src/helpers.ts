@@ -164,23 +164,23 @@ export function addSetting() {
 
   const fileAssociations = vscode.workspace.getConfiguration('files.associations').get('ranges');
 
-  if (includePath === null || includePath.length === 0) {
+  if (includePath === null || includePath === undefined || includePath.length === 0) {
     vscode.workspace.getConfiguration('C_Cpp.default').update('includePath', includePathSetting);
   }
 
-  if (browsePath === null || browsePath.length === 0) {
+  if (browsePath === null || browsePath === undefined || browsePath.length === 0) {
     vscode.workspace.getConfiguration('C_Cpp.default.browse').update('path', browsePathSetting);
   }
 
-  if (cStandard === '') {
+  if (cStandard === '' || cStandard === null || cStandard === undefined) {
     vscode.workspace.getConfiguration('C_Cpp.default').update('cStandard', 'c11');
   }
 
-  if (fileAssociations === '') {
+  if (fileAssociations === '' || fileAssociations === null || fileAssociations === undefined) {
     vscode.workspace.getConfiguration('files.associations').update('ranges', 'c');
   }
 
-  if (terminalIntegratedShell === null || terminalIntegratedShell === '') {
+  if (terminalIntegratedShell === null || terminalIntegratedShell === undefined || terminalIntegratedShell === '') {
     vscode.workspace.getConfiguration('terminal.integrated.shell').update('windows', 'C:\\Windows\\sysnative\\cmd.exe');
   }
 }
