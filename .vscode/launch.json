@@ -30,20 +30,5 @@
 			],
 			"preLaunchTask": "${defaultBuildTask}"
 		},
-		{
-			"name": "WebdriverIO",
-			"type": "node",
-			"request": "launch",
-			"args": ["wdio.conf.js"],
-			"cwd": "${workspaceFolder}",
-			"autoAttachChildProcesses": true,
-			"program": "${workspaceRoot}/node_modules/@wdio/cli/bin/wdio.js",
-			"console": "integratedTerminal",
-			"skipFiles": [
-				"${workspaceFolder}/node_modules/**/*.js",
-				"${workspaceFolder}/lib/**/*.js",
-				"<node_internals>/**/*.js"
-			]
-		},
 	]
 }
