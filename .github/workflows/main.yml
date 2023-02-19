@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     environment: linux
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
           node-version: '18'
@@ -22,7 +22,7 @@ jobs:
       - name: Pack the extension
         run: vsce package
       - name: Extension to Releases
-        uses: softprops/action-gh-release@v0.1.5
+        uses: softprops/action-gh-release@v1
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
