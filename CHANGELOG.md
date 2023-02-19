@@ -6,6 +6,8 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 
+## [1.2.0] - 2023-02-19
+
 ## Added
 
 - Option to cancel build while it is running
@@ -14,12 +16,16 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## Fixed
 
-- Possibility to run multiple builds simultaneously
 - ESLint warnings
+- Firmware cloning commands (allow cancellation)
 
 ## Changed
 
 - Link to the documentation so it points to the current documentation site
+
+## Removed
+
+- Possibility to run multiple builds simultaneously
 
 ## [1.1.6] - 2022-11-24
 
