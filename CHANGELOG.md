@@ -6,6 +6,12 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 
+## [1.2.1] - 2023-02-19
+
+## Fixed
+
+- Windows serial number reading by fixing SerialPort package to version 10.4.0
+
 ## [1.2.0] - 2023-02-19
 
 ## Added
