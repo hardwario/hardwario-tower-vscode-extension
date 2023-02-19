@@ -112,7 +112,9 @@ export function checkCommand(command, warningMessage, firstOption, secondOption,
           vscode.env.openExternal(vscode.Uri.parse(guideLink));
         }
       });
+    return false;
   }
+  return true;
 }
 
 /**

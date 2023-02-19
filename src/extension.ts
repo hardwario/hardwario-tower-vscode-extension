@@ -102,7 +102,17 @@ function pushGeneralCommands() {
    */
   contextGlobal.subscriptions.push(vscode.commands.registerCommand('hardwario.tower.cloneSkeleton', async () => {
     if ((helpers.isPortable() && helpers.LINUX) || (!helpers.isPortable())) {
-      helpers.checkCommand('git', "Please install git with 'sudo apt install git' and restart VSCode", 'How to install git', 'Cancel', 'https://git-scm.com/book/en/v2/Getting-Started-Installing-Git');
+      if (!helpers.checkCommand(
+        'git',
+        "Please install git with 'sudo apt install git' and restart VSCode",
+        'How to install git',
+
+        'Cancel',
+
+        'https://git-scm.com/book/en/v2/Getting-Started-Installing-Git',
+      )) {
+        return;
+      }
     }
 
     const options: vscode.OpenDialogOptions = {
@@ -123,15 +133,15 @@ function pushGeneralCommands() {
 
         const inputOptions = {
           value: 'twr-skeleton',
-          title: 'Skeleton firmware folder name',
+          title: 'New project folder name',
         };
 
         vscode.window.showInputBox(inputOptions).then((text) => {
           if (text === undefined || text === '') {
-            folderUriString += 'twr-skeleton';
-          } else {
-            folderUriString += text;
+            return;
           }
+          folderUriString += text;
+
           cloneTerminal.get().sendText(`git clone --recursive https://github.com/hardwario/twr-skeleton.git "${folderUriString}" && exit`);
           cloneTerminal.get().show();
           helpers.checkDirtyFiles();
@@ -147,7 +157,17 @@ function pushGeneralCommands() {
    */
   contextGlobal.subscriptions.push(vscode.commands.registerCommand('hardwario.tower.cloneFirmware', async () => {
     if ((helpers.isPortable() && helpers.LINUX) || (!helpers.isPortable())) {
-      helpers.checkCommand('git', "Please install git with 'sudo apt install git' and restart VSCode", 'How to install git', 'Cancel', 'https://git-scm.com/book/en/v2/Getting-Started-Installing-Git');
+      if (!helpers.checkCommand(
+        'git',
+        "Please install git with 'sudo apt install git' and restart VSCode",
+        'How to install git',
+
+        'Cancel',
+
+        'https://git-scm.com/book/en/v2/Getting-Started-Installing-Git',
+      )) {
+        return;
+      }
     }
 
     helpers.updateFirmwareJson()
@@ -191,15 +211,15 @@ function pushGeneralCommands() {
 
                 const inputOptions = {
                   value: pickedItem.label,
-                  title: 'Skeleton firmware folder name',
+                  title: 'New project folder name',
                 };
 
                 vscode.window.showInputBox(inputOptions).then((text) => {
                   if (text === undefined || text === '') {
-                    folderUriString += pickedItem.label;
-                  } else {
-                    folderUriString += text;
+                    return;
                   }
+                  folderUriString += text;
+
                   cloneTerminal.get().sendText(`git clone --recursive ${pickedItem.link} "${folderUriString}" && exit`);
                   cloneTerminal.get().show();
                   helpers.checkDirtyFiles();
