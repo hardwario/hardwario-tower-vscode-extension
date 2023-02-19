@@ -289,7 +289,7 @@ function runNinja(resolve, reject, envClone) {
 
   ninjaProcess = spawn(
     'ninja',
-    ['-C', `obj/${buildType.toLowerCase()}`, '-v'],
+    ['-C', `obj/${buildType.toLowerCase()}`],
     {
       cwd: workspaceFolder.uri.fsPath.toString(),
       env: envClone,
