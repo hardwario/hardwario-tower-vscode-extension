@@ -14,7 +14,7 @@ import getEnv from './output';
 import Terminal from './terminal';
 import * as helpers from './helpers';
 import PaletteProvider from './palette';
-import { flash } from './flasher/flasherSerial';
+import { flash, cancelFlashing } from './flasher/flasherSerial';
 import SerialPortConsole from './console/serialReader';
 import ConsoleWebViewProvider from './console/consoleWebView';
 
@@ -27,6 +27,8 @@ let cmakeProcess;
 let ninjaProcess;
 let buildCanceled = false;
 let buildRunning = false;
+
+let flashingCanceled = false;
 
 /* Last selected folder used on cloning */
 let lastSelectedFolder = '';
@@ -547,9 +549,16 @@ function pushHardwarioCommands() {
     vscode.window.withProgress({
       location: vscode.ProgressLocation.Notification,
       title: 'HARDWARIO TOWER Flash',
-      cancellable: false,
-    }, (progress) => flash(selectedPort, firmwarePath, (type, flashProgress, progressMax) => {
+      cancellable: true,
+    }, (progress, token) => flash(selectedPort, firmwarePath, (type, flashProgress, progressMax) => {
       const percent = Math.round((flashProgress / progressMax) * 100);
+
+      flashingCanceled = false;
+
+      token.onCancellationRequested(() => {
+        flashingCanceled = true;
+        cancelFlashing();
+      });
 
       if (type === 'erase') {
         progress.report({ increment: percent - lastPercent, message: 'Erasing' });
@@ -572,10 +581,12 @@ function pushHardwarioCommands() {
       })
       .catch((e) => {
         flashing = false;
-        vscode.window.showWarningMessage('Flash Firmware: Failure');
-        vscode.window.showWarningMessage(
-          e.toString(),
-        );
+        if (flashingCanceled) {
+          vscode.window.showWarningMessage('Flash Firmware: Canceled');
+        } else {
+          vscode.window.showWarningMessage('Flash Firmware: Failure');
+          vscode.window.showWarningMessage(e.toString());
+        }
       }));
   }));
 

@@ -23,6 +23,8 @@ const COMMAND_MEMORY_READ = Buffer.from([0x11, 0xee]);
 const COMMAND_MEMORY_WRITE = Buffer.from([0x31, 0xce]);
 const COMMAND_EX_ERASE_MEMORY = Buffer.from([0x44, 0xbb]);
 
+let s = null;
+
 export class FlashSerial {
   port: any;
 
@@ -433,11 +435,17 @@ export class FlashSerial {
   }
 }
 
+export function cancelFlashing() {
+  if (s) {
+    s.disconnect().catch(() => {});
+  }
+}
+
 export function flash(device, firmwarePath, reportHook = null) {
   return new Promise((resolve, reject) => {
     const firmware = fs.readFileSync(firmwarePath);
 
-    const s = new FlashSerial(device);
+    s = new FlashSerial(device);
 
     s.connect()
       .then(() => s.erase(firmware.length, (a, b) => { reportHook('erase', a, b); }))

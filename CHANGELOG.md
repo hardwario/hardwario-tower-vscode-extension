@@ -6,6 +6,10 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 
+## Added
+
+- Possibility to cancel flashing process
+
 ## [1.2.1] - 2023-02-19
 
 ## Fixed
